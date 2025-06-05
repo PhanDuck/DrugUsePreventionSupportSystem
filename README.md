@@ -1,7 +1,7 @@
 "# DrugUsePreventionSupportSystem" 
 # README.md with setup instructions
 
-# Android Project Git Setup
+# Website Project Git Setup
 
 ## 1. Clone the Repository
 ```sh
@@ -9,13 +9,12 @@ git clone <repository_url>
 cd your-project
 ```
 
-## 2. Sync Dependencies
-Open the project in Android Studio and select **"Sync Gradle"**.
+## 2.  Start the Development Server
+Typically for npm scripts:
 
-Or run manually:
 ```sh
-./gradlew clean
-./gradlew build
+npm start
+npm run dev
 ```
 
 ## 3. Creating a New Feature Branch
