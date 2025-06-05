@@ -73,15 +73,28 @@ export default function HomePage() {
           {/* Banner đầu trang */}
           <div style={{
             background: 'linear-gradient(120deg, #1f7c83 60%, #6edcc1 100%)',
-            color: '#fff', padding: '60px 0 40px 0', textAlign: 'center'
+            color: '#fff', 
+            padding: 'clamp(40px, 5vw, 60px) 0 clamp(30px, 4vw, 40px) 0', 
+            textAlign: 'center'
           }}>
-            <Title style={{ color: '#fff', fontWeight: 700 }}>
+            <Title style={{ 
+              color: '#fff', 
+              fontWeight: 700,
+              fontSize: 'clamp(24px, 4vw, 36px)',
+              margin: '0 auto',
+              maxWidth: '90%'
+            }}>
               Cùng Cộng Đồng Đẩy Lùi Ma Túy
             </Title>
-            <Paragraph style={{ color: '#fff', fontSize: 18, maxWidth: 550, margin: '0 auto 24px auto' }}>
+            <Paragraph style={{ 
+              color: '#fff', 
+              fontSize: 'clamp(16px, 2vw, 18px)', 
+              maxWidth: 'min(550px, 90%)', 
+              margin: 'clamp(16px, 2vw, 24px) auto' 
+            }}>
               Hỗ trợ, giáo dục, phòng ngừa và xây dựng môi trường lành mạnh cho thế hệ trẻ.
             </Paragraph>
-            <Space>
+            <Space wrap style={{ gap: '12px' }}>
               <Link to="/courses">
                 <Button size="large" type="primary" style={{ fontWeight: 600 }}>Khóa học nổi bật</Button>
               </Link>
@@ -95,23 +108,47 @@ export default function HomePage() {
           </div>
 
           {/* Khóa học nổi bật */}
-          <div style={{ marginTop: 64 }}>
-            <Title level={3} style={{ textAlign: 'center', marginBottom: 32 }}>Khóa học nổi bật</Title>
+          <div style={{ 
+            marginTop: 'clamp(32px, 5vw, 64px)',
+            padding: '0 clamp(16px, 3vw, 24px)'
+          }}>
+            <Title level={3} style={{ 
+              textAlign: 'center', 
+              marginBottom: 'clamp(24px, 3vw, 32px)',
+              fontSize: 'clamp(20px, 3vw, 24px)'
+            }}>Khóa học nổi bật</Title>
             <Row gutter={[24, 24]} justify="center">
               {featuredCourses.map((course, idx) => (
                 <Col xs={24} sm={12} md={8} key={idx}>
                   <Card
                     hoverable
-                    cover={<img alt={course.title} src={course.image} style={{ height: 180, objectFit: 'cover' }} />}
-                    style={{ textAlign: 'center', minHeight: 300 }}
+                    cover={<img alt={course.title} src={course.image} style={{ 
+                      height: 'clamp(160px, 25vw, 180px)', 
+                      objectFit: 'cover' 
+                    }} />}
+                    style={{ 
+                      textAlign: 'center', 
+                      minHeight: 'clamp(280px, 40vw, 300px)',
+                      height: '100%'
+                    }}
                   >
                     <span style={{ display: 'block', marginBottom: 8 }}>
                       <Tag color="blue">{course.ageGroup}</Tag>
                     </span>
-                    <Title level={4}>{course.title}</Title>
-                    <Paragraph style={{ minHeight: 48 }}>{course.description}</Paragraph>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 16 }}>
-                      <ClockCircleOutlined style={{ fontSize: 18, color: '#888' }} />
+                    <Title level={4} style={{ fontSize: 'clamp(16px, 2vw, 18px)' }}>{course.title}</Title>
+                    <Paragraph style={{ 
+                      minHeight: 'clamp(40px, 6vw, 48px)',
+                      fontSize: 'clamp(14px, 1.5vw, 16px)'
+                    }}>{course.description}</Paragraph>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: 8, 
+                      marginTop: 8, 
+                      marginBottom: 16 
+                    }}>
+                      <ClockCircleOutlined style={{ fontSize: 'clamp(16px, 1.5vw, 18px)', color: '#888' }} />
                       <span style={{ fontWeight: 500 }}>{course.duration}</span>
                     </div>
                     <Link to={course.link}>
@@ -124,10 +161,17 @@ export default function HomePage() {
           </div>
 
           {/* Bài viết & Video nổi bật */}
-          <div style={{ maxWidth: 1200, margin: '24px auto', padding: '0 16px' }}>
-            <Row gutter={32}>
+          <div style={{ 
+            maxWidth: 1200, 
+            margin: 'clamp(16px, 3vw, 24px) auto', 
+            padding: '0 clamp(16px, 3vw, 24px)' 
+          }}>
+            <Row gutter={[24, 24]}>
               <Col xs={24} md={12}>
-                <Title level={4} style={{ margin: '16px 0' }}>Bài viết nổi bật</Title>
+                <Title level={4} style={{ 
+                  margin: 'clamp(12px, 2vw, 16px) 0',
+                  fontSize: 'clamp(18px, 2.5vw, 20px)'
+                }}>Bài viết nổi bật</Title>
                 <List
                     itemLayout="horizontal"
                     dataSource={featuredPosts}
@@ -156,7 +200,10 @@ export default function HomePage() {
                 <Link to="/blog"><Button type="link">Xem tất cả bài viết</Button></Link>
               </Col>
               <Col xs={24} md={12}>
-                <Title level={4} style={{ margin: '16px 0' }}>Video nổi bật</Title>
+                <Title level={4} style={{ 
+                  margin: 'clamp(12px, 2vw, 16px) 0',
+                  fontSize: 'clamp(18px, 2.5vw, 20px)'
+                }}>Video nổi bật</Title>
                 <Row gutter={[16, 16]}>
                   {featuredVideos.map(video => (
                       <Col xs={24} sm={12} key={video.id}>
@@ -174,7 +221,10 @@ export default function HomePage() {
                             bodyStyle={{ padding: 12 }}
                             style={{ borderRadius: 10 }}
                         >
-                          <Title level={5} style={{ marginBottom: 4 }}>
+                          <Title level={5} style={{ 
+                            marginBottom: 4,
+                            fontSize: 'clamp(14px, 1.5vw, 16px)'
+                          }}>
                             <Link to={video.link}>{video.title}</Link>
                           </Title>
                         </Card>
@@ -187,22 +237,33 @@ export default function HomePage() {
           </div>
 
           {/* Giới thiệu nhanh & liên kết chính */}
-          <div style={{ background: '#fff', marginTop: 30, padding: 32 }}>
-            <Row gutter={32} align="middle">
+          <div style={{ 
+            background: '#fff', 
+            marginTop: 'clamp(24px, 4vw, 30px)', 
+            padding: 'clamp(24px, 4vw, 32px)'
+          }}>
+            <Row gutter={[24, 24]} align="middle">
               <Col xs={24} md={16}>
-                <Title level={4}>Về chúng tôi</Title>
-                <Paragraph>
+                <Title level={4} style={{ fontSize: 'clamp(18px, 2.5vw, 20px)' }}>Về chúng tôi</Title>
+                <Paragraph style={{ fontSize: 'clamp(14px, 1.5vw, 16px)' }}>
                   <b>Tổ chức Tình nguyện 3 chữ</b> cam kết đồng hành cùng cộng đồng trong công tác phòng ngừa và giảm tác hại của ma túy. Chúng tôi cung cấp các chương trình giáo dục, khảo sát đánh giá, tư vấn và nhiều hoạt động truyền thông hiệu quả.
                 </Paragraph>
-                <Space size="middle">
+                <Space size="middle" wrap style={{ gap: '12px' }}>
                   <Link to="/blog">Chia sẻ kinh nghiệm</Link>
                   <Link to="/survey">Khảo sát đánh giá nguy cơ</Link>
                   <Link to="/appointment">Đặt lịch hẹn tư vấn</Link>
                 </Space>
               </Col>
               <Col xs={24} md={8} style={{ textAlign: 'center' }}>
-                <img src="https://plus.unsplash.com/premium_photo-1675865396004-c7b86406affe?q=80&w=1925&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="community support" width={100} />
-                <Paragraph>
+                <img 
+                  src="https://plus.unsplash.com/premium_photo-1675865396004-c7b86406affe?q=80&w=1925&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="community support" 
+                  style={{ 
+                    width: 'clamp(80px, 15vw, 100px)',
+                    height: 'auto'
+                  }} 
+                />
+                <Paragraph style={{ fontSize: 'clamp(14px, 1.5vw, 16px)' }}>
                   <Text strong>Hotline hỗ trợ:</Text> <a href="tel:0123456789">0123 456 789</a>
                 </Paragraph>
               </Col>

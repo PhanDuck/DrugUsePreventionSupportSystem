@@ -28,25 +28,53 @@ const courses = [
 export default function CoursesPage() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: '40px' }}>
+      <Content style={{ 
+        padding: 'clamp(20px, 5vw, 40px)',
+        maxWidth: '1400px',
+        margin: '0 auto'
+      }}>
         <Row justify="center">
           <Col xs={24} md={20}>
-            <Title level={3}>Các khóa học về phòng ngừa ma túy</Title>
+            <Title level={3} style={{ 
+              fontSize: 'clamp(20px, 3vw, 24px)',
+              marginBottom: 'clamp(24px, 4vw, 32px)'
+            }}>Các khóa học về phòng ngừa ma túy</Title>
             <Row gutter={[24, 24]}>
               {courses.map((item, idx) => (
                 <Col xs={24} sm={12} md={8} key={idx}>
                   <Card
                     hoverable
-                    cover={<img alt={item.title} src={item.image} style={{ height: 180, objectFit: 'cover' }} />}
+                    cover={<img alt={item.title} src={item.image} style={{ 
+                      height: 'clamp(160px, 25vw, 180px)', 
+                      objectFit: 'cover' 
+                    }} />}
                     actions={[
                       <Button type="primary" block>ĐĂNG KÝ HỌC</Button>
                     ]}
+                    style={{ height: '100%' }}
                   >
-                    <Title level={4}>{item.title}</Title>
-                    <Paragraph>{item.description}</Paragraph>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                      <ClockCircleOutlined style={{ fontSize: 18, color: '#888' }} />
-                      <span style={{ fontWeight: 500 }}>{item.duration}</span>
+                    <Title level={4} style={{ 
+                      fontSize: 'clamp(16px, 2vw, 18px)',
+                      marginBottom: 'clamp(8px, 1.5vw, 12px)'
+                    }}>{item.title}</Title>
+                    <Paragraph style={{ 
+                      fontSize: 'clamp(14px, 1.5vw, 16px)',
+                      marginBottom: 'clamp(8px, 1.5vw, 12px)'
+                    }}>{item.description}</Paragraph>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8, 
+                      marginTop: 'clamp(8px, 1.5vw, 12px)'
+                    }}>
+                      <ClockCircleOutlined style={{ 
+                        fontSize: 'clamp(16px, 1.5vw, 18px)', 
+                        color: '#888' 
+                      }} />
+                      <span style={{ 
+                        fontWeight: 500,
+                        fontSize: 'clamp(14px, 1.5vw, 16px)'
+                      }}>{item.duration}</span>
                     </div>
                   </Card>
                 </Col>
