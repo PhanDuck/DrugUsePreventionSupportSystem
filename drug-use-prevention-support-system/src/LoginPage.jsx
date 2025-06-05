@@ -38,19 +38,22 @@ const LoginPage = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1f7c83 0%, #2c3e50 100%)' }}>
-      <Content style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+    <Layout style={{ minHeight: '100vh', width: '100vw', background: 'linear-gradient(135deg, #1f7c83 0%, #6edcc1 100%)' }}>
+      <Content style={{
+        minHeight: '100vh',
+        width: '100vw',
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: 'clamp(20px, 5vw, 40px)'
+        padding: 0,
       }}>
         <Card
           style={{
             width: '100%',
-            maxWidth: '600px',
+            maxWidth: 400,
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            borderRadius: '8px',
+            borderRadius: '12px',
+            background: 'rgba(255,255,255,0.97)',
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>

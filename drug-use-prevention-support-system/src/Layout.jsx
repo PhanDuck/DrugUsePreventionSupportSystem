@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, theme } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -68,7 +68,7 @@ const LayoutComponent = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', width: '100vw' }}>
       <Header style={{ 
         display: 'flex', 
         alignItems: 'center',
@@ -77,7 +77,7 @@ const LayoutComponent = () => {
         position: 'sticky',
         top: 0,
         zIndex: 1,
-        width: '100%',
+        width: '100vw',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
         <div style={{ 
@@ -85,8 +85,6 @@ const LayoutComponent = () => {
           display: 'flex', 
           justifyContent: 'space-between',
           alignItems: 'center',
-          maxWidth: '1400px',
-          margin: '0 auto',
           width: '100%'
         }}>
           <div style={{ 
@@ -104,16 +102,17 @@ const LayoutComponent = () => {
               flex: 1, 
               justifyContent: 'flex-end',
               border: 'none',
-              background: 'transparent'
+              background: 'transparent',
+              width: '100%'
             }}
           />
         </div>
       </Header>
       <Content style={{ 
         padding: 'clamp(20px, 5vw, 40px)',
-        maxWidth: '1400px',
-        margin: '0 auto',
-        width: '100%'
+        width: '100vw',
+        minHeight: 'calc(100vh - 64px - 64px)',
+        background: '#f9fafb'
       }}>
         <div
           style={{
@@ -121,6 +120,7 @@ const LayoutComponent = () => {
             minHeight: 360,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+            width: '100%'
           }}
         >
           <Outlet />
@@ -129,7 +129,8 @@ const LayoutComponent = () => {
       <Footer style={{ 
         textAlign: 'center',
         background: colorBgContainer,
-        padding: 'clamp(16px, 3vw, 24px)'
+        padding: 'clamp(16px, 3vw, 24px)',
+        width: '100vw'
       }}>
         Drug Prevention Support System ©{new Date().getFullYear()} Created by Your Team
       </Footer>

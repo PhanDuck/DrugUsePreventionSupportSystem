@@ -61,171 +61,168 @@ export default function RegisterPage() {
   };
 
   return (
-    <Layout style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1f7c83 0%, #6edcc1 100%)'
-    }}>
-      <Content style={{ 
-        padding: 'clamp(16px, 3vw, 24px)',
+    <Layout style={{ minHeight: '100vh', width: '100vw', background: 'linear-gradient(135deg, #1f7c83 0%, #6edcc1 100%)' }}>
+      <Content style={{
+        minHeight: '100vh',
+        width: '100vw',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        padding: 0,
       }}>
-        <Row style={{ width: '100%', maxWidth: '500px' }}>
-          <Col span={24}>
-            <Card
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                background: 'rgba(255, 255, 255, 0.95)',
-              }}
+        <Card
+          style={{
+            width: '100%',
+            maxWidth: 400,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            borderRadius: '12px',
+            background: 'rgba(255,255,255,0.97)',
+          }}
+        >
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div style={{ textAlign: 'center' }}>
+              <Title level={3} style={{ color: '#1f7c83', marginBottom: '8px' }}>
+                Đăng ký tài khoản
+              </Title>
+              <Text type="secondary">
+                Tạo tài khoản mới để bắt đầu
+              </Text>
+            </div>
+
+            <Form
+              form={form}
+              name="register"
+              onFinish={onFinish}
+              layout="vertical"
+              size="large"
+              requiredMark={false}
             >
-              <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <Title level={3} style={{ color: '#1f7c83', marginBottom: '8px' }}>
-                    Đăng ký tài khoản
-                  </Title>
-                  <Text type="secondary">
-                    Tạo tài khoản mới để bắt đầu
-                  </Text>
-                </div>
+              <Form.Item
+                name="fullName"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập họ và tên!' },
+                  { min: 2, message: 'Họ và tên phải có ít nhất 2 ký tự!' }
+                ]}
+              >
+                <Input
+                  prefix={<UserOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Họ và tên"
+                />
+              </Form.Item>
 
-                <Form
-                  form={form}
-                  name="register"
-                  onFinish={onFinish}
-                  layout="vertical"
-                  size="large"
-                  requiredMark={false}
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập email!' },
+                  { type: 'email', message: 'Email không hợp lệ!' }
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Email"
+                  type="email"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="phone"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                  { pattern: /^[0-9]{10}$/, message: 'Số điện thoại không hợp lệ!' }
+                ]}
+              >
+                <Input
+                  prefix={<PhoneOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Số điện thoại"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="username"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                  { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' }
+                ]}
+              >
+                <Input
+                  prefix={<UserOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Tên đăng nhập"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="password"
+                rules={[
+                  { validator: validatePassword }
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Mật khẩu"
+                  iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="confirmPassword"
+                dependencies={['password']}
+                rules={[
+                  { validator: validateConfirmPassword }
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
+                  placeholder="Xác nhận mật khẩu"
+                  iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="agreement"
+                valuePropName="checked"
+                rules={[
+                  { validator: (_, value) => 
+                    value ? Promise.resolve() : Promise.reject('Vui lòng đồng ý với điều khoản sử dụng!')
+                  }
+                ]}
+              >
+                <Checkbox>
+                  Tôi đồng ý với <a href="/terms" style={{ color: '#1f7c83' }}>điều khoản sử dụng</a>
+                </Checkbox>
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={loading}
+                  style={{
+                    height: '40px',
+                    background: '#1f7c83',
+                    border: 'none',
+                    borderRadius: '8px'
+                  }}
                 >
-                  <Form.Item
-                    name="fullName"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập họ và tên!' },
-                      { min: 2, message: 'Họ và tên phải có ít nhất 2 ký tự!' }
-                    ]}
-                  >
-                    <Input
-                      prefix={<UserOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Họ và tên"
-                    />
-                  </Form.Item>
+                  Đăng ký
+                </Button>
+              </Form.Item>
+            </Form>
 
-                  <Form.Item
-                    name="email"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập email!' },
-                      { type: 'email', message: 'Email không hợp lệ!' }
-                    ]}
-                  >
-                    <Input
-                      prefix={<MailOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Email"
-                      type="email"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="phone"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                      { pattern: /^[0-9]{10}$/, message: 'Số điện thoại không hợp lệ!' }
-                    ]}
-                  >
-                    <Input
-                      prefix={<PhoneOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Số điện thoại"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="username"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
-                      { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' }
-                    ]}
-                  >
-                    <Input
-                      prefix={<UserOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Tên đăng nhập"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="password"
-                    rules={[
-                      { validator: validatePassword }
-                    ]}
-                  >
-                    <Input.Password
-                      prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Mật khẩu"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="confirmPassword"
-                    dependencies={['password']}
-                    rules={[
-                      { validator: validateConfirmPassword }
-                    ]}
-                  >
-                    <Input.Password
-                      prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
-                      placeholder="Xác nhận mật khẩu"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="agreement"
-                    valuePropName="checked"
-                    rules={[
-                      { validator: (_, value) => 
-                        value ? Promise.resolve() : Promise.reject('Vui lòng đồng ý với điều khoản sử dụng!')
-                      }
-                    ]}
-                  >
-                    <Checkbox>
-                      Tôi đồng ý với <a href="/terms" style={{ color: '#1f7c83' }}>điều khoản sử dụng</a>
-                    </Checkbox>
-                  </Form.Item>
-
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      block
-                      loading={loading}
-                      style={{
-                        height: '40px',
-                        background: '#1f7c83',
-                        border: 'none',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Đăng ký
-                    </Button>
-                  </Form.Item>
-                </Form>
-
-                <div style={{ textAlign: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-                  <Text type="secondary">
-                    Đã có tài khoản?{' '}
-                    <Button
-                      type="link"
-                      onClick={() => navigate('/login')}
-                      style={{ padding: 0, color: '#1f7c83' }}
-                    >
-                      Đăng nhập ngay
-                    </Button>
-                  </Text>
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        </Row>
+            <div style={{ textAlign: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+              <Text type="secondary">
+                Đã có tài khoản?{' '}
+                <Button
+                  type="link"
+                  onClick={() => navigate('/login')}
+                  style={{ padding: 0, color: '#1f7c83' }}
+                >
+                  Đăng nhập ngay
+                </Button>
+              </Text>
+            </div>
+          </Space>
+        </Card>
       </Content>
     </Layout>
   );
