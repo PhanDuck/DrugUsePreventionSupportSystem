@@ -1,0 +1,133 @@
+.register-container {
+    min-height: 100vh;
+    min-width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(120deg, #b2fefa 0%, #0ed2f7 100%);
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 430px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 10px 32px rgba(14, 210, 247, 0.12), 0 2px 4px rgba(60, 60, 60, 0.08);
+    padding: 2.8rem 2rem 2rem 2rem;
+    animation: pop-in 0.5s cubic-bezier(.25,.74,.22,.99);
+    box-sizing: border-box;
+}
+@media (max-width: 500px) {
+    .register-card {
+        padding: 1.5rem .6rem;
+        max-width: 99vw;
+    }
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 1.1rem;
+}
+.register-header h1 {
+    font-size: 2rem;
+    color: #0ed2f7;
+    font-weight: bold;
+}
+.register-header p {
+    color: #333;
+    margin-top: .35rem;
+    font-size: 1.07rem;
+}
+
+.register-form .form-group {
+    margin-bottom: 1.07em;
+}
+.register-form label {
+    display: block;
+    margin-bottom: .45em;
+    color: #0ed2f7;
+    font-weight: 500;
+}
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="password"] {
+    width: 100%;
+    padding: 0.7em 0.8em;
+    border: 1.5px solid #e3e6ea;
+    border-radius: 7px;
+    font-size: 1em;
+    transition: border .19s, box-shadow .19s;
+    box-sizing: border-box;
+    background: #f9fbfe;
+}
+.register-form input:focus {
+    border-color: #0ed2f7;
+    box-shadow: 0 0 0 1.5px #b2fefa44;
+}
+.register-form .error {
+    border-color: #fd5e53;
+    background: #fff6f5;
+}
+.error-message {
+    font-size: .93em;
+    color: #fd5e53;
+    margin-top: .16em;
+    display: block;
+}
+
+.register-button {
+    width: 100%;
+    padding: .75em 0;
+    background: linear-gradient(90deg, #0ed2f7 60%, #b2fefa 100%);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 1.09em;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: .03em;
+    transition: background .18s, box-shadow .18s;
+    box-shadow: 0 2px 8px #10cff468;
+    margin-top: .2em;
+}
+.register-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.register-footer {
+    text-align: center;
+    margin-top: 1.07rem;
+    font-size: 1em;
+}
+.register-footer .login-link {
+    color: #0ed2f7;
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: .2em;
+}
+.register-footer .login-link:hover {
+    text-decoration: underline;
+}
+
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="password"] {
+    width: 100%;
+    padding: 0.7em 0.8em;
+    border: 1.5px solid #e3e6ea;
+    border-radius: 7px;
+    font-size: 1em;
+    transition: border .19s, box-shadow .19s;
+    box-sizing: border-box;
+    background: #f9fbfe;
+    color: #222; /* Thêm dòng này giúp chữ rõ hơn */
+}

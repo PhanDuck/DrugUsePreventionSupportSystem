@@ -9,18 +9,25 @@ export default function AppointmentPage() {
   };
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: 'clamp(20px, 5vw, 40px)', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Row justify="center" style={{ width: '100%' }}>
-          <Col xs={24} sm={20} md={16} lg={12} xl={10} xxl={8}>
-            <Card style={{
-              padding: 'clamp(24px, 4vw, 32px)',
-              borderRadius: '12px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-              background: 'rgba(255,255,255,0.95)',
-              width: '100%',
-              maxWidth: 500,
-              margin: '0 auto'
-            }}>
+      <Content
+        style={{
+          padding: 'clamp(20px, 5vw, 40px)',
+          maxWidth: '1400px',
+          margin: '0 auto'
+        }}
+      >
+        <Row justify="center">
+          <Col xs={24} md={16}>
+            <Card
+              style={{
+                padding: 'clamp(24px, 4vw, 32px)',
+                borderRadius: '12px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                background: 'rgba(255,255,255,0.95)',
+                width: '100%',
+                margin: '40px auto 0 auto'
+              }}
+            >
               <Title level={3}>Đặt lịch tư vấn cùng chuyên gia</Title>
               <Paragraph type="secondary">
                 Vui lòng điền thông tin để đặt lịch tư vấn (dịch vụ có tính phí).

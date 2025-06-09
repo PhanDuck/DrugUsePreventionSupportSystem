@@ -9,6 +9,8 @@ import {
   LoginOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Header, Content, Footer } = Layout;
 
@@ -21,9 +23,14 @@ const LayoutComponent = () => {
   } = theme.useToken();
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập khi component mount
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    // Kiểm tra trạng thái đăng nhập khi component mount và khi token thay đổi
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      setIsAuthenticated(!!token);
+    };
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
   const handleLogout = () => {
@@ -31,6 +38,7 @@ const LayoutComponent = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsAuthenticated(false);
+    toast.success('Đăng xuất thành công!');
     navigate('/login');
   };
 
@@ -68,7 +76,7 @@ const LayoutComponent = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', width: '100vw' }}>
+    <Layout style={{ minHeight: '100vh', width: '100vw'}}>
       <Header style={{ 
         display: 'flex', 
         alignItems: 'center',
@@ -109,18 +117,22 @@ const LayoutComponent = () => {
         </div>
       </Header>
       <Content style={{ 
+       
         padding: 'clamp(20px, 5vw, 40px)',
-        width: '100vw',
         minHeight: 'calc(100vh - 64px - 64px)',
-        background: '#f9fafb'
+        background: '#f9fafb',
+        //overflow: 'auto'
+        
       }}>
         <div
           style={{
+            maxWidth: '1400px',
+            margin: '0 auto',
             padding: 'clamp(24px, 4vw, 32px)',
             minHeight: 360,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            width: '100%'
+            marginTop: '164px',
           }}
         >
           <Outlet />
@@ -132,7 +144,7 @@ const LayoutComponent = () => {
         padding: 'clamp(16px, 3vw, 24px)',
         width: '100vw'
       }}>
-        Drug Prevention Support System ©{new Date().getFullYear()} Created by Your Team
+        Drug Prevention Support System ©{new Date().getFullYear()} Created by Nhom1
       </Footer>
     </Layout>
   );

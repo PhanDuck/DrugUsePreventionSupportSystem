@@ -8,7 +8,7 @@ import CoursesPage from './CoursesPage';
 import AppointmentPage from './AppointmentPage';
 import SurveyPage from './SurveyPage';
 import LayoutComponent from './Layout';
-import './App.css';
+import '../App.css';
 
 function App() {
   return (

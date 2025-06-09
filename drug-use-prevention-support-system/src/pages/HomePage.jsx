@@ -71,38 +71,70 @@ export default function HomePage() {
       <Layout style={{ minHeight: '100vh', background: '#f9fafb' }}>
         <Content style={{ padding: 0 }}>
           {/* Banner đầu trang */}
-          <div style={{
-            background: 'linear-gradient(120deg, #1f7c83 60%, #6edcc1 100%)',
-            color: '#fff', 
-            padding: 'clamp(40px, 5vw, 60px) 0 clamp(30px, 4vw, 40px) 0', 
-            textAlign: 'center'
-          }}>
-            <Title style={{ 
-              color: '#fff', 
+          <div
+            style={{
+              background: 'linear-gradient(120deg, #1797b8 60%, #6edcc1 100%)',
+              color: '#fff',
+              padding: 'clamp(40px, 5vw, 60px) 0 clamp(30px, 4vw, 40px) 0',
+              textAlign: 'center',
+              boxShadow: '0 4px 24px #0001',
+              borderRadius: '0 0 18px 18px',
+              marginBottom: 32,
+              marginTop: '664px',
+            }}
+          >
+            <Title style={{
+              color: '#fff',
               fontWeight: 700,
-              fontSize: 'clamp(24px, 4vw, 36px)',
-              margin: '0 auto',
-              maxWidth: '90%'
+              fontSize: 'clamp(26px, 4vw, 36px)',
+              margin: '0 auto 12px auto',
+              maxWidth: '90%',
+              textShadow: '0 2px 8px #0002'
             }}>
               Cùng Cộng Đồng Đẩy Lùi Ma Túy
             </Title>
-            <Paragraph style={{ 
-              color: '#fff', 
-              fontSize: 'clamp(16px, 2vw, 18px)', 
-              maxWidth: 'min(550px, 90%)', 
-              margin: 'clamp(16px, 2vw, 24px) auto' 
+            <Paragraph style={{
+              color: '#fff',
+              fontSize: 'clamp(16px, 2vw, 18px)',
+              maxWidth: 'min(550px, 90%)',
+              margin: '0 auto 28px auto',
+              textShadow: '0 1px 4px #0001'
             }}>
               Hỗ trợ, giáo dục, phòng ngừa và xây dựng môi trường lành mạnh cho thế hệ trẻ.
             </Paragraph>
-            <Space wrap style={{ gap: '12px' }}>
+            <Space wrap style={{ gap: '16px', justifyContent: 'center', width: '100%' }}>
               <Link to="/courses">
-                <Button size="large" type="primary" style={{ fontWeight: 600 }}>Khóa học nổi bật</Button>
+                <Button size="large" type="primary" style={{
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  boxShadow: '0 2px 8px #1797b855'
+                }}>
+                  Khóa học nổi bật
+                </Button>
               </Link>
-              <Link to="/survey">
-                <Button size="large">Làm khảo sát nguy cơ</Button>
+              <Link to="/surveys">
+                <Button size="large" style={{
+                  background: '#fff',
+                  color: '#1797b8',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  border: 'none',
+                  boxShadow: '0 2px 8px #1797b833'
+                }}>
+                  Làm khảo sát nguy cơ
+                </Button>
               </Link>
-              <Link to="/appointment">
-                <Button size="large" type="default">Tư vấn cùng chuyên gia</Button>
+              <Link to="/appointments">
+                <Button size="large" style={{
+                  background: '#fff',
+                  color: '#1797b8',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  border: 'none',
+                  boxShadow: '0 2px 8px #1797b833'
+                }}>
+                  Tư vấn cùng chuyên gia
+                </Button>
               </Link>
             </Space>
           </div>
@@ -205,31 +237,39 @@ export default function HomePage() {
                   fontSize: 'clamp(18px, 2.5vw, 20px)'
                 }}>Video nổi bật</Title>
                 <Row gutter={[16, 16]}>
-                  {featuredVideos.map(video => (
+                  {featuredVideos.map((video, idx) => {
+                    const videoLinks = [
+                      "https://www.youtube.com/watch?v=R8dXqbzFpzE",
+                      "https://www.youtube.com/watch?v=zq8Z1ht5wjg"
+                    ];
+                    return (
                       <Col xs={24} sm={12} key={video.id}>
-                        <Card
-                            hoverable
-                            cover={
-                              <Image
-                                  preview={false}
-                                  height={80}
-                                  src={video.image}
-                                  alt={video.title}
-                                  style={{ objectFit: 'cover' }}
-                              />
-                            }
-                            bodyStyle={{ padding: 12 }}
-                            style={{ borderRadius: 10 }}
-                        >
-                          <Title level={5} style={{ 
-                            marginBottom: 4,
-                            fontSize: 'clamp(14px, 1.5vw, 16px)'
-                          }}>
-                            <Link to={video.link}>{video.title}</Link>
-                          </Title>
-                        </Card>
+                        <a href={videoLinks[idx]} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                          <Card
+                              hoverable
+                              cover={
+                                <Image
+                                    preview={false}
+                                    height={80}
+                                    src={video.image}
+                                    alt={video.title}
+                                    style={{ objectFit: 'cover' }}
+                                />
+                              }
+                              bodyStyle={{ padding: 12 }}
+                              style={{ borderRadius: 10 }}
+                          >
+                            <Title level={5} style={{ 
+                              marginBottom: 4,
+                              fontSize: 'clamp(14px, 1.5vw, 16px)'
+                            }}>
+                              {video.title}
+                            </Title>
+                          </Card>
+                        </a>
                       </Col>
-                  ))}
+                    )
+                  })}
                 </Row>
                 <Link to="/videos"><Button type="link">Xem tất cả video</Button></Link>
               </Col>

@@ -1,10 +1,15 @@
 import React, { useEffect } from 'react';
 import { Result, Layout } from 'antd';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const { Content } = Layout;
 
 export default function LogoutPage() {
   useEffect(() => {
     // Xử lý logout ở đây (xóa token, v.v.)
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success('Đăng xuất thành công!');
   }, []);
   return (
     <Layout style={{ minHeight: '100vh' }}>
