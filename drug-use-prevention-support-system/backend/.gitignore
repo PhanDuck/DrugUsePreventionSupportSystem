@@ -1,0 +1,64 @@
+# ===============================
+# 🔧 Build system
+# ===============================
+target/
+build/
+HELP.md
+!.mvn/wrapper/maven-wrapper.properties
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Maven logs & lockfiles
+.mvn/
+log/
+*.log
+
+# ===============================
+# 🔒 Sensitive config files
+# ===============================
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/firebase-service-account.json
+.env
+
+# ===============================
+# 👨‍💻 IDE - IntelliJ IDEA
+# ===============================
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ===============================
+# 👨‍💻 IDE - Eclipse / STS
+# ===============================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# ===============================
+# 👨‍💻 IDE - NetBeans
+# ===============================
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ===============================
+# 👨‍💻 IDE - VS Code
+# ===============================
+.vscode/
+
+# ===============================
+# ❗ Exceptions (if needed)
+# ===============================
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/target/
+!**/src/test/**/target/
