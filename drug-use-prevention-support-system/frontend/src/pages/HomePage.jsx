@@ -271,7 +271,7 @@ export default function HomePage() {
                     )
                   })}
                 </Row>
-                <Link to="/videos"><Button type="link">Xem tất cả video</Button></Link>
+            
               </Col>
             </Row>
           </div>

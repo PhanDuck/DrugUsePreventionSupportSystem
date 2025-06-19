@@ -8,6 +8,8 @@ import CoursesPage from './CoursesPage';
 import AppointmentPage from './AppointmentPage';
 import SurveyPage from './SurveyPage';
 import LayoutComponent from './Layout';
+import BlogPage from './BlogPage';
+import BlogDetailPage from './BlogDetailPage';
 import '../App.css';
 
 function App() {
@@ -24,7 +26,11 @@ function App() {
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/appointments" element={<AppointmentPage />} />
         <Route path="/surveys" element={<SurveyPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:id" element={<BlogDetailPage />} />
       </Route>
+
+   
 
       {/* Redirect to home if route not found */}
       <Route path="*" element={<Navigate to="/" replace />} />

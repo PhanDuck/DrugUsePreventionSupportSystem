@@ -56,6 +56,12 @@ const LayoutComponent = () => {
       onClick: () => navigate('/courses'),
     },
     {
+      key: '/blog',
+      icon: <BookOutlined />,
+      label: 'Blog',
+      onClick: () => navigate('/blog'),
+    },
+    {
       key: '/appointments',
       icon: <CalendarOutlined />,
       label: 'Lịch hẹn',
@@ -117,22 +123,19 @@ const LayoutComponent = () => {
         </div>
       </Header>
       <Content style={{ 
-       
-        padding: 'clamp(20px, 5vw, 40px)',
-        minHeight: 'calc(100vh - 64px - 64px)',
+        padding: 'clamp(8px, 2vw, 16px)',
+        paddingTop: 64,
+        minHeight: 0,
         background: '#f9fafb',
-        //overflow: 'auto'
-        
       }}>
         <div
           style={{
             maxWidth: '1400px',
             margin: '0 auto',
-            padding: 'clamp(24px, 4vw, 32px)',
-            minHeight: 360,
+            padding: 'clamp(8px, 2vw, 16px)',
+            minHeight: 0,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            marginTop: '164px',
           }}
         >
           <Outlet />
