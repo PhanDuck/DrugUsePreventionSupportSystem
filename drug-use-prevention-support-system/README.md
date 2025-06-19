@@ -1,3 +1,27 @@
+# Drug Use Prevention Support System
+
+Cấu trúc dự án (Monorepo):
+
+```
+your-project-repo/
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   └── package.json
+├── backend/
+│   ├── src/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── package.json
+├── .gitignore
+├── README.md
+└── package.json (optional, cho các script tổng quát)
+```
+
+- `frontend/`: Chứa mã nguồn giao diện người dùng (React/Vite).
+- `backend/`: Chứa mã nguồn backend (Spring Boot, sẽ thêm sau).
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

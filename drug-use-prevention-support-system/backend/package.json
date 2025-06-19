@@ -1,0 +1,10 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Spring Boot backend placeholder. Sẽ thay thế bằng cấu hình Maven/Gradle khi thêm code backend.",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+} 
