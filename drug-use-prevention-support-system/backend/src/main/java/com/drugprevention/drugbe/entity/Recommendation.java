@@ -3,29 +3,45 @@ package com.drugprevention.drugbe.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "Recommendation")
 public class Recommendation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer recommendationID;
 
-    @Column
-    private Integer courseID; // Nếu có entity Course thì dùng @ManyToOne
+    @ManyToOne
+    @JoinColumn(name = "courseID")
+    private Course course;
 
-    @Column
-    private Integer blogID; // Nếu có entity Blog thì dùng @ManyToOne
+    @ManyToOne
+    @JoinColumn(name = "blogID")
+    private Blog blog;
 
+    // Constructors
     public Recommendation() {}
 
-    public Recommendation(Integer recommendationID, Integer courseID, Integer blogID) {
-        this.recommendationID = recommendationID;
-        this.courseID = courseID;
-        this.blogID = blogID;
+    // Getters and Setters
+    public Integer getRecommendationID() {
+        return recommendationID;
     }
 
-    public Integer getRecommendationID() { return recommendationID; }
-    public void setRecommendationID(Integer recommendationID) { this.recommendationID = recommendationID; }
-    public Integer getCourseID() { return courseID; }
-    public void setCourseID(Integer courseID) { this.courseID = courseID; }
-    public Integer getBlogID() { return blogID; }
-    public void setBlogID(Integer blogID) { this.blogID = blogID; }
+    public void setRecommendationID(Integer recommendationID) {
+        this.recommendationID = recommendationID;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public Blog getBlog() {
+        return blog;
+    }
+
+    public void setBlog(Blog blog) {
+        this.blog = blog;
+    }
 } 

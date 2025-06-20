@@ -3,6 +3,7 @@ package com.drugprevention.drugbe.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "Answer")
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,14 +22,47 @@ public class Answer {
 
     private Integer score;
 
-    public Integer getAnswerID() { return answerID; }
-    public void setAnswerID(Integer answerID) { this.answerID = answerID; }
-    public AssessmentResult getResult() { return result; }
-    public void setResult(AssessmentResult result) { this.result = result; }
-    public AssessmentQuestion getQuestion() { return question; }
-    public void setQuestion(AssessmentQuestion question) { this.question = question; }
-    public String getUserAnswer() { return userAnswer; }
-    public void setUserAnswer(String userAnswer) { this.userAnswer = userAnswer; }
-    public Integer getScore() { return score; }
-    public void setScore(Integer score) { this.score = score; }
+    // Constructors
+    public Answer() {}
+
+    // Getters and Setters
+    public Integer getAnswerID() {
+        return answerID;
+    }
+
+    public void setAnswerID(Integer answerID) {
+        this.answerID = answerID;
+    }
+
+    public AssessmentResult getResult() {
+        return result;
+    }
+
+    public void setResult(AssessmentResult result) {
+        this.result = result;
+    }
+
+    public AssessmentQuestion getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(AssessmentQuestion question) {
+        this.question = question;
+    }
+
+    public String getUserAnswer() {
+        return userAnswer;
+    }
+
+    public void setUserAnswer(String userAnswer) {
+        this.userAnswer = userAnswer;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
 } 

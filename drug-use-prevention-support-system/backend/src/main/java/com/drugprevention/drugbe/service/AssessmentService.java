@@ -39,7 +39,8 @@ public class AssessmentService {
         int totalScore = 0;
         AssessmentResult result = new AssessmentResult();
         result.setAssessment(assessmentRepository.findById(assessmentId).orElse(null));
-        result.setUserID(request.getUserId());
+        // Note: Using User entity instead of userID
+        // result.setUser(userRepository.findById(request.getUserId()).orElse(null));
         result.setTakeTime(LocalDateTime.now());
         result.setResultName("Kết quả khảo sát");
         // Tính điểm tổng
@@ -69,7 +70,7 @@ public class AssessmentService {
     // 4. (Tùy chọn) Lấy kết quả đã làm của user
     public List<AssessmentResult> getResultsByUserId(Integer userId) {
         return assessmentResultRepository.findAll().stream()
-            .filter(r -> r.getUserID() != null && r.getUserID().equals(userId))
+            .filter(r -> r.getUser() != null && r.getUser().getUserID().equals(userId))
             .collect(Collectors.toList());
     }
 } 

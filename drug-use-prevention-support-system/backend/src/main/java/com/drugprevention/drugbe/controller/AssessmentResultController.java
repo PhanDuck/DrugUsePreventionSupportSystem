@@ -4,7 +4,7 @@ import com.drugprevention.drugbe.dto.AssessmentResultDTO;
 import com.drugprevention.drugbe.dto.AssessmentStatisticsDTO;
 import com.drugprevention.drugbe.entity.AssessmentResult;
 import com.drugprevention.drugbe.service.AssessmentResultService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +14,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/assessment-results")
-@RequiredArgsConstructor
 public class AssessmentResultController {
-    private final AssessmentResultService assessmentResultService;
+    
+    @Autowired
+    private AssessmentResultService assessmentResultService;
 
     @PostMapping
     public ResponseEntity<AssessmentResult> createResult(@RequestBody AssessmentResult result) {
@@ -24,12 +25,12 @@ public class AssessmentResultController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AssessmentResult> getResult(@PathVariable Long id) {
+    public ResponseEntity<AssessmentResult> getResult(@PathVariable Integer id) {
         return ResponseEntity.ok(assessmentResultService.getResultById(id));
     }
 
     @GetMapping("/assessment/{assessmentId}")
-    public ResponseEntity<List<AssessmentResult>> getResultsByAssessment(@PathVariable Long assessmentId) {
+    public ResponseEntity<List<AssessmentResult>> getResultsByAssessment(@PathVariable Integer assessmentId) {
         return ResponseEntity.ok(assessmentResultService.getResultsByAssessmentId(assessmentId));
     }
 
@@ -40,7 +41,7 @@ public class AssessmentResultController {
 
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<AssessmentResult>> getUserAssessmentHistory(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         return ResponseEntity.ok(assessmentResultService.getUserAssessmentHistory(userId, startDate, endDate));

@@ -5,8 +5,7 @@ import com.drugprevention.drugbe.dto.AssessmentStatisticsDTO;
 import com.drugprevention.drugbe.entity.Answer;
 import com.drugprevention.drugbe.entity.AssessmentResult;
 import com.drugprevention.drugbe.repository.AssessmentResultRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,21 +15,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AssessmentResultService {
-    private final AssessmentResultRepository assessmentResultRepository;
+    
+    @Autowired
+    private AssessmentResultRepository assessmentResultRepository;
 
     @Transactional
     public AssessmentResult saveResult(AssessmentResult result) {
         return assessmentResultRepository.save(result);
     }
 
-    public List<AssessmentResult> getResultsByAssessmentId(Long assessmentId) {
-        return assessmentResultRepository.findByAssessmentId(assessmentId);
+    public List<AssessmentResult> getResultsByAssessmentId(Integer assessmentId) {
+        return assessmentResultRepository.findByAssessment_AssessmentID(assessmentId);
     }
 
-    public AssessmentResult getResultById(Long id) {
+    public AssessmentResult getResultById(Integer id) {
         return assessmentResultRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Assessment result not found"));
     }
@@ -46,8 +45,8 @@ public class AssessmentResultService {
         // Compare with frontend results
         if (calculatedScore != resultDTO.getTotalScore() || 
             !calculatedRiskLevel.equals(resultDTO.getRiskLevel())) {
-            log.warn("Score mismatch - Frontend: {}, Backend: {}", 
-                    resultDTO.getTotalScore(), calculatedScore);
+            System.out.println("Score mismatch - Frontend: " + resultDTO.getTotalScore() + 
+                    ", Backend: " + calculatedScore);
         }
         
         // Create and save new result
@@ -78,7 +77,7 @@ public class AssessmentResultService {
         // Validate score for each answer
         for (Answer answer : resultDTO.getAnswers()) {
             if (answer.getScore() < 0 || answer.getScore() > 5) {
-                throw new IllegalArgumentException("Invalid score for answer: " + answer.getId());
+                throw new IllegalArgumentException("Invalid score for answer: " + answer.getAnswerID());
             }
         }
     }
@@ -95,14 +94,14 @@ public class AssessmentResultService {
         return "LOW";
     }
 
-    public List<AssessmentResult> getUserAssessmentHistory(Long userId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<AssessmentResult> getUserAssessmentHistory(Integer userId, LocalDateTime startDate, LocalDateTime endDate) {
         if (startDate == null) {
             startDate = LocalDateTime.now().minusMonths(1);
         }
         if (endDate == null) {
             endDate = LocalDateTime.now();
         }
-        return assessmentResultRepository.findByUserIdAndCompletedAtBetween(userId, startDate, endDate);
+        return assessmentResultRepository.findByUser_UserIDAndCompletedAtBetween(userId, startDate, endDate);
     }
 
     public AssessmentStatisticsDTO getStatistics(LocalDateTime startDate, LocalDateTime endDate) {
