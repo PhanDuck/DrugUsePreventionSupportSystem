@@ -1,8 +1,8 @@
-#Hệ thống hỗ trợ phòng ngừa sử dụng ma túy - Nền tảng Web
-##📌 Giới thiệu
+# Hệ thống hỗ trợ phòng ngừa sử dụng ma túy - Nền tảng Web
+## 📌 Giới thiệu
 Hệ thống hỗ trợ phòng ngừa sử dụng ma túy là một nền tảng web toàn diện, được thiết kế để hỗ trợ cá nhân và cộng đồng trong việc phòng chống và giảm thiểu tác hại của việc sử dụng ma túy. Hệ thống cung cấp thông tin, tài liệu giáo dục, công cụ sàng lọc, và dịch vụ tư vấn trực tuyến, với giao diện người dùng hiện đại và tương tác cao được xây dựng bằng React.
 
-##🚀 Công nghệ sử dụng
+## 🚀 Công nghệ sử dụng
 React.js (Frontend) - Xây dựng giao diện người dùng động và tương tác.
 
 HTML, CSS, JavaScript - Ngôn ngữ và công nghệ nền tảng.
@@ -16,10 +16,10 @@ Firebase Authentication - Xác thực người dùng (hoặc có thể sử dụ
 
 RESTful API - Giao thức giao tiếp giữa frontend (React) và backend (Spring Boot).
 
-##📜 Các tính năng chính
+## 📜 Các tính năng chính
 Hệ thống cung cấp các vai trò khác nhau như Guest, Member, Staff, Consultant, Manager, Admin, với các tính năng tương ứng:
 
-##🌐 Tính năng chung (Guest/Member)
+## 🌐 Tính năng chung (Guest/Member)
 Giới thiệu thông tin, chia sẻ kinh nghiệm: Trang chủ và các trang bài viết giới thiệu thông tin, blog chia sẻ kinh nghiệm về phòng chống ma túy, được trình bày một cách trực quan bằng React components.
 
 Khóa học online: Chức năng tìm kiếm và đăng ký các khóa học online về ma túy (nhận thức ma túy, kỹ năng phòng tránh, kỹ năng từ chối,...) với giao diện thân thiện, dễ dàng điều hướng. Nội dung khóa học được phân loại theo độ tuổi (học sinh, sinh viên, phụ huynh, giáo viên,...).
@@ -28,7 +28,7 @@ Công cụ sàng lọc và đánh giá nguy cơ: Các bài khảo sát trắc ng
 
 Đặt lịch hẹn tư vấn: Chức năng đặt lịch hẹn tư vấn trực tuyến với chuyên viên tư vấn được thực hiện thông qua giao diện lịch biểu tương tác, giúp người dùng dễ dàng chọn thời gian phù hợp.
 
-##👩‍💻 Tính năng cho Staff/Consultant/Manager
+## 👩‍💻 Tính năng cho Staff/Consultant/Manager
 Quản lý chương trình truyền thông và giáo dục cộng đồng: Giao diện quản lý rõ ràng, cho phép tạo, chỉnh sửa, xóa các chương trình truyền thông và giáo dục. Hỗ trợ tích hợp các bài khảo sát trước/sau chương trình để thu thập phản hồi và cải tiến.
 
 Quản lý thông tin chuyên viên tư vấn: Giao diện quản lý thông tin cá nhân, bằng cấp, chuyên môn, và lịch làm việc của các chuyên viên tư vấn.
