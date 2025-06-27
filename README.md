@@ -33,7 +33,7 @@ Quản lý chương trình truyền thông và giáo dục cộng đồng: Giao 
 
 Quản lý thông tin chuyên viên tư vấn: Giao diện quản lý thông tin cá nhân, bằng cấp, chuyên môn, và lịch làm việc của các chuyên viên tư vấn.
 
-##⚙️ Tính năng cho Admin
+## ⚙️ Tính năng cho Admin
 Quản lý hồ sơ người dùng: Quản lý thông tin người dùng, lịch sử đặt lịch hẹn tư vấn, và lịch sử tham gia các chương trình truyền thông và giáo dục cộng đồng thông qua các bảng dữ liệu và form chỉnh sửa dễ sử dụng.
 
 Dashboard & Report: Tổng quan trực quan về hoạt động của hệ thống, bao gồm các biểu đồ, số liệu thống kê về người dùng, hiệu quả chương trình, được xây dựng bằng các thư viện biểu đồ trong React.
