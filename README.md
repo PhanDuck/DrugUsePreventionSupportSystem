@@ -7,13 +7,11 @@ React.js (Frontend) - Xây dựng giao diện người dùng động và tương
 
 HTML, CSS, JavaScript - Ngôn ngữ và công nghệ nền tảng.
 
-
 Spring Boot (Backend) - Xây dựng API mạnh mẽ và quản lý logic nghiệp vụ.
 
 SQL - Hệ quản trị cơ sở dữ liệu quan hệ.
 
-Firebase Authentication - Xác thực người dùng (hoặc có thể sử dụng Spring Security nếu muốn quản lý hoàn toàn backend để đồng bộ hơn).
-
+Firebase Authentication - Xác thực người dùng.
 RESTful API - Giao thức giao tiếp giữa frontend (React) và backend (Spring Boot).
 
 ## 📜 Các tính năng chính
