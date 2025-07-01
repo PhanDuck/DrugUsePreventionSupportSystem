@@ -2,135 +2,89 @@ package com.drugprevention.drugbe.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "AssessmentResult")
+@Table(name = "assessment_results")
 public class AssessmentResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer resultID;
+    private Long id;
+
+    @Column(name = "user_id")
+    private Long userId;
 
     @ManyToOne
-    @JoinColumn(name = "userID")
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
+    @Column(name = "assessment_id")
+    private Long assessmentId;
+
     @ManyToOne
-    @JoinColumn(name = "assessmentID")
+    @JoinColumn(name = "assessment_id", insertable = false, updatable = false)
     private Assessment assessment;
 
-    private String resultName;
-    private Integer score;
-    
-    @ManyToOne
-    @JoinColumn(name = "recommendationID")
-    private Recommendation recommendation;
-    
-    private LocalDateTime takeTime;
-
-    // Additional fields for assessment results
+    @Column(name = "total_score")
     private Integer totalScore;
-    private String riskLevel;
-    
-    @OneToMany(mappedBy = "result", cascade = CascadeType.ALL)
-    private List<Answer> answers;
 
+    @Column(name = "risk_level")
+    private String riskLevel;
+
+    @Column(name = "answers_json", columnDefinition = "TEXT")
+    private String answersJson;
+
+    private String recommendations;
+
+    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        completedAt = LocalDateTime.now();
-    }
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     // Constructors
     public AssessmentResult() {}
 
-    // Getters and Setters
-    public Integer getResultID() {
-        return resultID;
-    }
-
-    public void setResultID(Integer resultID) {
-        this.resultID = resultID;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Assessment getAssessment() {
-        return assessment;
-    }
-
-    public void setAssessment(Assessment assessment) {
-        this.assessment = assessment;
-    }
-
-    public String getResultName() {
-        return resultName;
-    }
-
-    public void setResultName(String resultName) {
-        this.resultName = resultName;
-    }
-
-    public Integer getScore() {
-        return score;
-    }
-
-    public void setScore(Integer score) {
-        this.score = score;
-    }
-
-    public Recommendation getRecommendation() {
-        return recommendation;
-    }
-
-    public void setRecommendation(Recommendation recommendation) {
-        this.recommendation = recommendation;
-    }
-
-    public LocalDateTime getTakeTime() {
-        return takeTime;
-    }
-
-    public void setTakeTime(LocalDateTime takeTime) {
-        this.takeTime = takeTime;
-    }
-
-    public Integer getTotalScore() {
-        return totalScore;
-    }
-
-    public void setTotalScore(Integer totalScore) {
+    public AssessmentResult(Long userId, Long assessmentId, Integer totalScore, String riskLevel, String recommendations) {
+        this.userId = userId;
+        this.assessmentId = assessmentId;
         this.totalScore = totalScore;
-    }
-
-    public String getRiskLevel() {
-        return riskLevel;
-    }
-
-    public void setRiskLevel(String riskLevel) {
         this.riskLevel = riskLevel;
+        this.recommendations = recommendations;
+        this.completedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
-    public List<Answer> getAnswers() {
-        return answers;
-    }
-
-    public void setAnswers(List<Answer> answers) {
-        this.answers = answers;
-    }
-
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
-    }
-
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
-    }
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    
+    public Long getAssessmentId() { return assessmentId; }
+    public void setAssessmentId(Long assessmentId) { this.assessmentId = assessmentId; }
+    
+    public Assessment getAssessment() { return assessment; }
+    public void setAssessment(Assessment assessment) { this.assessment = assessment; }
+    
+    public Integer getTotalScore() { return totalScore; }
+    public void setTotalScore(Integer totalScore) { this.totalScore = totalScore; }
+    
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    
+    public String getAnswersJson() { return answersJson; }
+    public void setAnswersJson(String answersJson) { this.answersJson = answersJson; }
+    
+    public String getRecommendations() { return recommendations; }
+    public void setRecommendations(String recommendations) { this.recommendations = recommendations; }
+    
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 } 

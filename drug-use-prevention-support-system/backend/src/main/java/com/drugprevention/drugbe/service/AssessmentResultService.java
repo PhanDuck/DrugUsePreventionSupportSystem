@@ -1,17 +1,17 @@
 package com.drugprevention.drugbe.service;
 
 import com.drugprevention.drugbe.dto.AssessmentResultDTO;
-import com.drugprevention.drugbe.dto.AssessmentStatisticsDTO;
-import com.drugprevention.drugbe.entity.Answer;
 import com.drugprevention.drugbe.entity.AssessmentResult;
 import com.drugprevention.drugbe.repository.AssessmentResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,139 +22,186 @@ public class AssessmentResultService {
 
     @Transactional
     public AssessmentResult saveResult(AssessmentResult result) {
-        return assessmentResultRepository.save(result);
-    }
-
-    public List<AssessmentResult> getResultsByAssessmentId(Integer assessmentId) {
-        return assessmentResultRepository.findByAssessment_AssessmentID(assessmentId);
-    }
-
-    public AssessmentResult getResultById(Integer id) {
-        return assessmentResultRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Assessment result not found"));
-    }
-
-    public AssessmentResult validateAndCalculateResult(AssessmentResultDTO resultDTO) {
-        // Validate input
-        validateInput(resultDTO);
-        
-        // Calculate score
-        int calculatedScore = calculateScore(resultDTO.getAnswers());
-        String calculatedRiskLevel = determineRiskLevel(calculatedScore);
-        
-        // Compare with frontend results
-        if (calculatedScore != resultDTO.getTotalScore() || 
-            !calculatedRiskLevel.equals(resultDTO.getRiskLevel())) {
-            System.out.println("Score mismatch - Frontend: " + resultDTO.getTotalScore() + 
-                    ", Backend: " + calculatedScore);
+        result.setCreatedAt(LocalDateTime.now());
+        if (result.getCompletedAt() == null) {
+            result.setCompletedAt(LocalDateTime.now());
         }
-        
-        // Create and save new result
-        AssessmentResult result = new AssessmentResult();
-        result.setAssessment(resultDTO.getAssessment());
-        result.setTotalScore(calculatedScore);
-        result.setRiskLevel(calculatedRiskLevel);
-        result.setAnswers(resultDTO.getAnswers());
-        result.setCompletedAt(LocalDateTime.now());
-        
         return assessmentResultRepository.save(result);
     }
+
+    // ===== ENTITY METHODS (for internal use) =====
     
-    private void validateInput(AssessmentResultDTO resultDTO) {
-        if (resultDTO.getAnswers() == null || resultDTO.getAnswers().isEmpty()) {
-            throw new IllegalArgumentException("Answers cannot be empty");
-        }
+    public Optional<AssessmentResult> getResultEntityById(Long id) {
+        return assessmentResultRepository.findById(id);
+    }
+
+    public List<AssessmentResult> getResultEntitiesByAssessmentId(Long assessmentId) {
+        return assessmentResultRepository.findByAssessmentId(assessmentId);
+    }
+
+    public List<AssessmentResult> getResultEntitiesByUserId(Long userId) {
+        return assessmentResultRepository.findByUserId(userId);
+    }
+
+    public List<AssessmentResult> getAllResultEntities() {
+        return assessmentResultRepository.findAll();
+    }
+
+    @Transactional
+    public AssessmentResult updateResult(Long id, AssessmentResult resultDetails) {
+        AssessmentResult result = assessmentResultRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assessment result not found with id: " + id));
         
-        if (resultDTO.getAssessment() == null) {
-            throw new IllegalArgumentException("Assessment cannot be null");
-        }
+        result.setTotalScore(resultDetails.getTotalScore());
+        result.setRiskLevel(resultDetails.getRiskLevel());
+        result.setRecommendations(resultDetails.getRecommendations());
+        result.setAnswersJson(resultDetails.getAnswersJson());
         
-        // Validate number of questions
-        if (resultDTO.getAnswers().size() != resultDTO.getAssessment().getQuestions().size()) {
-            throw new IllegalArgumentException("Number of answers does not match number of questions");
+        return assessmentResultRepository.save(result);
+    }
+
+    @Transactional
+    public void deleteResult(Long id) {
+        if (!assessmentResultRepository.existsById(id)) {
+            throw new RuntimeException("Assessment result not found with id: " + id);
         }
-        
-        // Validate score for each answer
-        for (Answer answer : resultDTO.getAnswers()) {
-            if (answer.getScore() < 0 || answer.getScore() > 5) {
-                throw new IllegalArgumentException("Invalid score for answer: " + answer.getAnswerID());
-            }
+        assessmentResultRepository.deleteById(id);
+    }
+
+    // Calculate risk level based on total score
+    public String calculateRiskLevel(Integer totalScore) {
+        if (totalScore == null || totalScore == 0) {
+            return "THẤP";
+        } else if (totalScore <= 5) {
+            return "THẤP";
+        } else if (totalScore <= 15) {
+            return "TRUNG BÌNH";
+        } else {
+            return "CAO";
         }
     }
 
-    private int calculateScore(List<Answer> answers) {
-        return answers.stream()
-                .mapToInt(Answer::getScore)
-                .sum();
+    // Get statistics
+    public long getTotalResultCount() {
+        return assessmentResultRepository.count();
     }
 
-    private String determineRiskLevel(int totalScore) {
-        if (totalScore >= 20) return "HIGH";
-        if (totalScore >= 10) return "MODERATE";
-        return "LOW";
+    public List<AssessmentResult> getRecentResults(int limit) {
+        return assessmentResultRepository.findTop10ByOrderByCreatedAtDesc();
     }
 
-    public List<AssessmentResult> getUserAssessmentHistory(Integer userId, LocalDateTime startDate, LocalDateTime endDate) {
-        if (startDate == null) {
-            startDate = LocalDateTime.now().minusMonths(1);
+    // ===== DTO METHODS (for API responses) =====
+
+    /**
+     * Convert AssessmentResult entity to DTO
+     */
+    private AssessmentResultDTO convertToDTO(AssessmentResult result) {
+        AssessmentResultDTO dto = new AssessmentResultDTO();
+        dto.setId(result.getId());
+        dto.setAssessmentId(result.getAssessmentId());
+        dto.setUserId(result.getUserId());
+        dto.setTotalScore(result.getTotalScore());
+        dto.setRiskLevel(result.getRiskLevel());
+        
+        // Convert recommendations string to list
+        if (result.getRecommendations() != null && !result.getRecommendations().isEmpty()) {
+            dto.setRecommendations(Arrays.asList(result.getRecommendations().split("\\n")));
+        } else {
+            dto.setRecommendations(Arrays.asList("Chưa có khuyến nghị"));
         }
-        if (endDate == null) {
-            endDate = LocalDateTime.now();
+        
+        dto.setCreatedAt(result.getCreatedAt());
+        dto.setCompletedAt(result.getCompletedAt());
+        
+        // Set assessment title if available
+        if (result.getAssessment() != null) {
+            dto.setAssessmentTitle(result.getAssessment().getTitle());
+            dto.setAssessmentType(result.getAssessment().getAssessmentType() != null ? 
+                result.getAssessment().getAssessmentType().getName() : null);
         }
-        return assessmentResultRepository.findByUser_UserIDAndCompletedAtBetween(userId, startDate, endDate);
+        
+        // Set risk description
+        switch (result.getRiskLevel()) {
+            case "CAO":
+                dto.setRiskDescription("Mức độ nguy cơ cao - Cần can thiệp ngay lập tức");
+                break;
+            case "TRUNG BÌNH":
+                dto.setRiskDescription("Mức độ nguy cơ trung bình - Cần theo dõi và hỗ trợ");
+                break;
+            case "THẤP":
+                dto.setRiskDescription("Mức độ nguy cơ thấp - Duy trì tình trạng hiện tại");
+                break;
+            default:
+                dto.setRiskDescription("Chưa đánh giá");
+        }
+        
+        return dto;
     }
 
-    public AssessmentStatisticsDTO getStatistics(LocalDateTime startDate, LocalDateTime endDate) {
-        if (startDate == null) {
-            startDate = LocalDateTime.now().minusMonths(1);
-        }
-        if (endDate == null) {
-            endDate = LocalDateTime.now();
-        }
-
-        List<AssessmentResult> results = assessmentResultRepository.findByCompletedAtBetween(startDate, endDate);
-        
-        AssessmentStatisticsDTO statistics = new AssessmentStatisticsDTO();
-        statistics.setTotalAssessments(results.size());
-        
-        // Calculate risk level distribution
-        Map<String, Integer> riskLevelDistribution = results.stream()
-                .collect(Collectors.groupingBy(
-                        AssessmentResult::getRiskLevel,
-                        Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
-                ));
-        statistics.setRiskLevelDistribution(riskLevelDistribution);
-        
-        // Calculate average score
-        double averageScore = results.stream()
-                .mapToInt(AssessmentResult::getTotalScore)
-                .average()
-                .orElse(0.0);
-        statistics.setAverageScore(averageScore);
-        
-        // Calculate trends
-        List<AssessmentStatisticsDTO.AssessmentTrendDTO> trends = calculateTrends(results);
-        statistics.setTrends(trends);
-        
-        return statistics;
-    }
-
-    private List<AssessmentStatisticsDTO.AssessmentTrendDTO> calculateTrends(List<AssessmentResult> results) {
-        Map<LocalDate, List<AssessmentResult>> resultsByDate = results.stream()
-                .collect(Collectors.groupingBy(result -> result.getCompletedAt().toLocalDate()));
-        
-        return resultsByDate.entrySet().stream()
-                .map(entry -> {
-                    AssessmentStatisticsDTO.AssessmentTrendDTO trend = new AssessmentStatisticsDTO.AssessmentTrendDTO();
-                    trend.setDate(entry.getKey());
-                    trend.setCount(entry.getValue().size());
-                    trend.setAverageScore(entry.getValue().stream()
-                            .mapToInt(AssessmentResult::getTotalScore)
-                            .average()
-                            .orElse(0.0));
-                    return trend;
-                })
-                .sorted(Comparator.comparing(AssessmentStatisticsDTO.AssessmentTrendDTO::getDate))
+    /**
+     * Get user assessment results as DTOs
+     */
+    public List<AssessmentResultDTO> getResultsByUserId(Long userId) {
+        List<AssessmentResult> results = assessmentResultRepository.findByUserId(userId);
+        return results.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-} 
+
+    /**
+     * Get assessment result by ID as DTO
+     */
+    public Optional<AssessmentResultDTO> getResultById(Long id) {
+        return assessmentResultRepository.findById(id)
+                .map(this::convertToDTO);
+    }
+
+    /**
+     * Get all assessment results as DTOs
+     */
+    public List<AssessmentResultDTO> getAllResults() {
+        List<AssessmentResult> results = assessmentResultRepository.findAll();
+        return results.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Count assessment results by user ID
+     */
+    public long countByUserId(Long userId) {
+        return assessmentResultRepository.countByUserId(userId);
+    }
+
+    /**
+     * Get latest assessment result by user ID
+     */
+    public Optional<AssessmentResultDTO> getLatestResultByUserId(Long userId) {
+        List<AssessmentResult> results = assessmentResultRepository.findLatestByUser(userId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(convertToDTO(results.get(0)));
+    }
+
+    /**
+     * Get results by date range
+     */
+    public List<AssessmentResultDTO> getResultsByDateRange(Date startDate, Date endDate) {
+        // Convert Date to LocalDateTime
+        LocalDateTime start = ((java.sql.Date) startDate).toLocalDate().atStartOfDay();
+        LocalDateTime end = ((java.sql.Date) endDate).toLocalDate().atTime(23, 59, 59);
+        
+        List<AssessmentResult> results = assessmentResultRepository.findByCompletedAtBetween(start, end);
+        return results.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get results by risk level
+     */
+    public List<AssessmentResultDTO> getResultsByRiskLevel(String riskLevel) {
+        List<AssessmentResult> results = assessmentResultRepository.findByRiskLevel(riskLevel);
+        return results.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+}

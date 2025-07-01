@@ -1,91 +1,162 @@
 package com.drugprevention.drugbe.service;
 
 import com.drugprevention.drugbe.entity.Course;
-import com.drugprevention.drugbe.entity.User;
-import com.drugprevention.drugbe.entity.CourseRegistration;
 import com.drugprevention.drugbe.repository.CourseRepository;
-import com.drugprevention.drugbe.repository.CourseRegistrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 @Service
 public class CourseService {
+    
     @Autowired
     private CourseRepository courseRepository;
 
-    @Autowired
-    private CourseRegistrationRepository courseRegistrationRepository;
-
+    // 1. Lấy tất cả courses
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
-    public List<Course> getAvailableCourses() {
-        return courseRepository.findByStatusAndEndDateAfter("ACTIVE", LocalDateTime.now());
+    // 2. Lấy course theo ID
+    public Optional<Course> getCourseById(Long id) {
+        return courseRepository.findById(id);
     }
 
-    public Course getCourseById(Integer courseId) {
-        return courseRepository.findById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
-    }
-
-    public CourseRegistration registerCourse(User user, Integer courseId) {
-        Course course = getCourseById(courseId);
-        
-        // Check if user already registered
-        if (courseRegistrationRepository.findByUserAndCourse(user, course).isPresent()) {
-            throw new RuntimeException("User already registered for this course");
-        }
-
-        // Check if course is full
-        long currentRegistrations = courseRegistrationRepository.countByCourse(course);
-        if (currentRegistrations >= course.getCapacity()) {
-            throw new RuntimeException("Course is full");
-        }
-
-        // Create new registration
-        CourseRegistration registration = new CourseRegistration();
-        registration.setUser(user);
-        registration.setCourse(course);
-        registration.setRegisterTime(LocalDateTime.now());
-
-        return courseRegistrationRepository.save(registration);
-    }
-
-    public List<Course> getUserCourses(User user) {
-        return courseRegistrationRepository.findByUser(user)
-            .stream()
-            .map(CourseRegistration::getCourse)
-            .toList();
-    }
-
-    // CRUD operations for Course management
+    // 3. Tạo course mới
+    @Transactional
     public Course createCourse(Course course) {
-        course.setStatus("ACTIVE");
+        course.setCurrentParticipants(0);
+        course.setStatus("open");
+        course.setIsFeatured(false);
+        course.setIsActive(true);
+        course.setCreatedAt(LocalDateTime.now());
+        course.setUpdatedAt(LocalDateTime.now());
         return courseRepository.save(course);
     }
 
-    public Course updateCourse(Integer id, Course courseDetails) {
-        Course course = getCourseById(id);
+    // 4. Update course
+    @Transactional
+    public Course updateCourse(Long id, Course courseDetails) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
         course.setTitle(courseDetails.getTitle());
         course.setDescription(courseDetails.getDescription());
+        course.setInstructorId(courseDetails.getInstructorId());
+        course.setCategoryId(courseDetails.getCategoryId());
+        course.setMaxParticipants(courseDetails.getMaxParticipants());
         course.setStartDate(courseDetails.getStartDate());
         course.setEndDate(courseDetails.getEndDate());
-        course.setCapacity(courseDetails.getCapacity());
-        course.setCategory(courseDetails.getCategory());
+        course.setDuration(courseDetails.getDuration());
+        course.setImageUrl(courseDetails.getImageUrl());
+        course.setStatus(courseDetails.getStatus());
+        course.setIsFeatured(courseDetails.getIsFeatured());
+        course.setIsActive(courseDetails.getIsActive());
+        course.setUpdatedAt(LocalDateTime.now());
+        
         return courseRepository.save(course);
     }
 
-    public void deleteCourse(Integer id) {
-        Course course = getCourseById(id);
-        course.setStatus("DELETED");
-        courseRepository.save(course);
+    // 5. Delete course
+    @Transactional
+    public void deleteCourse(Long id) {
+        if (!courseRepository.existsById(id)) {
+            throw new RuntimeException("Course not found with id: " + id);
+        }
+        courseRepository.deleteById(id);
     }
 
-    public List<Course> getCoursesByCategory(Integer categoryId) {
-        return courseRepository.findByCategory_CategoryID(categoryId);
+    // 6. Lấy courses theo instructor
+    public List<Course> getCoursesByInstructor(Long instructorId) {
+        return courseRepository.findByInstructorId(instructorId);
+    }
+
+    // 7. Lấy courses theo category
+    public List<Course> getCoursesByCategory(Long categoryId) {
+        return courseRepository.findByCategoryId(categoryId);
+    }
+
+    // 8. Lấy active courses
+    public List<Course> getActiveCourses() {
+        return courseRepository.findByIsActiveTrue();
+    }
+
+    // 9. Lấy open courses
+    public List<Course> getOpenCourses() {
+        return courseRepository.findByStatusAndIsActiveTrue("open");
+    }
+
+    // 10. Lấy featured courses
+    public List<Course> getFeaturedCourses() {
+        return courseRepository.findByIsFeaturedTrue();
+    }
+
+    // 11. Lấy available courses (có chỗ trống)
+    public List<Course> getAvailableCourses() {
+        return courseRepository.findAvailableCourses();
+    }
+
+    // 12. Search courses
+    public List<Course> searchCourses(String keyword) {
+        return courseRepository.findByKeyword(keyword);
+    }
+
+    // 13. Lấy courses với pagination
+    public Page<Course> getOpenCoursesWithPagination(Pageable pageable) {
+        return courseRepository.findByStatusAndIsActiveTrue("open", pageable);
+    }
+
+    // 14. Increment participants
+    @Transactional
+    public Course incrementParticipants(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
+        if (course.getCurrentParticipants() >= course.getMaxParticipants()) {
+            throw new RuntimeException("Course is full");
+        }
+        
+        course.setCurrentParticipants(course.getCurrentParticipants() + 1);
+        
+        // Close course if full
+        if (course.getCurrentParticipants().equals(course.getMaxParticipants())) {
+            course.setStatus("closed");
+        }
+        
+        return courseRepository.save(course);
+    }
+
+    // 15. Decrement participants
+    @Transactional
+    public Course decrementParticipants(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
+        if (course.getCurrentParticipants() > 0) {
+            course.setCurrentParticipants(course.getCurrentParticipants() - 1);
+            
+            // Reopen course if was closed due to being full
+            if ("closed".equals(course.getStatus()) && course.getCurrentParticipants() < course.getMaxParticipants()) {
+                course.setStatus("open");
+            }
+        }
+        
+        return courseRepository.save(course);
+    }
+
+    // 16. Lấy latest courses
+    public List<Course> getLatestCourses() {
+        return courseRepository.findTop10ByStatusOrderByCreatedAtDesc("open");
+    }
+
+    // 17. Lấy popular courses
+    public List<Course> getPopularCourses() {
+        return courseRepository.findTop10ByStatusOrderByCurrentParticipantsDesc("open");
     }
 } 

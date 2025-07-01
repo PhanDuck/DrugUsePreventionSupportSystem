@@ -1,45 +1,48 @@
 package com.drugprevention.drugbe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "Role")
+@Table(name = "roles")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer roleID;
+    private Long id;
 
-    @Column(length = 50, nullable = false)
-    private String roleName;
+    @Column(nullable = false, unique = true)
+    private String name;
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "role")
+    @JsonIgnore  // Prevent lazy loading issues and circular reference during JSON serialization
     private List<User> users;
 
     // Constructors
     public Role() {}
 
+    public Role(String name) {
+        this.name = name;
+    }
+
     // Getters and Setters
-    public Integer getRoleID() {
-        return roleID;
+    public Long getId() {
+        return id;
     }
-
-    public void setRoleID(Integer roleID) {
-        this.roleID = roleID;
+    public void setId(Long id) {
+        this.id = id;
     }
-
-    public String getRoleName() {
-        return roleName;
+    
+    public String getName() {
+        return name;
     }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setName(String name) {
+        this.name = name;
     }
-
+    
     public List<User> getUsers() {
         return users;
     }
-
     public void setUsers(List<User> users) {
         this.users = users;
     }

@@ -3,25 +3,32 @@ package com.drugprevention.drugbe.repository;
 import com.drugprevention.drugbe.entity.AssessmentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AssessmentTypeRepository extends JpaRepository<AssessmentType, Integer> {
+public interface AssessmentTypeRepository extends JpaRepository<AssessmentType, Long> {
     
-    // Tìm AssessmentType theo tên
-    Optional<AssessmentType> findByTypeName(String typeName);
+    // Tìm assessment type theo name
+    Optional<AssessmentType> findByName(String name);
     
-    // Kiểm tra AssessmentType có tồn tại không
-    boolean existsByTypeName(String typeName);
+    // Kiểm tra tồn tại theo name
+    boolean existsByName(String name);
     
-    // Lấy tất cả AssessmentType có Assessment
-    @Query("SELECT DISTINCT at FROM AssessmentType at WHERE SIZE(at.assessments) > 0")
-    List<AssessmentType> findTypesWithAssessments();
+    // Tìm assessment types active
+    List<AssessmentType> findByIsActiveTrue();
     
-    // Tìm AssessmentType theo từ khóa trong tên hoặc mô tả
-    @Query("SELECT at FROM AssessmentType at WHERE at.typeName LIKE %:keyword% OR at.description LIKE %:keyword%")
-    List<AssessmentType> findByKeyword(String keyword);
+    // Tìm theo target age group
+    List<AssessmentType> findByTargetAgeGroup(String targetAgeGroup);
+    
+    // Tìm theo keyword trong name hoặc description
+    @Query("SELECT at FROM AssessmentType at WHERE at.name LIKE %:keyword% OR at.description LIKE %:keyword%")
+    List<AssessmentType> findByKeyword(@Param("keyword") String keyword);
+    
+    // Đếm assessments theo type
+    @Query("SELECT at.name, COUNT(a) FROM AssessmentType at LEFT JOIN Assessment a ON at.id = a.assessmentTypeId GROUP BY at.name")
+    List<Object[]> countAssessmentsByType();
 } 

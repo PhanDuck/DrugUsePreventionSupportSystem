@@ -1,7 +1,8 @@
 package com.drugprevention.drugbe.repository;
 
 import com.drugprevention.drugbe.entity.Course;
-import com.drugprevention.drugbe.entity.Category;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,58 +12,59 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface CourseRepository extends JpaRepository<Course, Integer> {
+public interface CourseRepository extends JpaRepository<Course, Long> {
     
-    // Tìm kiếm cơ bản
+    // Tìm courses theo instructor ID
+    List<Course> findByInstructorId(Long instructorId);
+    
+    // Tìm courses theo category ID
+    List<Course> findByCategoryId(Long categoryId);
+    
+    // Tìm courses theo status
     List<Course> findByStatus(String status);
-    List<Course> findByCategory(Category category);
-    List<Course> findByCategory_CategoryID(Integer categoryId);
     
-    // Tìm theo thời gian
-    List<Course> findByStatusAndEndDateAfter(String status, LocalDateTime date);
-    List<Course> findByStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    List<Course> findByEndDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    // Tìm courses active
+    List<Course> findByIsActiveTrue();
     
-    // Khóa học đang diễn ra
-    @Query("SELECT c FROM Course c WHERE c.status = 'ACTIVE' AND c.startDate <= :now AND c.endDate >= :now")
-    List<Course> findOngoingCourses(@Param("now") LocalDateTime now);
+    // Tìm featured courses
+    List<Course> findByIsFeaturedTrue();
     
-    // Khóa học sắp diễn ra
-    @Query("SELECT c FROM Course c WHERE c.status = 'ACTIVE' AND c.startDate > :now")
-    List<Course> findUpcomingCourses(@Param("now") LocalDateTime now);
+    // Tìm open courses
+    List<Course> findByStatusAndIsActiveTrue(String status);
     
-    // Khóa học đã kết thúc
-    @Query("SELECT c FROM Course c WHERE c.endDate < :now")
-    List<Course> findCompletedCourses(@Param("now") LocalDateTime now);
+    // Tìm courses theo title
+    List<Course> findByTitleContaining(String title);
     
-    // Khóa học có slot trống (capacity > số registration)
-    @Query("SELECT c FROM Course c WHERE c.capacity > SIZE(c.registrations) AND c.status = 'ACTIVE'")
-    List<Course> findAvailableCourses();
-    
-    // Tìm theo từ khóa trong title hoặc description
+    // Tìm courses theo keyword trong title hoặc description
     @Query("SELECT c FROM Course c WHERE c.title LIKE %:keyword% OR c.description LIKE %:keyword%")
     List<Course> findByKeyword(@Param("keyword") String keyword);
     
-    // Khóa học phổ biến (nhiều registration nhất)
-    @Query("SELECT c, SIZE(c.registrations) as regCount FROM Course c WHERE c.status = 'ACTIVE' ORDER BY regCount DESC")
-    List<Object[]> findPopularCourses();
+    // Tìm courses theo thời gian
+    List<Course> findByStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Course> findByStartDateAfter(LocalDateTime startDate);
     
-    // Đếm số registration theo course
-    @Query("SELECT c.courseID, c.title, SIZE(c.registrations) FROM Course c")
-    List<Object[]> countRegistrationsPerCourse();
+    // Tìm courses có chỗ trống
+    @Query("SELECT c FROM Course c WHERE c.currentParticipants < c.maxParticipants AND c.status = 'open'")
+    List<Course> findAvailableCourses();
     
-    // Thống kê khóa học theo category
-    @Query("SELECT cat.name, COUNT(c) FROM Course c JOIN c.category cat GROUP BY cat.name")
-    List<Object[]> countCoursesByCategory();
+    // Lấy courses mới nhất
+    List<Course> findTop10ByStatusOrderByCreatedAtDesc(String status);
     
-    // Lấy khóa học theo status và category
-    List<Course> findByStatusAndCategory_CategoryID(String status, Integer categoryId);
+    // Lấy popular courses
+    List<Course> findTop10ByStatusOrderByCurrentParticipantsDesc(String status);
     
-    // Kiểm tra khóa học có đủ slot không
-    @Query("SELECT CASE WHEN c.capacity > SIZE(c.registrations) THEN true ELSE false END FROM Course c WHERE c.courseID = :courseId")
-    Boolean hasAvailableSlots(@Param("courseId") Integer courseId);
+    // Page courses với filter
+    Page<Course> findByStatusAndIsActiveTrue(String status, Pageable pageable);
+    Page<Course> findByCategoryIdAndStatusAndIsActiveTrue(Long categoryId, String status, Pageable pageable);
     
-    // Lấy số slot còn lại
-    @Query("SELECT (c.capacity - SIZE(c.registrations)) FROM Course c WHERE c.courseID = :courseId")
-    Integer getAvailableSlots(@Param("courseId") Integer courseId);
+    // Đếm courses theo category
+    @Query("SELECT COUNT(c) FROM Course c WHERE c.categoryId = :categoryId")
+    Long countByCategoryId(@Param("categoryId") Long categoryId);
+    
+    // Đếm courses theo instructor
+    @Query("SELECT COUNT(c) FROM Course c WHERE c.instructorId = :instructorId")
+    Long countByInstructorId(@Param("instructorId") Long instructorId);
+    
+    // Lấy courses theo instructor và status
+    List<Course> findByInstructorIdAndStatus(Long instructorId, String status);
 } 

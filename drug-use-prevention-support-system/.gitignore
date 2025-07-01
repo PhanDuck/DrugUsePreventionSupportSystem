@@ -28,3 +28,41 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ===============================
+# 🔒 SENSITIVE FILES - DO NOT COMMIT
+# ===============================
+
+# Backend sensitive documentation & config
+/backend/ACCOUNT_LOGIN_INFO.md
+/backend/API_TESTING_GUIDE.md
+/backend/BACKEND_SYSTEM_OVERVIEW.md
+
+# Database setup files (may contain sensitive info)
+/backend/complete_database_setup.sql
+/backend/database_setup.sql
+/backend/insert_complete_assessment_questions.sql
+
+# Application properties (contains passwords & secrets)
+/backend/src/main/resources/application.properties
+/backend/src/main/resources/application.yml
+/backend/src/main/resources/application-*.properties
+/backend/src/main/resources/application-*.yml
+
+# Firebase & other config files
+/backend/src/main/resources/firebase-service-account.json
+/frontend/src/config/firebase.js
+.env
+.env.local
+.env.production
+
+# JWT Service with hardcoded keys
+/backend/src/main/java/com/drugprevention/drugbe/service/JwtService.java
+
+# Sensitive Controllers with debug/admin endpoints
+/backend/src/main/java/com/drugprevention/drugbe/controller/TestDataController.java
+/backend/src/main/java/com/drugprevention/drugbe/controller/HealthController.java
+
+# Test login scripts
+test_login.ps1
+*.ps1

@@ -1,8 +1,6 @@
 package com.drugprevention.drugbe.repository;
 
-import com.drugprevention.drugbe.entity.Course;
 import com.drugprevention.drugbe.entity.CourseRegistration;
-import com.drugprevention.drugbe.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,58 +11,50 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CourseRegistrationRepository extends JpaRepository<CourseRegistration, Integer> {
+public interface CourseRegistrationRepository extends JpaRepository<CourseRegistration, Long> {
     
-    // Tìm kiếm cơ bản
-    Optional<CourseRegistration> findByUserAndCourse(User user, Course course);
-    List<CourseRegistration> findByUser(User user);
-    List<CourseRegistration> findByCourse(Course course);
-    List<CourseRegistration> findByUser_UserID(Integer userId);
-    List<CourseRegistration> findByCourse_CourseID(Integer courseId);
+    // Tìm registrations theo user ID
+    List<CourseRegistration> findByUserId(Long userId);
     
-    // Đếm số registration
-    long countByCourse(Course course);
-    long countByUser(User user);
-    long countByCourse_CourseID(Integer courseId);
-    long countByUser_UserID(Integer userId);
+    // Tìm registrations theo course ID
+    List<CourseRegistration> findByCourseId(Long courseId);
     
-    // Kiểm tra user đã đăng ký course chưa
-    boolean existsByUserAndCourse(User user, Course course);
-    boolean existsByUser_UserIDAndCourse_CourseID(Integer userId, Integer courseId);
+    // Tìm registration theo user và course
+    Optional<CourseRegistration> findByUserIdAndCourseId(Long userId, Long courseId);
     
-    // Tìm theo thời gian đăng ký
-    List<CourseRegistration> findByRegisterTimeBetween(LocalDateTime startDate, LocalDateTime endDate);
-    List<CourseRegistration> findByUser_UserIDAndRegisterTimeBetween(Integer userId, LocalDateTime startDate, LocalDateTime endDate);
+    // Tìm registrations theo status
+    List<CourseRegistration> findByStatus(String status);
     
-    // Lấy registration mới nhất của user
-    @Query("SELECT cr FROM CourseRegistration cr WHERE cr.user.userID = :userId ORDER BY cr.registerTime DESC")
-    List<CourseRegistration> findLatestByUser(@Param("userId") Integer userId);
+    // Tìm active registrations
+    List<CourseRegistration> findByIsActiveTrue();
     
-    // Lấy registration mới nhất của course
-    @Query("SELECT cr FROM CourseRegistration cr WHERE cr.course.courseID = :courseId ORDER BY cr.registerTime DESC")
-    List<CourseRegistration> findLatestByCourse(@Param("courseId") Integer courseId);
+    // Tìm registrations theo user và status
+    List<CourseRegistration> findByUserIdAndStatus(Long userId, String status);
     
-    // Thống kê registration theo course
-    @Query("SELECT c.title, COUNT(cr) FROM CourseRegistration cr JOIN cr.course c GROUP BY c.title ORDER BY COUNT(cr) DESC")
-    List<Object[]> countRegistrationsByCourse();
+    // Tìm registrations theo course và status
+    List<CourseRegistration> findByCourseIdAndStatus(Long courseId, String status);
     
-    // Thống kê registration theo user
-    @Query("SELECT u.fullName, COUNT(cr) FROM CourseRegistration cr JOIN cr.user u GROUP BY u.fullName ORDER BY COUNT(cr) DESC")
-    List<Object[]> countRegistrationsByUser();
+    // Tìm registrations theo thời gian đăng ký
+    List<CourseRegistration> findByRegistrationDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    // Thống kê registration theo tháng
-    @Query("SELECT YEAR(cr.registerTime), MONTH(cr.registerTime), COUNT(cr) FROM CourseRegistration cr WHERE cr.registerTime BETWEEN :startDate AND :endDate GROUP BY YEAR(cr.registerTime), MONTH(cr.registerTime) ORDER BY YEAR(cr.registerTime), MONTH(cr.registerTime)")
-    List<Object[]> getMonthlyRegistrationStatistics(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    // Tìm completed registrations
+    List<CourseRegistration> findByStatusAndCompletionDateIsNotNull(String status);
     
-    // Lấy user đăng ký nhiều course nhất
-    @Query("SELECT cr.user, COUNT(cr) as regCount FROM CourseRegistration cr GROUP BY cr.user ORDER BY regCount DESC")
-    List<Object[]> findMostActiveUsers();
+    // Đếm registrations theo course
+    @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.courseId = :courseId")
+    Long countByCourseId(@Param("courseId") Long courseId);
     
-    // Lấy course có nhiều registration nhất
-    @Query("SELECT cr.course, COUNT(cr) as regCount FROM CourseRegistration cr GROUP BY cr.course ORDER BY regCount DESC")
-    List<Object[]> findMostPopularCourses();
+    // Đếm registrations theo user
+    @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.userId = :userId")
+    Long countByUserId(@Param("userId") Long userId);
     
-    // Tìm user cùng đăng ký course (để recommend)
-    @Query("SELECT DISTINCT cr2.user FROM CourseRegistration cr1 JOIN CourseRegistration cr2 ON cr1.course = cr2.course WHERE cr1.user.userID = :userId AND cr2.user.userID != :userId")
-    List<User> findUsersWithSimilarInterests(@Param("userId") Integer userId);
+    // Đếm active registrations theo course
+    @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.courseId = :courseId AND cr.status = 'registered' AND cr.isActive = true")
+    Long countActiveByCourseId(@Param("courseId") Long courseId);
+    
+    // Lấy registrations mới nhất
+    List<CourseRegistration> findTop10ByOrderByRegistrationDateDesc();
+    
+    // Check if user is already registered for course
+    boolean existsByUserIdAndCourseIdAndIsActiveTrue(Long userId, Long courseId);
 } 

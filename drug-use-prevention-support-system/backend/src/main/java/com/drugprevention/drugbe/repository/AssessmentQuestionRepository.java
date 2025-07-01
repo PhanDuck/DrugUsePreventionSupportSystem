@@ -1,7 +1,6 @@
 package com.drugprevention.drugbe.repository;
 
 import com.drugprevention.drugbe.entity.AssessmentQuestion;
-import com.drugprevention.drugbe.entity.Assessment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,29 +9,32 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQuestion, Integer> {
+public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQuestion, Long> {
     
-    // Tìm questions theo Assessment
-    List<AssessmentQuestion> findByAssessment(Assessment assessment);
-    List<AssessmentQuestion> findByAssessment_AssessmentID(Integer assessmentId);
+    // Tìm questions theo assessment ID
+    List<AssessmentQuestion> findByAssessmentId(Long assessmentId);
     
-    // Tìm questions theo từ khóa
-    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.questionText LIKE %:keyword%")
-    List<AssessmentQuestion> findByKeyword(@Param("keyword") String keyword);
+    // Tìm questions theo assessment ID và sắp xếp theo order
+    List<AssessmentQuestion> findByAssessmentIdOrderByOrderIndex(Long assessmentId);
     
-    // Đếm số questions theo assessment
-    long countByAssessment(Assessment assessment);
-    long countByAssessment_AssessmentID(Integer assessmentId);
+    // Tìm questions active
+    List<AssessmentQuestion> findByIsActiveTrue();
     
-    // Lấy questions theo score weight
-    List<AssessmentQuestion> findByScoreWeight(Integer scoreWeight);
-    List<AssessmentQuestion> findByScoreWeightGreaterThan(Integer scoreWeight);
+    // Tìm questions theo type
+    List<AssessmentQuestion> findByQuestionType(String questionType);
     
-    // Lấy questions có score weight cao nhất
-    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.assessment.assessmentID = :assessmentId ORDER BY aq.scoreWeight DESC")
-    List<AssessmentQuestion> findByAssessmentOrderByScoreWeightDesc(@Param("assessmentId") Integer assessmentId);
+    // Tìm questions required
+    List<AssessmentQuestion> findByIsRequiredTrue();
     
-    // Thống kê score weight theo assessment
-    @Query("SELECT a.assessmentName, AVG(aq.scoreWeight) FROM AssessmentQuestion aq JOIN aq.assessment a GROUP BY a.assessmentName")
-    List<Object[]> averageScoreWeightByAssessment();
+    // Tìm questions theo keyword
+    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.question LIKE %:keyword%")
+    List<AssessmentQuestion> findByQuestionContaining(@Param("keyword") String keyword);
+    
+    // Đếm questions theo assessment
+    @Query("SELECT COUNT(aq) FROM AssessmentQuestion aq WHERE aq.assessmentId = :assessmentId")
+    Long countByAssessmentId(@Param("assessmentId") Long assessmentId);
+    
+    // Lấy question tiếp theo trong assessment
+    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.assessmentId = :assessmentId AND aq.orderIndex > :currentOrder ORDER BY aq.orderIndex ASC LIMIT 1")
+    AssessmentQuestion findNextQuestion(@Param("assessmentId") Long assessmentId, @Param("currentOrder") Integer currentOrder);
 } 

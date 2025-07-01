@@ -1,8 +1,6 @@
 package com.drugprevention.drugbe.repository;
 
 import com.drugprevention.drugbe.entity.Recommendation;
-import com.drugprevention.drugbe.entity.Course;
-import com.drugprevention.drugbe.entity.Blog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,37 +9,58 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RecommendationRepository extends JpaRepository<Recommendation, Integer> {
+public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
     
-    // Tìm Recommendation theo Course
-    List<Recommendation> findByCourse(Course course);
+    // Tìm recommendations theo user ID
+    List<Recommendation> findByUserId(Long userId);
     
-    // Tìm Recommendation theo Blog
-    List<Recommendation> findByBlog(Blog blog);
+    // Tìm recommendations theo assessment result ID
+    List<Recommendation> findByAssessmentResultId(Long assessmentResultId);
     
-    // Tìm Recommendation theo CourseID
-    List<Recommendation> findByCourse_CourseID(Integer courseID);
+    // Tìm recommendations theo type
+    List<Recommendation> findByRecommendationType(String recommendationType);
     
-    // Tìm Recommendation theo BlogID
-    List<Recommendation> findByBlog_BlogID(Integer blogID);
+    // Tìm recommendations theo risk level
+    List<Recommendation> findByRiskLevel(String riskLevel);
     
-    // Lấy tất cả Course được recommend
-    @Query("SELECT DISTINCT r.course FROM Recommendation r WHERE r.course IS NOT NULL")
-    List<Course> findRecommendedCourses();
+    // Tìm recommendations theo status
+    List<Recommendation> findByStatus(String status);
     
-    // Lấy tất cả Blog được recommend
-    @Query("SELECT DISTINCT r.blog FROM Recommendation r WHERE r.blog IS NOT NULL")
-    List<Blog> findRecommendedBlogs();
+    // Tìm active recommendations
+    List<Recommendation> findByIsActiveTrue();
     
-    // Tìm Recommendation theo risk level (có thể mở rộng để thêm trường riskLevel)
-    @Query("SELECT r FROM Recommendation r WHERE " +
-           "(r.course IS NOT NULL AND r.course.title LIKE %:keyword%) OR " +
-           "(r.blog IS NOT NULL AND r.blog.title LIKE %:keyword%)")
-    List<Recommendation> findByKeyword(@Param("keyword") String keyword);
+    // Tìm recommendations theo user và status
+    List<Recommendation> findByUserIdAndStatus(Long userId, String status);
     
-    // Kiểm tra Course đã được recommend chưa
-    boolean existsByCourse(Course course);
+    // Tìm recommendations theo user và type
+    List<Recommendation> findByUserIdAndRecommendationType(Long userId, String recommendationType);
     
-    // Kiểm tra Blog đã được recommend chưa
-    boolean existsByBlog(Blog blog);
+    // Tìm recommendations theo priority
+    List<Recommendation> findByPriority(Integer priority);
+    
+    // Tìm high priority recommendations
+    @Query("SELECT r FROM Recommendation r WHERE r.priority <= 2 ORDER BY r.priority ASC")
+    List<Recommendation> findHighPriorityRecommendations();
+    
+    // Tìm recommendations theo user và priority
+    @Query("SELECT r FROM Recommendation r WHERE r.userId = :userId ORDER BY r.priority ASC, r.createdAt DESC")
+    List<Recommendation> findByUserIdOrderByPriority(@Param("userId") Long userId);
+    
+    // Tìm pending recommendations cho user
+    @Query("SELECT r FROM Recommendation r WHERE r.userId = :userId AND r.status = 'pending' AND r.isActive = true ORDER BY r.priority ASC")
+    List<Recommendation> findPendingByUserId(@Param("userId") Long userId);
+    
+    // Đếm recommendations theo user
+    @Query("SELECT COUNT(r) FROM Recommendation r WHERE r.userId = :userId")
+    Long countByUserId(@Param("userId") Long userId);
+    
+    // Đếm pending recommendations theo user
+    @Query("SELECT COUNT(r) FROM Recommendation r WHERE r.userId = :userId AND r.status = 'pending' AND r.isActive = true")
+    Long countPendingByUserId(@Param("userId") Long userId);
+    
+    // Lấy recommendations mới nhất
+    List<Recommendation> findTop10ByOrderByCreatedAtDesc();
+    
+    // Tìm recommendations theo target ID
+    List<Recommendation> findByTargetId(Long targetId);
 } 

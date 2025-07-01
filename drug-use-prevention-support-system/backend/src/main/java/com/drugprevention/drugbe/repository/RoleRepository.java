@@ -7,11 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Integer> {
+public interface RoleRepository extends JpaRepository<Role, Long> {
     
     // Tìm Role theo tên
-    Optional<Role> findByRoleName(String roleName);
+    Optional<Role> findByName(String name);
     
     // Kiểm tra Role có tồn tại không
-    boolean existsByRoleName(String roleName);
+    boolean existsByName(String name);
 } 

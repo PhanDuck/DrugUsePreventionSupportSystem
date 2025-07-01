@@ -1,68 +1,71 @@
 package com.drugprevention.drugbe.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Answer")
+@Table(name = "answers")
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer answerID;
+    private Long id;
+
+    @Column(name = "assessment_result_id")
+    private Long assessmentResultId;
 
     @ManyToOne
-    @JoinColumn(name = "resultID")
-    private AssessmentResult result;
+    @JoinColumn(name = "assessment_result_id", insertable = false, updatable = false)
+    private AssessmentResult assessmentResult;
+
+    @Column(name = "assessment_question_id")
+    private Long assessmentQuestionId;
 
     @ManyToOne
-    @JoinColumn(name = "questionID")
-    private AssessmentQuestion question;
+    @JoinColumn(name = "assessment_question_id", insertable = false, updatable = false)
+    private AssessmentQuestion assessmentQuestion;
 
-    @Column(columnDefinition = "TEXT")
-    private String userAnswer;
+    @Column(name = "answer_text", columnDefinition = "TEXT")
+    private String answerText;
 
-    private Integer score;
+    @Column(name = "answer_value")
+    private Integer answerValue; // For numerical scoring
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     // Constructors
     public Answer() {}
 
+    public Answer(Long assessmentResultId, Long assessmentQuestionId, String answerText, Integer answerValue) {
+        this.assessmentResultId = assessmentResultId;
+        this.assessmentQuestionId = assessmentQuestionId;
+        this.answerText = answerText;
+        this.answerValue = answerValue;
+        this.createdAt = LocalDateTime.now();
+    }
+
     // Getters and Setters
-    public Integer getAnswerID() {
-        return answerID;
-    }
-
-    public void setAnswerID(Integer answerID) {
-        this.answerID = answerID;
-    }
-
-    public AssessmentResult getResult() {
-        return result;
-    }
-
-    public void setResult(AssessmentResult result) {
-        this.result = result;
-    }
-
-    public AssessmentQuestion getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(AssessmentQuestion question) {
-        this.question = question;
-    }
-
-    public String getUserAnswer() {
-        return userAnswer;
-    }
-
-    public void setUserAnswer(String userAnswer) {
-        this.userAnswer = userAnswer;
-    }
-
-    public Integer getScore() {
-        return score;
-    }
-
-    public void setScore(Integer score) {
-        this.score = score;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public Long getAssessmentResultId() { return assessmentResultId; }
+    public void setAssessmentResultId(Long assessmentResultId) { this.assessmentResultId = assessmentResultId; }
+    
+    public AssessmentResult getAssessmentResult() { return assessmentResult; }
+    public void setAssessmentResult(AssessmentResult assessmentResult) { this.assessmentResult = assessmentResult; }
+    
+    public Long getAssessmentQuestionId() { return assessmentQuestionId; }
+    public void setAssessmentQuestionId(Long assessmentQuestionId) { this.assessmentQuestionId = assessmentQuestionId; }
+    
+    public AssessmentQuestion getAssessmentQuestion() { return assessmentQuestion; }
+    public void setAssessmentQuestion(AssessmentQuestion assessmentQuestion) { this.assessmentQuestion = assessmentQuestion; }
+    
+    public String getAnswerText() { return answerText; }
+    public void setAnswerText(String answerText) { this.answerText = answerText; }
+    
+    public Integer getAnswerValue() { return answerValue; }
+    public void setAnswerValue(Integer answerValue) { this.answerValue = answerValue; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 } 
