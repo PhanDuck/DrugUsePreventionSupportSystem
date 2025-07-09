@@ -66,3 +66,7 @@ dist-ssr
 # Test login scripts
 test_login.ps1
 *.ps1
+
+# Ignore all SQL and Markdown files (for safety)
+*.sql
+*.md

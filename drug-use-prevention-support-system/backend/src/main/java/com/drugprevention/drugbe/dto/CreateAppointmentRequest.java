@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,12 +25,16 @@ public class CreateAppointmentRequest {
     @Min(value = 15, message = "Thời lượng phải ít nhất 15 phút")
     private Integer durationMinutes = 60;
     
+    @Pattern(regexp = "^(ONLINE|IN_PERSON)$", message = "Loại cuộc hẹn phải là ONLINE hoặc IN_PERSON")
     private String appointmentType = "ONLINE"; // ONLINE or IN_PERSON
     
+    @Size(max = 500, message = "Ghi chú không được quá 500 ký tự")
     private String clientNotes;
     
     @DecimalMin(value = "0.0", message = "Phí tư vấn không được âm")
     private BigDecimal fee = BigDecimal.valueOf(100.0);
+    
+    private String paymentMethod = "CASH"; // CASH, VNPAY, BANK_TRANSFER
 
     // Constructors
     public CreateAppointmentRequest() {}
@@ -94,6 +100,14 @@ public class CreateAppointmentRequest {
 
     public void setFee(BigDecimal fee) {
         this.fee = fee;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     // Validation helpers

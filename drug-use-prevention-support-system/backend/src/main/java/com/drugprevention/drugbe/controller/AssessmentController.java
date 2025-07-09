@@ -3,21 +3,30 @@ package com.drugprevention.drugbe.controller;
 import com.drugprevention.drugbe.dto.*;
 import com.drugprevention.drugbe.entity.*;
 import com.drugprevention.drugbe.service.AssessmentService;
+import com.drugprevention.drugbe.repository.UserRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/assessments")
 @CrossOrigin(origins = "*")
+@Tag(name = "Assessment Controller", description = "APIs for assessment management")
 public class AssessmentController {
 
     @Autowired
     private AssessmentService assessmentService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     // ===== PUBLIC ENDPOINTS - Assessment Discovery =====
 
@@ -164,5 +173,75 @@ public class AssessmentController {
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("🎯 Assessment Service is running! Ready for CRAFFT & ASSIST assessments.");
+    }
+
+    // ===== CREATE ASSESSMENT QUESTION =====
+
+    @PostMapping("/{assessmentId}/questions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AssessmentQuestion> createQuestion(
+            @PathVariable Long assessmentId,
+            @RequestBody AssessmentQuestion question) {
+        question.setAssessmentId(assessmentId);
+        AssessmentQuestion created = assessmentService.createQuestion(question);
+        return ResponseEntity.ok(created);
+    }
+    
+    // ===== CONSULTANT ACCESS TO CLIENT RESULTS =====
+    
+    @GetMapping("/consultant/client/{clientId}/results")
+    @PreAuthorize("hasRole('CONSULTANT')")
+    public ResponseEntity<?> getClientAssessmentResultsForConsultant(
+            @PathVariable Long clientId,
+            Authentication authentication) {
+        try {
+            // Get consultant username from authentication
+            String consultantUsername = authentication.getName();
+            
+            // Get consultant ID from username
+            User consultant = userRepository.findByUsername(consultantUsername)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+            
+            List<AssessmentResultDTO> results = assessmentService
+                    .getClientAssessmentResultsForConsultant(consultant.getId(), clientId);
+            return ResponseEntity.ok(results);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Lỗi lấy kết quả đánh giá: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/consultant/client/{clientId}/latest-result")
+    @PreAuthorize("hasRole('CONSULTANT')")
+    public ResponseEntity<?> getLatestClientAssessmentForConsultant(
+            @PathVariable Long clientId,
+            Authentication authentication) {
+        try {
+            // Get consultant username from authentication
+            String consultantUsername = authentication.getName();
+            
+            // Get consultant ID from username
+            User consultant = userRepository.findByUsername(consultantUsername)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+            
+            Optional<AssessmentResultDTO> result = assessmentService
+                    .getLatestClientAssessmentForConsultant(consultant.getId(), clientId);
+                    
+            if (result.isPresent()) {
+                return ResponseEntity.ok(result.get());
+            } else {
+                return ResponseEntity.ok(Map.of(
+                    "message", "Khách hàng chưa có kết quả đánh giá nào",
+                    "clientId", clientId
+                ));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Lỗi lấy kết quả đánh giá: " + e.getMessage()));
+        }
     }
 } 

@@ -17,7 +17,8 @@ import {
   Radio,
   TimePicker,
   Alert,
-  Statistic
+  Statistic,
+  Select
 } from 'antd';
 import { 
   CalendarOutlined, 
@@ -46,6 +47,8 @@ export default function AppointmentPage() {
   const [appointments, setAppointments] = useState([]);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     checkAuthentication();
@@ -65,7 +68,7 @@ export default function AppointmentPage() {
   const loadConsultants = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/consultants');
+      const response = await axios.get('/api/users/consultants');
       const consultantData = response.data.map(consultant => ({
         id: consultant.id,
         name: `${consultant.firstName} ${consultant.lastName}`,
@@ -97,16 +100,49 @@ export default function AppointmentPage() {
     }
   };
 
+  const loadAvailableSlots = async (consultantId, date) => {
+    try {
+      setLoadingSlots(true);
+      const formattedDate = date.format('YYYY-MM-DD');
+      const response = await axios.get(`/api/appointments/consultant/${consultantId}/available-slots?date=${formattedDate}`);
+      setAvailableSlots(response.data.availableSlots || []);
+      
+      if (response.data.availableSlots.length === 0) {
+        message.warning('Không có lịch trống trong ngày này. Vui lòng chọn ngày khác.');
+      }
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+      const errorMessage = error.response?.data?.error || 'Không thể tải lịch trống';
+      message.error(errorMessage);
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleDateChange = (date) => {
+    if (date && selectedConsultant) {
+      loadAvailableSlots(selectedConsultant.id, date);
+      // Clear time selection when date changes
+      form.setFieldsValue({ appointmentTime: null });
+    }
+  };
+
   const handleBooking = async (values) => {
     try {
       setLoading(true);
       
+      // Combine date and time into LocalDateTime format
+      const appointmentDateTime = values.appointmentDate.format('YYYY-MM-DD') + 'T' + values.appointmentTime + ':00';
+      
       const appointmentData = {
+        clientId: currentUser.id,
         consultantId: selectedConsultant.id,
-        appointmentDate: values.appointmentDate.format('YYYY-MM-DD'),
-        appointmentTime: values.appointmentTime.format('HH:mm'),
+        appointmentDate: appointmentDateTime,
+        durationMinutes: 60,
         appointmentType: values.appointmentType,
-        notes: values.notes || ''
+        clientNotes: values.notes || '',
+        paymentMethod: values.paymentMethod
       };
 
       await axios.post('/api/appointments', appointmentData);
@@ -118,7 +154,8 @@ export default function AppointmentPage() {
       
     } catch (error) {
       console.error('Error creating appointment:', error);
-      message.error('Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại!');
+      const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại!';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -127,6 +164,8 @@ export default function AppointmentPage() {
   const openBookingModal = (consultant) => {
     setSelectedConsultant(consultant);
     setShowBookingModal(true);
+    setAvailableSlots([]);
+    form.resetFields();
   };
 
   return (
@@ -318,7 +357,8 @@ export default function AppointmentPage() {
               layout="vertical"
               onFinish={handleBooking}
               initialValues={{
-                appointmentType: 'ONLINE'
+                appointmentType: 'ONLINE',
+                paymentMethod: 'CASH'
               }}
             >
               <Form.Item
@@ -331,6 +371,7 @@ export default function AppointmentPage() {
                   disabledDate={(current) => {
                     return current && current < dayjs().startOf('day');
                   }}
+                  onChange={handleDateChange}
                 />
               </Form.Item>
 
@@ -339,10 +380,15 @@ export default function AppointmentPage() {
                 label="Chọn giờ"
                 rules={[{ required: true, message: 'Vui lòng chọn giờ!' }]}
               >
-                <TimePicker 
+                <Select
                   style={{ width: '100%' }}
-                  format="HH:mm"
-                  minuteStep={30}
+                  placeholder={loadingSlots ? "Đang tải..." : "Vui lòng chọn ngày trước"}
+                  disabled={!availableSlots.length}
+                  loading={loadingSlots}
+                  options={availableSlots.map(slot => ({
+                    value: slot,
+                    label: slot
+                  }))}
                 />
               </Form.Item>
 
@@ -354,6 +400,18 @@ export default function AppointmentPage() {
                 <Radio.Group>
                   <Radio value="ONLINE">💻 Tư vấn online</Radio>
                   <Radio value="IN_PERSON">🏢 Tư vấn trực tiếp</Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              <Form.Item
+                name="paymentMethod"
+                label="Phương thức thanh toán"
+                rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
+              >
+                <Radio.Group>
+                  <Radio value="CASH">💵 Thanh toán tiền mặt</Radio>
+                  <Radio value="VNPAY">🏧 Thanh toán VNPay (sắp có)</Radio>
+                  <Radio value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</Radio>
                 </Radio.Group>
               </Form.Item>
 

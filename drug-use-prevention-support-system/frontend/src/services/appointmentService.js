@@ -239,6 +239,24 @@ class AppointmentService {
       };
     }
   }
+
+  // ===== GET AVAILABLE TIME SLOTS =====
+  async getAvailableSlots(consultantId, date) {
+    try {
+      const response = await api.get(`/appointments/consultant/${consultantId}/available-slots?date=${date}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Không thể tải lịch trống',
+        data: { availableSlots: [] }
+      };
+    }
+  }
 }
 
 export default new AppointmentService(); 

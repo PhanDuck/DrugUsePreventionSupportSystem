@@ -26,6 +26,15 @@ public class AppointmentDTO {
     private LocalDateTime updatedAt;
     private LocalDateTime cancelledAt;
     private String cancellationReason;
+    
+    // Payment related fields
+    private String vnpayTxnRef;
+    private String vnpayResponseCode;
+    private String vnpayTransactionNo;
+    private String vnpayBankCode;
+    private String paymentUrl;
+    private LocalDateTime paidAt;
+    private String paymentMethod;
 
     // Constructors
     public AppointmentDTO() {}
@@ -205,6 +214,62 @@ public class AppointmentDTO {
 
     public void setCancellationReason(String cancellationReason) {
         this.cancellationReason = cancellationReason;
+    }
+
+    public String getVnpayTxnRef() {
+        return vnpayTxnRef;
+    }
+
+    public void setVnpayTxnRef(String vnpayTxnRef) {
+        this.vnpayTxnRef = vnpayTxnRef;
+    }
+
+    public String getVnpayResponseCode() {
+        return vnpayResponseCode;
+    }
+
+    public void setVnpayResponseCode(String vnpayResponseCode) {
+        this.vnpayResponseCode = vnpayResponseCode;
+    }
+
+    public String getVnpayTransactionNo() {
+        return vnpayTransactionNo;
+    }
+
+    public void setVnpayTransactionNo(String vnpayTransactionNo) {
+        this.vnpayTransactionNo = vnpayTransactionNo;
+    }
+
+    public String getVnpayBankCode() {
+        return vnpayBankCode;
+    }
+
+    public void setVnpayBankCode(String vnpayBankCode) {
+        this.vnpayBankCode = vnpayBankCode;
+    }
+
+    public String getPaymentUrl() {
+        return paymentUrl;
+    }
+
+    public void setPaymentUrl(String paymentUrl) {
+        this.paymentUrl = paymentUrl;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     // Helper methods for status display

@@ -60,6 +60,28 @@ public class Appointment {
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
+    // Payment related fields for VNPay integration
+    @Column(name = "vnpay_txn_ref", length = 100)
+    private String vnpayTxnRef; // VNPay transaction reference
+    
+    @Column(name = "vnpay_response_code", length = 10)
+    private String vnpayResponseCode; // VNPay response code
+    
+    @Column(name = "vnpay_transaction_no", length = 100)
+    private String vnpayTransactionNo; // VNPay transaction number
+    
+    @Column(name = "vnpay_bank_code", length = 20)
+    private String vnpayBankCode; // Bank code used for payment
+    
+    @Column(name = "payment_url", length = 1000)
+    private String paymentUrl; // VNPay payment URL
+    
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt; // When payment was completed
+    
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod; // VNPAY, CASH, BANK_TRANSFER, etc.
+
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", insertable = false, updatable = false)
@@ -276,6 +298,28 @@ public class Appointment {
         this.cancellationReason = reason;
         this.updatedAt = LocalDateTime.now();
     }
+
+    // Payment related getters and setters
+    public String getVnpayTxnRef() { return vnpayTxnRef; }
+    public void setVnpayTxnRef(String vnpayTxnRef) { this.vnpayTxnRef = vnpayTxnRef; }
+    
+    public String getVnpayResponseCode() { return vnpayResponseCode; }
+    public void setVnpayResponseCode(String vnpayResponseCode) { this.vnpayResponseCode = vnpayResponseCode; }
+    
+    public String getVnpayTransactionNo() { return vnpayTransactionNo; }
+    public void setVnpayTransactionNo(String vnpayTransactionNo) { this.vnpayTransactionNo = vnpayTransactionNo; }
+    
+    public String getVnpayBankCode() { return vnpayBankCode; }
+    public void setVnpayBankCode(String vnpayBankCode) { this.vnpayBankCode = vnpayBankCode; }
+    
+    public String getPaymentUrl() { return paymentUrl; }
+    public void setPaymentUrl(String paymentUrl) { this.paymentUrl = paymentUrl; }
+    
+    public LocalDateTime getPaidAt() { return paidAt; }
+    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+    
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 
     @PreUpdate
     protected void onUpdate() {

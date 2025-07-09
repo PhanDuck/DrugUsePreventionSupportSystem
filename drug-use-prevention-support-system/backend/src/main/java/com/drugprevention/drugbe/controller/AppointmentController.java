@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -214,6 +216,32 @@ public class AppointmentController {
             return ResponseEntity.ok(Map.of("message", "Statistics endpoint - implement date parsing"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thống kê: " + e.getMessage()));
+        }
+    }
+    
+    // ===== AVAILABLE TIME SLOTS =====
+    
+    @GetMapping("/consultant/{consultantId}/available-slots")
+    @Operation(summary = "Get available time slots", description = "Get available time slots for a consultant on a specific date")
+    public ResponseEntity<?> getAvailableTimeSlots(@PathVariable Long consultantId,
+                                                   @RequestParam String date) {
+        try {
+            // Parse date string to LocalDateTime
+            LocalDateTime dateTime = LocalDateTime.parse(date + "T00:00:00");
+            List<String> availableSlots = appointmentService.getAvailableTimeSlots(consultantId, dateTime);
+            
+            return ResponseEntity.ok(Map.of(
+                "consultantId", consultantId,
+                "date", date,
+                "availableSlots", availableSlots,
+                "totalSlots", availableSlots.size()
+            ));
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Định dạng ngày không hợp lệ. Vui lòng sử dụng format: YYYY-MM-DD"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy lịch trống: " + e.getMessage()));
         }
     }
 } 

@@ -50,14 +50,34 @@ const ConsultantDashboard = () => {
           completedSessions: appointmentData.filter(apt => apt.status === 'COMPLETED').length,
           totalClients: new Set(appointmentData.map(apt => apt.clientId)).size
         }));
+        
+        // Load assessment results for recent clients
+        const recentClients = [...new Set(appointmentData
+          .filter(apt => apt.status === 'COMPLETED' || apt.status === 'CONFIRMED')
+          .map(apt => apt.clientId)
+          .slice(0, 5))]; // Get 5 recent clients
+          
+        const assessmentPromises = recentClients.map(async (clientId) => {
+          const result = await assessmentService.getLatestClientAssessmentForConsultant(clientId);
+          if (result.success && result.data && result.data.id) {
+            // Find client name from appointments
+            const clientAppointment = appointmentData.find(apt => apt.clientId === clientId);
+            return {
+              ...result.data,
+              clientName: clientAppointment?.clientName || `Client #${clientId}`,
+              clientId: clientId
+            };
+          }
+          return null;
+        });
+        
+        const assessmentResults = await Promise.all(assessmentPromises);
+        setAssessmentResults(assessmentResults.filter(result => result !== null));
+        setStats(prev => ({ ...prev, pendingAssessments: assessmentResults.filter(r => r !== null).length }));
+        
       } else {
         console.log('No appointments found:', appointmentsResponse.message);
       }
-
-      // Note: Assessment results would need a specific API endpoint for consultant's clients
-      // For now, using placeholder
-      setStats(prev => ({ ...prev, pendingAssessments: 0 }));
-      setAssessmentResults([]);
       
     } catch (error) {
       console.error('Error fetching consultant dashboard data:', error);
@@ -170,8 +190,8 @@ const ConsultantDashboard = () => {
     },
     {
       title: 'Điểm số',
-      dataIndex: 'score',
-      key: 'score',
+      dataIndex: 'totalScore',
+      key: 'totalScore',
     },
     {
       title: 'Mức độ rủi ro',
@@ -188,16 +208,34 @@ const ConsultantDashboard = () => {
     },
     {
       title: 'Ngày',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'completedAt',
+      key: 'completedAt',
+      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
     },
     {
       title: 'Hành động',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button size="small" type="primary">Xem kết quả</Button>
-          <Button size="small">Tư vấn</Button>
+          <Button 
+            size="small" 
+            type="primary"
+            onClick={() => {
+              message.info(`Xem chi tiết kết quả đánh giá của ${record.clientName}`);
+              // TODO: Navigate to detailed view
+            }}
+          >
+            Xem kết quả
+          </Button>
+          <Button 
+            size="small"
+            onClick={() => {
+              message.info('Tính năng tư vấn đang phát triển');
+              // TODO: Create consultation notes
+            }}
+          >
+            Tư vấn
+          </Button>
         </Space>
       ),
     },

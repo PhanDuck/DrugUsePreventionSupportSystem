@@ -29,6 +29,8 @@ public class AssessmentService {
     private UserRepository userRepository;
     @Autowired
     private AssessmentTypeRepository assessmentTypeRepository;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -623,5 +625,59 @@ public class AssessmentService {
         public String getRiskLevel() { return riskLevel; }
         public String getRiskDescription() { return riskDescription; }
         public List<String> getRecommendations() { return recommendations; }
+    }
+    
+    // ===== CONSULTANT ACCESS =====
+    
+    /**
+     * Get assessment results for a client that consultant has appointments with
+     */
+    public List<AssessmentResultDTO> getClientAssessmentResultsForConsultant(Long consultantId, Long clientId) {
+        // First check if consultant has any appointments with this client
+        boolean hasAppointments = appointmentRepository
+                .findByConsultantIdOrderByAppointmentDateDesc(consultantId)
+                .stream()
+                .anyMatch(appointment -> appointment.getClientId().equals(clientId));
+                
+        if (!hasAppointments) {
+            throw new RuntimeException("Bạn không có quyền xem kết quả đánh giá của khách hàng này");
+        }
+        
+        // Get all assessment results for this client
+        return getUserAssessmentResults(clientId);
+    }
+    
+    /**
+     * Get latest assessment result for a client (for consultant view)
+     */
+    public Optional<AssessmentResultDTO> getLatestClientAssessmentForConsultant(Long consultantId, Long clientId) {
+        // First check if consultant has any appointments with this client
+        boolean hasAppointments = appointmentRepository
+                .findByConsultantIdOrderByAppointmentDateDesc(consultantId)
+                .stream()
+                .anyMatch(appointment -> appointment.getClientId().equals(clientId));
+                
+        if (!hasAppointments) {
+            throw new RuntimeException("Bạn không có quyền xem kết quả đánh giá của khách hàng này");
+        }
+        
+        // Get latest assessment result
+        List<AssessmentResult> results = assessmentResultRepository.findByUserId(clientId);
+        if (results.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        // Sort by completed date and get the latest
+        AssessmentResult latestResult = results.stream()
+                .sorted((r1, r2) -> r2.getCompletedAt().compareTo(r1.getCompletedAt()))
+                .findFirst()
+                .orElse(null);
+                
+        if (latestResult == null) {
+            return Optional.empty();
+        }
+        
+        Assessment assessment = assessmentRepository.findById(latestResult.getAssessmentId()).orElse(null);
+        return Optional.of(convertToResultDTO(latestResult, assessment, null));
     }
 } 
