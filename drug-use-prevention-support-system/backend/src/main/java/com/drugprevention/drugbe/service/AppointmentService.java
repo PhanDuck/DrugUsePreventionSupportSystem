@@ -2,6 +2,7 @@ package com.drugprevention.drugbe.service;
 
 import com.drugprevention.drugbe.dto.AppointmentDTO;
 import com.drugprevention.drugbe.dto.CreateAppointmentRequest;
+import com.drugprevention.drugbe.dto.RescheduleRequest;
 import com.drugprevention.drugbe.entity.Appointment;
 import com.drugprevention.drugbe.entity.User;
 import com.drugprevention.drugbe.repository.AppointmentRepository;
@@ -352,5 +353,135 @@ public class AppointmentService {
         }
         
         return allSlots;
+    }
+
+    // ===== RESCHEDULE APPOINTMENT =====
+    
+    public AppointmentDTO rescheduleAppointment(Long appointmentId, RescheduleRequest request) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+
+        // Check if appointment can be rescheduled
+        if ("CANCELLED".equals(appointment.getStatus()) || "COMPLETED".equals(appointment.getStatus())) {
+            throw new RuntimeException("Không thể đổi lịch hẹn đã hủy hoặc hoàn thành");
+        }
+
+        // Validate new appointment date/time
+        validateAppointmentDateTime(request.getNewDateTime());
+
+        // Check for conflicts with new time
+        LocalDateTime endTime = request.getNewDateTime().plusMinutes(appointment.getDurationMinutes());
+        List<Appointment> conflicts = appointmentRepository.findConflictingAppointments(
+                appointment.getConsultantId(), request.getNewDateTime(), endTime);
+        
+        // Remove current appointment from conflicts list
+        conflicts = conflicts.stream()
+                .filter(a -> !a.getId().equals(appointmentId))
+                .collect(Collectors.toList());
+        
+        if (!conflicts.isEmpty()) {
+            throw new RuntimeException("Tư vấn viên đã có lịch hẹn trong thời gian này");
+        }
+
+        // Update appointment
+        appointment.setAppointmentDate(request.getNewDateTime());
+        appointment.setStatus("RESCHEDULED");
+        appointment = appointmentRepository.save(appointment);
+
+        return convertToDTO(appointment);
+    }
+
+    // ===== APPOINTMENT STATISTICS =====
+    
+    public AppointmentStatistics getAppointmentStatistics(Long userId, String period) {
+        LocalDateTime startDate;
+        LocalDateTime endDate = LocalDateTime.now();
+        
+        switch (period.toLowerCase()) {
+            case "week":
+                startDate = endDate.minusWeeks(1);
+                break;
+            case "month":
+                startDate = endDate.minusMonths(1);
+                break;
+            case "year":
+                startDate = endDate.minusYears(1);
+                break;
+            default:
+                startDate = endDate.minusMonths(1); // Default to month
+        }
+
+        Long totalAppointments = appointmentRepository.countAppointmentsByClientAndPeriod(userId, startDate, endDate);
+        Long completedAppointments = appointmentRepository.countCompletedAppointmentsByConsultant(userId, startDate, endDate);
+        Double totalEarnings = appointmentRepository.calculateTotalEarningsByConsultant(userId, startDate, endDate);
+
+        return new AppointmentStatistics(
+            totalAppointments != null ? totalAppointments : 0L,
+            completedAppointments != null ? completedAppointments : 0L,
+            totalEarnings != null ? totalEarnings : 0.0
+        );
+    }
+
+    // ===== AUTO COMPLETE PAST APPOINTMENTS =====
+    
+    public void autoCompletePastAppointments() {
+        List<Appointment> appointmentsToComplete = appointmentRepository.findAppointmentsToAutoComplete(LocalDateTime.now());
+        
+        for (Appointment appointment : appointmentsToComplete) {
+            appointment.setStatus("COMPLETED");
+            appointmentRepository.save(appointment);
+        }
+    }
+
+    // ===== SEND REMINDERS =====
+    
+    public void sendAppointmentReminders() {
+        // Find appointments that need reminders (24 hours before)
+        LocalDateTime reminderTime = LocalDateTime.now().plusHours(24);
+        List<Appointment> appointmentsNeedingReminders = appointmentRepository.findAppointmentsNeedingPaymentReminder(reminderTime);
+        
+        // In a real implementation, you would send emails/SMS here
+        for (Appointment appointment : appointmentsNeedingReminders) {
+            // Send reminder logic here
+            System.out.println("Sending reminder for appointment: " + appointment.getId());
+        }
+    }
+
+    // ===== INNER CLASSES =====
+    
+    public static class AppointmentStatistics {
+        private Long totalAppointments;
+        private Long completedAppointments;
+        private Double totalEarnings;
+
+        public AppointmentStatistics(Long totalAppointments, Long completedAppointments, Double totalEarnings) {
+            this.totalAppointments = totalAppointments;
+            this.completedAppointments = completedAppointments;
+            this.totalEarnings = totalEarnings;
+        }
+
+        public Long getTotalAppointments() {
+            return totalAppointments;
+        }
+
+        public void setTotalAppointments(Long totalAppointments) {
+            this.totalAppointments = totalAppointments;
+        }
+
+        public Long getCompletedAppointments() {
+            return completedAppointments;
+        }
+
+        public void setCompletedAppointments(Long completedAppointments) {
+            this.completedAppointments = completedAppointments;
+        }
+
+        public Double getTotalEarnings() {
+            return totalEarnings;
+        }
+
+        public void setTotalEarnings(Double totalEarnings) {
+            this.totalEarnings = totalEarnings;
+        }
     }
 } 

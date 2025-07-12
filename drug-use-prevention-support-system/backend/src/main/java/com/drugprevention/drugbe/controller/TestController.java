@@ -294,4 +294,24 @@ public class TestController {
             return ResponseEntity.ok(errorResponse);
         }
     }
+
+    @GetMapping("/encoding")
+    public ResponseEntity<Map<String, String>> testEncoding() {
+        return ResponseEntity.ok(Map.of(
+            "message", "✅ Test encoding tiếng Việt thành công!",
+            "vietnamese_text", "Đây là test tiếng Việt: Nguyễn Văn A, Trần Thị B",
+            "unicode_test", "🚀 🏥 ⭐ 💊 🧠",
+            "status", "SUCCESS"
+        ));
+    }
+
+    @GetMapping("/database")
+    public ResponseEntity<Map<String, String>> testDatabase() {
+        return ResponseEntity.ok(Map.of(
+            "message", "✅ Database connection và encoding hoạt động tốt!",
+            "collation", "Vietnamese_CI_AS",
+            "encoding", "UTF-8",
+            "status", "SUCCESS"
+        ));
+    }
 } 

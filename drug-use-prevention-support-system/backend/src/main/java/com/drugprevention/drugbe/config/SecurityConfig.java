@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -83,6 +84,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/appointments/health").permitAll()  // Appointment health check
                 
                 // ===== ROLE-BASED ENDPOINTS =====
+                // Appointment endpoints - cho phép tất cả authenticated users truy cập
+                .requestMatchers("/api/appointments/**").hasAnyRole("USER", "CONSULTANT", "ADMIN", "STAFF")
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "MANAGER")  // User management

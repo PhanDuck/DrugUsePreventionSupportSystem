@@ -2,6 +2,7 @@ package com.drugprevention.drugbe.controller;
 
 import com.drugprevention.drugbe.dto.AppointmentDTO;
 import com.drugprevention.drugbe.dto.CreateAppointmentRequest;
+import com.drugprevention.drugbe.dto.RescheduleRequest;
 import com.drugprevention.drugbe.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -242,6 +243,66 @@ public class AppointmentController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy lịch trống: " + e.getMessage()));
+        }
+    }
+
+    // ===== RESCHEDULE APPOINTMENT =====
+
+    @PutMapping("/{appointmentId}/reschedule")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Reschedule appointment", description = "Reschedule an appointment to a new date/time")
+    public ResponseEntity<?> rescheduleAppointment(@PathVariable Long appointmentId,
+                                                 @Valid @RequestBody RescheduleRequest request) {
+        try {
+            AppointmentDTO appointment = appointmentService.rescheduleAppointment(appointmentId, request);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi đổi lịch hẹn: " + e.getMessage()));
+        }
+    }
+
+    // ===== APPOINTMENT STATISTICS =====
+
+    @GetMapping("/statistics/{userId}")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Get appointment statistics", description = "Get appointment statistics for a user")
+    public ResponseEntity<?> getAppointmentStatistics(@PathVariable Long userId,
+                                                    @RequestParam(defaultValue = "month") String period) {
+        try {
+            AppointmentService.AppointmentStatistics statistics = appointmentService.getAppointmentStatistics(userId, period);
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thống kê lịch hẹn: " + e.getMessage()));
+        }
+    }
+
+    // ===== AUTO COMPLETE PAST APPOINTMENTS =====
+
+    @PostMapping("/admin/auto-complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @Operation(summary = "Auto complete past appointments", description = "Automatically complete past appointments")
+    public ResponseEntity<?> autoCompletePastAppointments() {
+        try {
+            appointmentService.autoCompletePastAppointments();
+            return ResponseEntity.ok(Map.of("message", "Đã hoàn thành tự động các lịch hẹn quá hạn"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi hoàn thành tự động: " + e.getMessage()));
+        }
+    }
+
+    // ===== SEND REMINDERS =====
+
+    @PostMapping("/admin/send-reminders")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @Operation(summary = "Send appointment reminders", description = "Send reminders for upcoming appointments")
+    public ResponseEntity<?> sendAppointmentReminders() {
+        try {
+            appointmentService.sendAppointmentReminders();
+            return ResponseEntity.ok(Map.of("message", "Đã gửi nhắc nhở lịch hẹn"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi gửi nhắc nhở: " + e.getMessage()));
         }
     }
 } 

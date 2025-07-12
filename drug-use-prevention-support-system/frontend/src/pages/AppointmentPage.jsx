@@ -192,7 +192,7 @@ export default function AppointmentPage() {
       {/* User Stats (if has appointments) */}
       {appointments.length > 0 && (
         <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
                 title="Tổng Buổi Tư Vấn"
@@ -202,7 +202,7 @@ export default function AppointmentPage() {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
                 title="Buổi Sắp Tới"
@@ -212,7 +212,7 @@ export default function AppointmentPage() {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
                 title="Hoàn Thành"
@@ -220,6 +220,18 @@ export default function AppointmentPage() {
                 prefix={<CheckCircleOutlined />}
                 valueStyle={{ color: '#722ed1' }}
               />
+            </Card>
+          </Col>
+          <Col xs={24} sm={6}>
+            <Card style={{ textAlign: 'center' }}>
+              <Button 
+                type="primary" 
+                block 
+                onClick={() => navigate('/appointments/list')}
+                style={{ marginTop: '16px' }}
+              >
+                📋 Xem Danh Sách
+              </Button>
             </Card>
           </Col>
         </Row>

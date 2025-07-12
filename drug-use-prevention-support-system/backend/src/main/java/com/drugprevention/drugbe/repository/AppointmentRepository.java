@@ -92,4 +92,33 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE a.status = 'CONFIRMED' " +
            "AND DATEADD(minute, a.durationMinutes, a.appointmentDate) < :now")
     List<Appointment> findAppointmentsToAutoComplete(@Param("now") LocalDateTime now);
+
+    // Find appointments by multiple statuses
+    @Query("SELECT a FROM Appointment a WHERE a.clientId = :clientId " +
+           "AND a.status IN :statuses ORDER BY a.appointmentDate DESC")
+    List<Appointment> findByClientIdAndStatusIn(
+            @Param("clientId") Long clientId, 
+            @Param("statuses") List<String> statuses);
+
+    // Find appointments by consultant and date range
+    @Query("SELECT a FROM Appointment a WHERE a.consultantId = :consultantId " +
+           "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY a.appointmentDate ASC")
+    List<Appointment> findByConsultantIdAndDateRange(
+            @Param("consultantId") Long consultantId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    // Find appointments that need rescheduling (past appointments in PENDING status)
+    @Query("SELECT a FROM Appointment a WHERE a.status = 'PENDING' " +
+           "AND a.appointmentDate < :now")
+    List<Appointment> findAppointmentsNeedingRescheduling(@Param("now") LocalDateTime now);
+
+    // Get appointment statistics by period
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.clientId = :clientId " +
+           "AND a.appointmentDate BETWEEN :startDate AND :endDate")
+    Long countAppointmentsByClientAndPeriod(
+            @Param("clientId") Long clientId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 } 
