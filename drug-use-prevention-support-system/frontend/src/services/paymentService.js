@@ -95,7 +95,6 @@ class PaymentService {
    */
   getPaymentMethodDisplayName(method) {
     const methodMap = {
-      'CASH': '💵 Tiền mặt',
       'VNPAY': '🏧 VNPay',
       'BANK_TRANSFER': '🏦 Chuyển khoản',
       'CARD': '💳 Thẻ tín dụng'
@@ -132,4 +131,4 @@ class PaymentService {
   }
 }
 
-export default new PaymentService(); 
+export default new PaymentService();

@@ -2,68 +2,47 @@ import api from '../config/axios';
 
 class AuthService {
   
-  // ===== LOGIN =====
+  // ===== LOGIN (MOCK) =====
   async login(username, password) {
-    try {
-      console.log('🔍 Login attempt:', { username, password: '***' });
-      console.log('🔍 API base URL:', api.defaults.baseURL);
-      
-      const payload = {
-        userName: username,
-        password: password
-      };
-      console.log('🔍 Login payload:', payload);
-      
-      const response = await api.post('/auth/login', payload);
-      console.log('🔍 Login response:', response);
+    // Mock login cho frontend
+    const mockUsers = [
+      {
+        username: 'consultant1',
+        password: 'consultant123',
+        role: 'CONSULTANT',
+        user: {
+          id: 101,
+          username: 'consultant1',
+          email: 'consultant1@example.com',
+          firstName: 'Consultant',
+          lastName: 'Test'
+        }
+      },
+      {
+        username: 'user1',
+        password: 'user123',
+        role: 'USER',
+        user: {
+          id: 201,
+          username: 'user1',
+          email: 'user1@example.com',
+          firstName: 'User',
+          lastName: 'Test'
+        }
+      }
+    ];
 
-      if (response.data && response.data.token) {
-        console.log('✅ Login successful:', response.data);
-        // Save token and user info to localStorage
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        localStorage.setItem('role', response.data.role);
-        
-        return {
-          success: true,
-          data: response.data
-        };
-      } else {
-        console.error('❌ Invalid response structure:', response.data);
-        return {
-          success: false,
-          message: 'Invalid response from server'
-        };
-      }
-    } catch (error) {
-      console.error('❌ Login error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error request:', error.request);
-      console.error('❌ Error message:', error.message);
-      
-      if (error.response) {
-        console.error('❌ Error status:', error.response.status);
-        console.error('❌ Error data:', error.response.data);
-        console.error('❌ Error headers:', error.response.headers);
-        // Server responded with error
-        return {
-          success: false,
-          message: error.response.data?.message || error.response.data || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.'
-        };
-      } else if (error.request) {
-        console.error('❌ Network error - no response received');
-        // Network error
-        return {
-          success: false,
-          message: 'Không thể kết nối tới server. Vui lòng thử lại.'
-        };
-      } else {
-        console.error('❌ Request setup error');
-        return {
-          success: false,
-          message: 'Đã có lỗi xảy ra. Vui lòng thử lại.'
-        };
-      }
+    const found = mockUsers.find(
+      u => u.username === username && u.password === password
+    );
+    if (found) {
+      // Lưu vào localStorage như backend trả về
+      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('user', JSON.stringify(found.user));
+      localStorage.setItem('role', found.role);
+      return { success: true, data: { token: 'mock-token', user: found.user, role: found.role } };
+    } else {
+      return { success: false, message: 'Sai tài khoản hoặc mật khẩu (mock)' };
     }
   }
 

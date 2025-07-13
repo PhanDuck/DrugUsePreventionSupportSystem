@@ -139,7 +139,7 @@ const AppointmentDetailPage = () => {
   };
 
   const getAppointmentTypeText = (type) => {
-    return type === 'ONLINE' ? 'Tư vấn online' : 'Tư vấn trực tiếp';
+    return type === 'ONLINE' ? 'Tư vấn online qua google meet' : 'Tư vấn trực tiếp';
   };
 
   if (loading) {
@@ -176,9 +176,9 @@ const AppointmentDetailPage = () => {
             </Text>
           </Col>
           <Col>
-            <Badge 
-              status={appointment.status === 'COMPLETED' ? 'success' : 
-                     appointment.status === 'CANCELLED' ? 'error' : 'processing'} 
+            <Badge
+              status={appointment.status === 'COMPLETED' ? 'success' :
+                     appointment.status === 'CANCELLED' ? 'error' : 'processing'}
               text={
                 <Tag color={getStatusColor(appointment.status)} size="large">
                   {getStatusText(appointment.status)}
@@ -268,10 +268,10 @@ const AppointmentDetailPage = () => {
             <Card title="🎥 Thông Tin Buổi Tư Vấn" style={{ marginBottom: '24px' }}>
               {appointment.appointmentType === 'ONLINE' ? (
                 <Alert
-                  message="Tư vấn online"
+                  message="Tư vấn online qua google meet"
                   description={
                     <div>
-                      <p>Link meeting sẽ được gửi qua email 15 phút trước buổi tư vấn</p>
+                      <p>Link Google Meet sẽ được gửi qua email 15 phút trước buổi tư vấn</p>
                       <p>Vui lòng kiểm tra email và chuẩn bị thiết bị có camera, microphone</p>
                     </div>
                   }
@@ -279,7 +279,7 @@ const AppointmentDetailPage = () => {
                   showIcon
                   action={
                     <Button size="small" type="primary">
-                      Tham gia ngay
+                      Tham gia Google Meet
                     </Button>
                   }
                 />
@@ -320,8 +320,8 @@ const AppointmentDetailPage = () => {
               ) : (
                 <div>
                   <Paragraph>Bạn chưa đánh giá buổi tư vấn này</Paragraph>
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     onClick={() => setShowReviewModal(true)}
                     icon={<StarOutlined />}
                   >
@@ -340,17 +340,17 @@ const AppointmentDetailPage = () => {
             <Space direction="vertical" style={{ width: '100%' }}>
               {appointment.status === 'PENDING' && (
                 <>
-                  <Button 
-                    type="primary" 
-                    block 
+                  <Button
+                    type="primary"
+                    block
                     icon={<EditOutlined />}
                     onClick={() => setShowRescheduleModal(true)}
                   >
                     Đổi lịch
                   </Button>
-                  <Button 
-                    danger 
-                    block 
+                  <Button
+                    danger
+                    block
                     icon={<CloseCircleOutlined />}
                     onClick={() => setShowCancelModal(true)}
                   >
@@ -358,40 +358,34 @@ const AppointmentDetailPage = () => {
                   </Button>
                 </>
               )}
-              
+
               {appointment.status === 'CONFIRMED' && (
                 <>
-                  <Button 
-                    type="primary" 
-                    block 
+                  <Button
+                    type="primary"
+                    block
                     icon={<VideoCameraOutlined />}
                   >
                     Tham gia tư vấn
                   </Button>
-                  <Button 
-                    block 
-                    icon={<MessageOutlined />}
-                  >
+                  <Button block icon={<MessageOutlined />}>
                     Nhắn tin cho tư vấn viên
                   </Button>
                 </>
               )}
 
               {appointment.status === 'COMPLETED' && !appointment.review && (
-                <Button 
-                    type="primary" 
-                    block 
-                    icon={<StarOutlined />}
-                    onClick={() => setShowReviewModal(true)}
-                  >
-                    Viết đánh giá
-                  </Button>
+                <Button
+                  type="primary"
+                  block
+                  icon={<StarOutlined />}
+                  onClick={() => setShowReviewModal(true)}
+                >
+                  Viết đánh giá
+                </Button>
               )}
 
-              <Button 
-                block 
-                onClick={() => navigate('/appointments')}
-              >
+              <Button block onClick={() => navigate('/appointments')}>
                 Quay lại danh sách
               </Button>
             </Space>
@@ -405,7 +399,7 @@ const AppointmentDetailPage = () => {
                 <br />
                 <Text type="secondary">{dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}</Text>
               </Timeline.Item>
-              
+
               {appointment.status === 'CONFIRMED' && (
                 <Timeline.Item color="blue">
                   <Text strong>Xác nhận</Text>
@@ -413,7 +407,7 @@ const AppointmentDetailPage = () => {
                   <Text type="secondary">{dayjs(appointment.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
                 </Timeline.Item>
               )}
-              
+
               {appointment.status === 'COMPLETED' && (
                 <Timeline.Item color="green">
                   <Text strong>Hoàn thành</Text>
@@ -421,7 +415,7 @@ const AppointmentDetailPage = () => {
                   <Text type="secondary">{dayjs(appointment.completedAt).format('DD/MM/YYYY HH:mm')}</Text>
                 </Timeline.Item>
               )}
-              
+
               {appointment.status === 'CANCELLED' && (
                 <Timeline.Item color="red">
                   <Text strong>Đã hủy</Text>
@@ -468,7 +462,7 @@ const AppointmentDetailPage = () => {
           >
             <Input type="datetime-local" />
           </Form.Item>
-          
+
           <Form.Item
             name="reason"
             label="Lý do đổi lịch"
@@ -509,7 +503,7 @@ const AppointmentDetailPage = () => {
           >
             <Rate />
           </Form.Item>
-          
+
           <Form.Item
             name="comment"
             label="Nhận xét"
@@ -534,4 +528,4 @@ const AppointmentDetailPage = () => {
   );
 };
 
-export default AppointmentDetailPage; 
+export default AppointmentDetailPage;

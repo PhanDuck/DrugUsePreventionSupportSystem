@@ -17,6 +17,7 @@ import SettingsPage from './SettingsPage';
 import UnauthorizedPage from './UnauthorizedPage';
 import LayoutComponent from './Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
+import BookAppointmentPage from './BookAppointmentPage';
 
 // Dashboard imports
 import AdminDashboard from './dashboards/AdminDashboard';
@@ -135,6 +136,9 @@ function App() {
             <DashboardRedirect />
           </ProtectedRoute>
         } />
+
+        {/* Book Appointment - accessible to all users (public) */}
+        <Route path="/book-appointment" element={<BookAppointmentPage />} />
       </Route>
 
       {/* Redirect to appropriate dashboard or login */}

@@ -170,6 +170,8 @@ export default function AppointmentPage() {
 
   return (
     <div style={{ minHeight: '100vh', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Nút chuyển sang trang đặt lịch mới */}
+
       {/* Hero Section */}
       <Card style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -188,6 +190,16 @@ export default function AppointmentPage() {
           </Paragraph>
         </div>
       </Card>
+      <div style={{ textAlign: 'center', margin: '32px 0' }}>
+        <Button
+          type="primary"
+          size="large"
+          style={{ borderRadius: 8, fontWeight: 600, fontSize: 18, padding: '44px 64px', background: '#1890ff' }}
+          onClick={() => navigate('/book-appointment')}
+        >
+          ➕ Đặt lịch tư vấn ngay bây giờ! (tại đây)
+        </Button>
+      </div>
 
       {/* User Stats (if has appointments) */}
       {appointments.length > 0 && (
@@ -224,9 +236,9 @@ export default function AppointmentPage() {
           </Col>
           <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
-              <Button 
-                type="primary" 
-                block 
+              <Button
+                type="primary"
+                block
                 onClick={() => navigate('/appointments/list')}
                 style={{ marginTop: '16px' }}
               >
@@ -251,8 +263,8 @@ export default function AppointmentPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <Avatar 
-                      size={64} 
+                    <Avatar
+                      size={64}
                       icon={<UserOutlined />}
                       style={{ marginRight: '16px', background: '#1890ff' }}
                     />
@@ -270,11 +282,11 @@ export default function AppointmentPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Paragraph style={{ color: '#666', marginBottom: '16px' }}>
                     {consultant.bio}
                   </Paragraph>
-                  
+
                   <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
@@ -288,10 +300,10 @@ export default function AppointmentPage() {
                       <Text type="secondary"> / buổi</Text>
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="primary" 
-                    block 
+
+                  <Button
+                    type="primary"
+                    block
                     size="large"
                     onClick={() => openBookingModal(consultant)}
                     style={{
@@ -323,8 +335,8 @@ export default function AppointmentPage() {
               Nếu bạn đang gặp tình huống khẩn cấp, vui lòng liên hệ hotline 24/7
             </Paragraph>
             <Space>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 danger
                 size="large"
                 icon={<PhoneOutlined />}
@@ -332,7 +344,7 @@ export default function AppointmentPage() {
               >
                 Hotline: 113
               </Button>
-              <Button 
+              <Button
                 size="large"
                 icon={<MailOutlined />}
                 onClick={() => window.open('mailto:support@drugprevention.com')}
@@ -363,7 +375,7 @@ export default function AppointmentPage() {
               showIcon
               style={{ marginBottom: '24px' }}
             />
-            
+
             <Form
               form={form}
               layout="vertical"
@@ -378,7 +390,7 @@ export default function AppointmentPage() {
                 label="Chọn ngày"
                 rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
               >
-                <DatePicker 
+                <DatePicker
                   style={{ width: '100%' }}
                   disabledDate={(current) => {
                     return current && current < dayjs().startOf('day');
@@ -410,8 +422,7 @@ export default function AppointmentPage() {
                 rules={[{ required: true, message: 'Vui lòng chọn hình thức!' }]}
               >
                 <Radio.Group>
-                  <Radio value="ONLINE">💻 Tư vấn online</Radio>
-                  <Radio value="IN_PERSON">🏢 Tư vấn trực tiếp</Radio>
+                  <Radio value="ONLINE">💻 Tư vấn online qua google meet</Radio>
                 </Radio.Group>
               </Form.Item>
 
@@ -421,7 +432,6 @@ export default function AppointmentPage() {
                 rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
               >
                 <Radio.Group>
-                  <Radio value="CASH">💵 Thanh toán tiền mặt</Radio>
                   <Radio value="VNPAY">🏧 Thanh toán VNPay (sắp có)</Radio>
                   <Radio value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</Radio>
                 </Radio.Group>
@@ -431,8 +441,8 @@ export default function AppointmentPage() {
                 name="notes"
                 label="Ghi chú (tùy chọn)"
               >
-                <Input.TextArea 
-                  rows={3} 
+                <Input.TextArea
+                  rows={3}
                   placeholder="Mô tả vấn đề hoặc ghi chú đặc biệt..."
                 />
               </Form.Item>
@@ -442,9 +452,9 @@ export default function AppointmentPage() {
                   <Button onClick={() => setShowBookingModal(false)}>
                     Hủy
                   </Button>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
+                  <Button
+                    type="primary"
+                    htmlType="submit"
                     loading={loading}
                     icon={<CheckCircleOutlined />}
                   >
@@ -458,4 +468,4 @@ export default function AppointmentPage() {
       </Modal>
     </div>
   );
-} 
+}

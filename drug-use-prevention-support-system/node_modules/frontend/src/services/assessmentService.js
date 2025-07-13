@@ -58,6 +58,8 @@ class AssessmentService {
   async getAssessmentQuestions(assessmentId) {
     try {
       const response = await api.get(`/assessments/${assessmentId}/questions`);
+      // Cache questions for answer text mapping
+      this.setCachedQuestions(response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching assessment questions:', error);
@@ -208,6 +210,14 @@ class AssessmentService {
         console.log('🔍 Question ID mapping for current assessment:');
         questions.forEach((q, index) => {
           console.log(`  Index: ${index}, ID: ${q.id}, Order: ${q.orderIndex}, Text: ${q.question.substring(0, 50)}...`);
+          console.log(`  Options:`, q.options);
+          if (q.options && q.options.length > 0) {
+            console.log(`  Option structures:`, q.options.map(opt => ({
+              value: opt.value,
+              text: opt.text,
+              valueType: typeof opt.value
+            })));
+          }
         });
       }
       
@@ -267,7 +277,7 @@ class AssessmentService {
 
   /**
    * Format answers for backend submission
-   * Now properly maps answer values to text based on question options
+   * Fixed to handle Object answerValues and validate questionIds
    */
   formatAnswersForBackend(answers) {
     console.log('🔍 formatAnswersForBackend - Input answers:', answers);
@@ -277,38 +287,53 @@ class AssessmentService {
     const formatted = Object.entries(answers).map(([questionId, answerValue]) => {
       console.log(`🔍 Processing entry: questionId="${questionId}" (${typeof questionId}), answerValue=`, answerValue, `(${typeof answerValue})`);
       
-      // Parse questionId
-      const numericQuestionId = parseInt(questionId, 10);
+      // Parse questionId - ensure it's valid
+      let numericQuestionId = parseInt(questionId, 10);
+      if (isNaN(numericQuestionId) || numericQuestionId < 1) {
+        console.error(`❌ Invalid questionId: "${questionId}" -> ${numericQuestionId}, defaulting to 1`);
+        numericQuestionId = 1;
+      }
       
       // Handle answerValue - could be number, string, or object
-      let numericAnswerValue;
-      if (typeof answerValue === 'number') {
+      let numericAnswerValue = 0; // Default fallback
+      
+      if (typeof answerValue === 'number' && !isNaN(answerValue)) {
         numericAnswerValue = answerValue;
       } else if (typeof answerValue === 'string') {
-        numericAnswerValue = parseInt(answerValue, 10);
+        const parsed = parseInt(answerValue, 10);
+        numericAnswerValue = isNaN(parsed) ? 0 : parsed;
       } else if (typeof answerValue === 'object' && answerValue !== null) {
-        // If it's an object, check if it has a value property
-        numericAnswerValue = answerValue.value !== undefined ? parseInt(answerValue.value, 10) : parseInt(answerValue, 10);
+        // Handle object answerValue - check multiple possible properties
+        if (answerValue.value !== undefined) {
+          const parsed = parseInt(answerValue.value, 10);
+          numericAnswerValue = isNaN(parsed) ? 0 : parsed;
+        } else if (answerValue.score !== undefined) {
+          const parsed = parseInt(answerValue.score, 10);
+          numericAnswerValue = isNaN(parsed) ? 0 : parsed;
+        } else if (answerValue.id !== undefined) {
+          const parsed = parseInt(answerValue.id, 10);
+          numericAnswerValue = isNaN(parsed) ? 0 : parsed;
+        } else {
+          console.error(`❌ Object answerValue has no recognizable value property:`, answerValue);
+          // Try to convert the whole object to string then parse
+          const objectStr = String(answerValue);
+          const parsed = parseInt(objectStr, 10);
+          numericAnswerValue = isNaN(parsed) ? 0 : parsed;
+        }
       } else {
         console.error(`❌ Unexpected answerValue type: ${typeof answerValue}`, answerValue);
-        numericAnswerValue = 0; // Default fallback
+        numericAnswerValue = 0;
       }
       
-      // Check for NaN values  
-      if (isNaN(numericQuestionId) || isNaN(numericAnswerValue)) {
-        console.error(`❌ formatAnswersForBackend - Invalid values after parsing:`);
-        console.error(`  questionId: "${questionId}" -> ${numericQuestionId} (isNaN: ${isNaN(numericQuestionId)})`);
-        console.error(`  answerValue:`, answerValue, `-> ${numericAnswerValue} (isNaN: ${isNaN(numericAnswerValue)})`);
-        
-        // Set fallback values
-        if (isNaN(numericQuestionId)) {
-          console.error(`❌ Setting questionId fallback to 0`);
-        }
-        if (isNaN(numericAnswerValue)) {
-          numericAnswerValue = 0;
-          console.error(`❌ Setting answerValue fallback to 0`);
-        }
+      // Ensure values are valid
+      if (isNaN(numericAnswerValue)) {
+        console.error(`❌ answerValue is still NaN after processing, setting to 0`);
+        numericAnswerValue = 0;
       }
+      
+      // Clamp answerValue to reasonable range (0-10)
+      if (numericAnswerValue < 0) numericAnswerValue = 0;
+      if (numericAnswerValue > 10) numericAnswerValue = 10;
       
       const answerText = this.getAnswerTextFromQuestions(numericQuestionId, numericAnswerValue);
       
@@ -322,8 +347,17 @@ class AssessmentService {
       return result;
     });
     
-    console.log('🔍 Final formatted answers:', formatted);
-    return formatted;
+    // Filter out any invalid entries
+    const validFormatted = formatted.filter(item => 
+      !isNaN(item.questionId) && 
+      !isNaN(item.answerValue) && 
+      item.questionId > 0
+    );
+    
+    console.log('🔍 Final formatted answers:', validFormatted);
+    console.log('🔍 Filtered out', formatted.length - validFormatted.length, 'invalid entries');
+    
+    return validFormatted;
   }
 
   /**
@@ -397,6 +431,46 @@ class AssessmentService {
       case 'TRUNG BÌNH': return '⚠️';
       case 'CAO': return '🚨';
       default: return 'ℹ️';
+    }
+  }
+
+  // ===== CONSULTANT ACCESS METHODS =====
+  
+  /**
+   * Get assessment results for a client (consultant view)
+   */
+  async getClientAssessmentResultsForConsultant(clientId) {
+    try {
+      const response = await api.get(`/assessments/consultant/client/${clientId}/results`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching client assessment results:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Không thể tải kết quả đánh giá của khách hàng'
+      };
+    }
+  }
+
+  /**
+   * Get latest assessment result for a client (consultant view)
+   */
+  async getLatestClientAssessmentForConsultant(clientId) {
+    try {
+      const response = await api.get(`/assessments/consultant/client/${clientId}/latest-result`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching latest client assessment:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Không thể tải kết quả đánh giá mới nhất'
+      };
     }
   }
 }
