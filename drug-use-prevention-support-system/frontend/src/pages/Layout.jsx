@@ -48,20 +48,19 @@ const LayoutComponent = () => {
       
       // Immediate redirect
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/login';
       }, 500);
       
     } catch (error) {
       console.error('Logout error:', error);
       // Force redirect anyway
-      window.location.href = '/';
+      window.location.href = '/login';
     }
   };
 
   // Navigation items
   const navigationItems = [
     { path: '/', label: 'Trang chủ', icon: '🏠' },
-    { path: '/search', label: 'Tìm kiếm', icon: '🔍' },
     { path: '/blogs', label: 'Blog', icon: '📝' },
     { path: '/courses', label: 'Khóa học', icon: '📚' },
     { path: '/surveys', label: 'Đánh giá', icon: '📋' },
@@ -210,19 +209,17 @@ const LayoutComponent = () => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <button 
-                  style={{
-                    position: 'relative',
-                    padding: '8px',
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    borderRadius: '6px',
-                    transition: 'background 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
-                  onMouseLeave={(e) => e.target.style.background = 'none'}
-                  onClick={() => navigate('/notifications')}
+                <button style={{
+                  position: 'relative',
+                  padding: '8px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  borderRadius: '6px',
+                  transition: 'background 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.background = 'none'}
                 >
                   <span style={{ fontSize: '16px' }}>🔔</span>
                   <span style={{ 
@@ -332,32 +329,6 @@ const LayoutComponent = () => {
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
                       👤 Thông tin cá nhân
-                    </button>
-                    <button
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '12px 16px',
-                        textDecoration: 'none',
-                        color: '#262626',
-                        background: '#fff',
-                        border: 'none',
-                        borderBottom: '1px solid #f0f0f0',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        transition: 'background 0.2s ease'
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowUserMenu(false);
-                        navigate('/notifications');
-                      }}
-                      onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
-                      onMouseLeave={(e) => e.target.style.background = '#fff'}
-                    >
-                      🔔 Thông báo
                     </button>
                     <button
                       style={{
