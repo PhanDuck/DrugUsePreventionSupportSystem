@@ -218,6 +218,8 @@ public class AppointmentController {
         }
     }
 
+    // ===== MEETING LINK MANAGEMENT =====
+
     @PutMapping("/{appointmentId}/meeting-link")
     @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
     @Operation(summary = "Add meeting link", description = "Add online meeting link to appointment")
@@ -231,6 +233,69 @@ public class AppointmentController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error adding meeting link: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{appointmentId}/update-meeting-link")
+    @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
+    @Operation(summary = "Update meeting link", description = "Update existing meeting link for appointment")
+    public ResponseEntity<?> updateMeetingLink(@PathVariable Long appointmentId, 
+                                             @RequestParam Long consultantId, 
+                                             @RequestParam String newMeetingLink) {
+        try {
+            AppointmentDTO appointment = appointmentService.updateMeetingLink(appointmentId, consultantId, newMeetingLink);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error updating meeting link: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{appointmentId}/meeting-link")
+    @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
+    @Operation(summary = "Remove meeting link", description = "Remove meeting link from appointment")
+    public ResponseEntity<?> removeMeetingLink(@PathVariable Long appointmentId, 
+                                             @RequestParam Long consultantId) {
+        try {
+            AppointmentDTO appointment = appointmentService.removeMeetingLink(appointmentId, consultantId);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error removing meeting link: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{appointmentId}/in-person-location")
+    @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
+    @Operation(summary = "Set in-person location", description = "Set location details for in-person appointments")
+    public ResponseEntity<?> setInPersonLocation(@PathVariable Long appointmentId, 
+                                               @RequestParam Long consultantId, 
+                                               @RequestParam String location,
+                                               @RequestParam(required = false) String room,
+                                               @RequestParam(required = false) String notes) {
+        try {
+            AppointmentDTO appointment = appointmentService.setInPersonLocation(appointmentId, consultantId, location, room, notes);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error setting location: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{appointmentId}/meeting-info")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Get meeting information", description = "Get meeting link or location details")
+    public ResponseEntity<?> getMeetingInfo(@PathVariable Long appointmentId) {
+        try {
+            Map<String, Object> meetingInfo = appointmentService.getMeetingInfo(appointmentId);
+            return ResponseEntity.ok(meetingInfo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting meeting info: " + e.getMessage()));
         }
     }
 
@@ -360,6 +425,53 @@ public class AppointmentController {
             return ResponseEntity.ok(Map.of("message", "Appointment reminders sent"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error sending reminders: " + e.getMessage()));
+        }
+    }
+    
+    // ===== SIMPLE BOOKING API =====
+    
+    @PostMapping("/book")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Simple appointment booking", description = "Book appointment without consultant selection")
+    public ResponseEntity<?> bookAppointment(@RequestBody Map<String, Object> request) {
+        try {
+            // Extract data from request
+            Long consultantId = Long.valueOf(request.get("consultantId").toString());
+            String appointmentDateStr = request.get("appointmentDate").toString();
+            String appointmentTimeStr = request.get("appointmentTime").toString();
+            Integer duration = Integer.valueOf(request.get("duration").toString());
+            String appointmentType = request.get("appointmentType").toString();
+            String notes = request.get("notes") != null ? request.get("notes").toString() : "";
+            
+            // Combine date and time to create LocalDateTime
+            String dateTimeStr = appointmentDateStr + "T" + appointmentTimeStr;
+            LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTimeStr);
+            
+            // Create appointment request
+            CreateAppointmentRequest appointmentRequest = new CreateAppointmentRequest();
+            appointmentRequest.setConsultantId(consultantId);
+            appointmentRequest.setAppointmentDate(appointmentDateTime);
+            appointmentRequest.setDurationMinutes(duration);
+            appointmentRequest.setAppointmentType(appointmentType);
+            appointmentRequest.setClientNotes(notes);
+            appointmentRequest.setClientId(1L); // Will be set from authentication
+            
+            AppointmentDTO appointment = appointmentService.createAppointment(appointmentRequest);
+            return ResponseEntity.ok(appointment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Error booking appointment: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/pending")
+    @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
+    @Operation(summary = "Get pending appointments", description = "Get all pending appointments for consultant")
+    public ResponseEntity<?> getPendingAppointments(@RequestParam Long consultantId) {
+        try {
+            List<AppointmentDTO> appointments = appointmentService.getPendingAppointmentsByConsultant(consultantId);
+            return ResponseEntity.ok(appointments);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting pending appointments: " + e.getMessage()));
         }
     }
 } 

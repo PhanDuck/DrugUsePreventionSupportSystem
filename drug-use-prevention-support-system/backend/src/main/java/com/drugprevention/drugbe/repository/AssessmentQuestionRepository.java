@@ -28,7 +28,7 @@ public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQu
     List<AssessmentQuestion> findByIsRequiredTrue();
     
     // Find questions by keyword
-    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.question LIKE %:keyword% OR aq.description LIKE %:keyword%")
+    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.question LIKE %:keyword%")
     List<AssessmentQuestion> findByKeyword(@Param("keyword") String keyword);
     
     // Count questions by assessment

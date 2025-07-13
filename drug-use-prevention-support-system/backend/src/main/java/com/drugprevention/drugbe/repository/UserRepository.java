@@ -48,10 +48,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.firstName LIKE %:keyword% OR u.lastName LIKE %:keyword% OR u.email LIKE %:keyword%")
     List<User> findByKeyword(@Param("keyword") String keyword);
     
-    // Find user by firstName/lastName or email containing keyword
-    @Query("SELECT u FROM User u WHERE (u.firstName LIKE %:keyword% OR u.lastName LIKE %:keyword%) OR u.email LIKE %:keyword%")
-    List<User> findByFirstNameOrLastNameOrEmailContaining(@Param("keyword") String keyword);
-    
     // Count user by role
     @Query("SELECT COUNT(u) FROM User u JOIN u.role r WHERE r.name = :roleName")
     Long countByRoleName(@Param("roleName") String roleName);
@@ -69,7 +65,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     // Find users by name or email containing keyword
     @Query("SELECT u FROM User u WHERE (u.firstName LIKE %:keyword% OR u.lastName LIKE %:keyword%) OR u.email LIKE %:keyword%")
-    List<User> findByNameContainingOrEmailContaining(@Param("keyword") String keyword, @Param("keyword") String keyword2);
+    List<User> findByNameContainingOrEmailContaining(@Param("keyword") String keyword);
     
     // Count users by role
     @Query("SELECT r.name, COUNT(u) FROM User u JOIN u.role r GROUP BY r.name")

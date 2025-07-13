@@ -121,4 +121,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("clientId") Long clientId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+    
+    // Find pending appointments by consultant
+    List<Appointment> findByConsultantIdAndStatusOrderByAppointmentDateAsc(Long consultantId, String status);
 } 

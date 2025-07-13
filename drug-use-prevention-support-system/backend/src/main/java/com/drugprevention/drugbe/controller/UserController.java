@@ -99,7 +99,7 @@ public class UserController {
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('STAFF')")
     public ResponseEntity<List<User>> searchUsers(@RequestParam String keyword) {
-        return ResponseEntity.ok(userRepository.findByNameContainingOrEmailContaining(keyword, keyword));
+        return ResponseEntity.ok(userRepository.findByNameContainingOrEmailContaining(keyword));
     }
 
     @GetMapping("/statistics/count")

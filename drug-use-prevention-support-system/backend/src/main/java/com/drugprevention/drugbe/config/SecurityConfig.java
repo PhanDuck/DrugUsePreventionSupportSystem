@@ -94,8 +94,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/categories/**").hasAnyRole("ADMIN", "MANAGER", "STAFF")  // Category management
                 
                 // Consultant & Admin endpoints
+                .requestMatchers("/api/consultants/**").hasAnyRole("USER", "CONSULTANT", "ADMIN", "STAFF")  // Consultant search
                 .requestMatchers("/api/consultant/**").hasAnyRole("CONSULTANT", "ADMIN")
                 .requestMatchers("/api/recommendations/**").hasAnyRole("CONSULTANT", "ADMIN", "USER")  // Recommendations
+                
+                // Payment & Notification endpoints
+                .requestMatchers("/api/payments/**").hasAnyRole("USER", "CONSULTANT", "ADMIN", "STAFF")
+                .requestMatchers("/api/notifications/**").hasAnyRole("USER", "CONSULTANT", "ADMIN", "STAFF")
                 
                 // Staff, Manager, Admin endpoints  
                 .requestMatchers("/api/course-registrations/statistics").hasAnyRole("STAFF", "MANAGER", "ADMIN")

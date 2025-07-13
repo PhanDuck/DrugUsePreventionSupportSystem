@@ -89,4 +89,25 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+    
+    // Consultant-related methods
+    public List<User> findAllConsultants() {
+        return userRepository.findConsultants();
+    }
+    
+    public List<User> searchConsultants(String keyword, String specialty, String location, Double minRating, Double maxPrice) {
+        // For now, return all consultants. Can be enhanced later with filtering
+        return userRepository.findConsultants();
+    }
+    
+    public List<User> findAvailableConsultants() {
+        // For now, return all active consultants
+        return userRepository.findConsultants().stream()
+                .filter(user -> user.getIsActive() != null && user.getIsActive())
+                .collect(Collectors.toList());
+    }
+    
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
 } 

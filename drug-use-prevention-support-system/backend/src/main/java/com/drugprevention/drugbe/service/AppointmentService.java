@@ -238,6 +238,101 @@ public class AppointmentService {
         return convertToDTO(appointment);
     }
 
+    public AppointmentDTO updateMeetingLink(Long appointmentId, Long consultantId, String newMeetingLink) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appointment.getConsultantId().equals(consultantId)) {
+            throw new RuntimeException("You do not have permission to update meeting link for this appointment");
+        }
+        
+        if (!"ONLINE".equals(appointment.getAppointmentType())) {
+            throw new RuntimeException("Meeting link can only be updated for online appointments");
+        }
+
+        if (appointment.getMeetingLink() == null || appointment.getMeetingLink().trim().isEmpty()) {
+            throw new RuntimeException("No existing meeting link to update");
+        }
+
+        appointment.setMeetingLink(newMeetingLink);
+        appointment = appointmentRepository.save(appointment);
+
+        return convertToDTO(appointment);
+    }
+
+    public AppointmentDTO removeMeetingLink(Long appointmentId, Long consultantId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appointment.getConsultantId().equals(consultantId)) {
+            throw new RuntimeException("You do not have permission to remove meeting link from this appointment");
+        }
+        
+        if (!"ONLINE".equals(appointment.getAppointmentType())) {
+            throw new RuntimeException("Meeting link can only be removed from online appointments");
+        }
+
+        if (appointment.getMeetingLink() == null || appointment.getMeetingLink().trim().isEmpty()) {
+            throw new RuntimeException("No meeting link to remove");
+        }
+
+        appointment.setMeetingLink(null);
+        appointment = appointmentRepository.save(appointment);
+
+        return convertToDTO(appointment);
+    }
+
+    public AppointmentDTO setInPersonLocation(Long appointmentId, Long consultantId, String location, String room, String notes) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appointment.getConsultantId().equals(consultantId)) {
+            throw new RuntimeException("You do not have permission to set location for this appointment");
+        }
+        
+        if (!"IN_PERSON".equals(appointment.getAppointmentType())) {
+            throw new RuntimeException("Location can only be set for in-person appointments");
+        }
+
+        // Combine location details into meetingLink field for in-person appointments
+        StringBuilder locationDetails = new StringBuilder();
+        locationDetails.append("Location: ").append(location);
+        
+        if (room != null && !room.trim().isEmpty()) {
+            locationDetails.append(" | Room: ").append(room);
+        }
+        
+        if (notes != null && !notes.trim().isEmpty()) {
+            locationDetails.append(" | Notes: ").append(notes);
+        }
+
+        appointment.setMeetingLink(locationDetails.toString());
+        appointment = appointmentRepository.save(appointment);
+
+        return convertToDTO(appointment);
+    }
+
+    public java.util.Map<String, Object> getMeetingInfo(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        java.util.Map<String, Object> meetingInfo = new java.util.HashMap<>();
+        meetingInfo.put("appointmentId", appointmentId);
+        meetingInfo.put("appointmentType", appointment.getAppointmentType());
+        meetingInfo.put("appointmentDate", appointment.getAppointmentDate());
+        meetingInfo.put("status", appointment.getStatus());
+        
+        if ("ONLINE".equals(appointment.getAppointmentType())) {
+            meetingInfo.put("meetingLink", appointment.getMeetingLink());
+            meetingInfo.put("type", "online");
+        } else if ("IN_PERSON".equals(appointment.getAppointmentType())) {
+            meetingInfo.put("location", appointment.getMeetingLink());
+            meetingInfo.put("type", "in-person");
+        }
+
+        return meetingInfo;
+    }
+
     // ===== ADMIN FUNCTIONS =====
     
     public List<AppointmentDTO> getAllAppointments() {
@@ -484,6 +579,15 @@ public class AppointmentService {
             // Send reminder logic here
             System.out.println("Sending reminder for appointment: " + appointment.getId());
         }
+    }
+    
+    // ===== PENDING APPOINTMENTS =====
+    
+    public List<AppointmentDTO> getPendingAppointmentsByConsultant(Long consultantId) {
+        List<Appointment> appointments = appointmentRepository.findByConsultantIdAndStatusOrderByAppointmentDateAsc(consultantId, "PENDING");
+        return appointments.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     // ===== INNER CLASSES =====
