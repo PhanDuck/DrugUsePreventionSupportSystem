@@ -12,6 +12,8 @@ drug-use-prevention-support-system/
 
 ## Cách chạy dự án
 
+**📖 Xem hướng dẫn chi tiết: [SETUP_GUIDE.md](./SETUP_GUIDE.md)**
+
 ### 1. Cài đặt dependencies
 
 ```bash
