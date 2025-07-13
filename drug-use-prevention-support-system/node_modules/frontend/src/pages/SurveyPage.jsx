@@ -907,6 +907,11 @@ const SurveyPage = () => {
       </div>
     </div>
   );
+<<<<<<< HEAD
 };
 
 export default SurveyPage; 
+=======
+} 
+/////////
+>>>>>>> d0312a6f1a251b6896536773db01fdd8949e8c02
