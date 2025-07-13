@@ -1,36 +1,64 @@
 # Drug Use Prevention Support System
 
-Cấu trúc dự án (Monorepo):
+## Cấu trúc dự án
 
 ```
-your-project-repo/
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   └── package.json
-├── backend/
-│   ├── src/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   └── package.json
-├── .gitignore
-├── README.md
-└── package.json (optional, cho các script tổng quát)
+drug-use-prevention-support-system/
+├── frontend/          # React/Vite frontend
+├── backend/           # Spring Boot backend
+├── package.json       # Monorepo configuration
+└── README.md
 ```
 
-- `frontend/`: Chứa mã nguồn giao diện người dùng (React/Vite).
-- `backend/`: Chứa mã nguồn backend (Spring Boot, sẽ thêm sau).
+## Cách chạy dự án
 
-# React + Vite
+### 1. Cài đặt dependencies
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```bash
+# Cài đặt tất cả dependencies
+npm run install:all
 
-Currently, two official plugins are available:
+# Hoặc cài đặt từng phần
+npm install
+cd frontend && npm install
+cd ../backend && npm install
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 2. Chạy frontend (React/Vite)
 
-## Expanding the ESLint configuration
+```bash
+# Từ thư mục gốc
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Hoặc từ thư mục frontend
+cd frontend
+npm run dev
+```
+
+### 3. Chạy backend (Spring Boot)
+
+```bash
+# Từ thư mục backend
+cd backend
+./mvnw spring-boot:run
+```
+
+## Scripts có sẵn
+
+- `npm run dev` - Chạy frontend development server
+- `npm run start:frontend` - Chạy frontend production server
+- `npm run build:frontend` - Build frontend
+- `npm run install:all` - Cài đặt tất cả dependencies
+
+## Lưu ý quan trọng
+
+1. **Luôn chạy `npm run dev` từ thư mục `drug-use-prevention-support-system`** (không phải từ thư mục gốc)
+2. Đảm bảo đã cài đặt Node.js và npm
+3. Backend cần Java 17+ và Maven để chạy
+
+## Troubleshooting
+
+Nếu gặp lỗi khi chạy `npm run dev`:
+1. Kiểm tra đang ở đúng thư mục `drug-use-prevention-support-system`
+2. Chạy `npm run install:all` để cài đặt lại dependencies
+3. Xóa `node_modules` và cài đặt lại nếu cần

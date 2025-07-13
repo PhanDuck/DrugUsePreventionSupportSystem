@@ -7,7 +7,9 @@
   ],
   "description": "Monorepo for Drug Use Prevention Support System (Frontend: React/Vite, Backend: Spring Boot)",
   "scripts": {
+    "dev": "cd frontend && npm run dev",
     "start:frontend": "cd frontend && npm start",
-    "build:frontend": "cd frontend && npm run build"
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   }
 } 
