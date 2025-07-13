@@ -33,30 +33,30 @@ const ManagerDashboard = () => {
 
       // Static department data - should be replaced with real API calls
       setDepartmentStats([
-        { department: 'Tư vấn', consultants: 8, activeClients: 45, satisfaction: 4.7 },
-        { department: 'Giáo dục', trainers: 5, activeCourses: 12, completion: 78 },
-        { department: 'Hỗ trợ', staff: 6, tickets: 23, resolved: 95 }
+        { department: 'Consultation', consultants: 8, activeClients: 45, satisfaction: 4.7 },
+        { department: 'Education', trainers: 5, activeCourses: 12, completion: 78 },
+        { department: 'Support', staff: 6, tickets: 23, resolved: 95 }
       ]);
 
       // Static activity data - should be replaced with real activity log API
       setRecentActivities([
-        { id: 1, action: 'Người dùng mới đăng ký', user: 'Nguyễn Văn X', time: '10 phút trước' },
-        { id: 2, action: 'Hoàn thành đánh giá CRAFFT', user: 'Trần Thị Y', time: '25 phút trước' },
-        { id: 3, action: 'Đặt lịch tư vấn', user: 'Lê Văn Z', time: '1 giờ trước' },
-        { id: 4, action: 'Hoàn thành khóa học', user: 'Phạm Thị A', time: '2 giờ trước' }
+        { id: 1, action: 'New user registered', user: 'Nguyen Van X', time: '10 minutes ago' },
+        { id: 2, action: 'Completed CRAFFT assessment', user: 'Tran Thi Y', time: '25 minutes ago' },
+        { id: 3, action: 'Scheduled consultation', user: 'Le Van Z', time: '1 hour ago' },
+        { id: 4, action: 'Completed course', user: 'Pham Thi A', time: '2 hours ago' }
       ]);
 
       // Static performance metrics - should be replaced with real metrics API
       setPerformanceMetrics([
-        { metric: 'Đánh giá được thực hiện', current: 234, target: 300, percent: 78 },
-        { metric: 'Cuộc hẹn thành công', current: 189, target: 200, percent: 95 },
-        { metric: 'Khóa học hoàn thành', current: 67, target: 80, percent: 84 },
-        { metric: 'Người dùng hoạt động', current: 156, target: 180, percent: 87 }
+        { metric: 'Assessments completed', current: 234, target: 300, percent: 78 },
+        { metric: 'Successful appointments', current: 189, target: 200, percent: 95 },
+        { metric: 'Courses completed', current: 67, target: 80, percent: 84 },
+        { metric: 'Active users', current: 156, target: 180, percent: 87 }
       ]);
       
     } catch (error) {
       console.error('Error fetching manager data:', error);
-      message.error('Không thể tải dữ liệu quản lý');
+      message.error('Unable to load management data');
     } finally {
       setLoading(false);
     }
@@ -64,23 +64,23 @@ const ManagerDashboard = () => {
 
   const departmentColumns = [
     {
-      title: 'Phòng ban',
+      title: 'Department',
       dataIndex: 'department',
       key: 'department',
     },
     {
-      title: 'Nhân viên',
+      title: 'Staff',
       dataIndex: 'consultants',
       key: 'consultants',
       render: (value, record) => record.consultants || record.trainers || record.staff,
     },
     {
-      title: 'Hoạt động',
+      title: 'Activity',
       key: 'activity',
       render: (_, record) => record.activeClients || record.activeCourses || record.tickets,
     },
     {
-      title: 'Hiệu suất',
+      title: 'Performance',
       key: 'performance',
       render: (_, record) => (
         <span>
@@ -94,14 +94,14 @@ const ManagerDashboard = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Bảng điều khiển Quản lý</h1>
+      <h1>Manager Dashboard</h1>
       
       {/* System Overview */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Người dùng hoạt động"
+              title="Active Users"
               value={systemStats.activeUsers}
               prefix={<TeamOutlined />}
             />
@@ -110,7 +110,7 @@ const ManagerDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Thời gian hoạt động"
+              title="System Uptime"
               value={systemStats.systemUptime}
               prefix={<BarChartOutlined />}
             />
@@ -119,7 +119,7 @@ const ManagerDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tỷ lệ hoàn thành"
+              title="Completion Rate"
               value={systemStats.completionRate}
               suffix="%"
               prefix={<TrophyOutlined />}
@@ -129,7 +129,7 @@ const ManagerDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Điểm hài lòng"
+              title="Satisfaction Score"
               value={systemStats.satisfactionScore}
               suffix="/5.0"
               prefix={<FileTextOutlined />}
@@ -141,7 +141,7 @@ const ManagerDashboard = () => {
       <Row gutter={16}>
         {/* Department Performance */}
         <Col span={12}>
-          <Card title="Hiệu suất phòng ban" style={{ marginBottom: '24px' }}>
+          <Card title="Department Performance" style={{ marginBottom: '24px' }}>
             <Table
               columns={departmentColumns}
               dataSource={departmentStats}
@@ -154,7 +154,7 @@ const ManagerDashboard = () => {
 
         {/* Recent Activities */}
         <Col span={12}>
-          <Card title="Hoạt động gần đây" style={{ marginBottom: '24px' }}>
+          <Card title="Recent Activities" style={{ marginBottom: '24px' }}>
             <List
               dataSource={recentActivities}
               renderItem={(item) => (
@@ -172,7 +172,7 @@ const ManagerDashboard = () => {
       </Row>
 
       {/* Performance Metrics */}
-      <Card title="Chỉ số hiệu suất" style={{ marginBottom: '24px' }}>
+      <Card title="Performance Metrics" style={{ marginBottom: '24px' }}>
         <Row gutter={16}>
           {performanceMetrics.map((metric, index) => (
             <Col span={6} key={index}>
@@ -191,12 +191,12 @@ const ManagerDashboard = () => {
       </Card>
 
       {/* Quick Actions */}
-      <Card title="Hành động nhanh">
+      <Card title="Quick Actions">
         <Space size="middle">
-          <Button type="primary">Tạo báo cáo</Button>
-          <Button>Quản lý nhân sự</Button>
-          <Button>Xem thống kê</Button>
-          <Button>Cài đặt hệ thống</Button>
+          <Button type="primary">Generate Report</Button>
+          <Button>Manage Staff</Button>
+          <Button>View Statistics</Button>
+          <Button>System Settings</Button>
         </Space>
       </Card>
     </div>

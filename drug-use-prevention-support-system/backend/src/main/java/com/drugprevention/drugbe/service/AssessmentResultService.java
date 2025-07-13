@@ -71,13 +71,13 @@ public class AssessmentResultService {
     // Calculate risk level based on total score
     public String calculateRiskLevel(Integer totalScore) {
         if (totalScore == null || totalScore == 0) {
-            return "THẤP";
+            return "LOW";
         } else if (totalScore <= 5) {
-            return "THẤP";
+            return "LOW";
         } else if (totalScore <= 15) {
-            return "TRUNG BÌNH";
+            return "MEDIUM";
         } else {
-            return "CAO";
+            return "HIGH";
         }
     }
 
@@ -107,7 +107,7 @@ public class AssessmentResultService {
         if (result.getRecommendations() != null && !result.getRecommendations().isEmpty()) {
             dto.setRecommendations(Arrays.asList(result.getRecommendations().split("\\n")));
         } else {
-            dto.setRecommendations(Arrays.asList("Chưa có khuyến nghị"));
+            dto.setRecommendations(Arrays.asList("No recommendations available"));
         }
         
         dto.setCreatedAt(result.getCreatedAt());
@@ -122,17 +122,17 @@ public class AssessmentResultService {
         
         // Set risk description
         switch (result.getRiskLevel()) {
-            case "CAO":
-                dto.setRiskDescription("Mức độ nguy cơ cao - Cần can thiệp ngay lập tức");
+            case "HIGH":
+                dto.setRiskDescription("High risk level - Immediate intervention required");
                 break;
-            case "TRUNG BÌNH":
-                dto.setRiskDescription("Mức độ nguy cơ trung bình - Cần theo dõi và hỗ trợ");
+            case "MEDIUM":
+                dto.setRiskDescription("Medium risk level - Monitoring and support needed");
                 break;
-            case "THẤP":
-                dto.setRiskDescription("Mức độ nguy cơ thấp - Duy trì tình trạng hiện tại");
+            case "LOW":
+                dto.setRiskDescription("Low risk level - Maintain current status");
                 break;
             default:
-                dto.setRiskDescription("Chưa đánh giá");
+                dto.setRiskDescription("Not yet assessed");
         }
         
         return dto;

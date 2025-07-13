@@ -46,23 +46,23 @@ const SearchPage = () => {
         courses: [
           {
             id: 1,
-            title: 'Phòng chống tệ nạn xã hội',
-            description: 'Khóa học cung cấp kiến thức về các loại tệ nạn xã hội và cách phòng chống',
-            category: 'Phòng chống',
-            difficulty: 'Cơ bản',
-            duration: '4 tuần',
-            instructor: 'Nguyễn Văn A',
+            title: 'Social Problem Prevention',
+            description: 'Course providing knowledge about various social problems and prevention methods',
+            category: 'Prevention',
+            difficulty: 'Basic',
+            duration: '4 weeks',
+            instructor: 'Nguyen Van A',
             rating: 4.5,
             enrolledCount: 150
           },
           {
             id: 2,
-            title: 'Kỹ năng tư vấn và hỗ trợ',
-            description: 'Học cách tư vấn và hỗ trợ người gặp khó khăn với tệ nạn',
-            category: 'Tư vấn',
-            difficulty: 'Nâng cao',
-            duration: '6 tuần',
-            instructor: 'Trần Thị B',
+            title: 'Counseling and Support Skills',
+            description: 'Learn how to counsel and support people facing difficulties with social problems',
+            category: 'Counseling',
+            difficulty: 'Advanced',
+            duration: '6 weeks',
+            instructor: 'Tran Thi B',
             rating: 4.8,
             enrolledCount: 89
           }
@@ -70,38 +70,38 @@ const SearchPage = () => {
         blogs: [
           {
             id: 1,
-            title: 'Dấu hiệu nhận biết tệ nạn xã hội',
-            excerpt: 'Bài viết cung cấp thông tin về các dấu hiệu cảnh báo sớm...',
-            author: 'Nguyễn Văn C',
+            title: 'Signs of Social Problems',
+            excerpt: 'Article providing information about early warning signs...',
+            author: 'Nguyen Van C',
             publishDate: '2024-01-15',
             readCount: 1250,
-            category: 'Nhận biết'
+            category: 'Recognition'
           },
           {
             id: 2,
-            title: 'Cách hỗ trợ người thân gặp khó khăn',
-            excerpt: 'Hướng dẫn cách tiếp cận và hỗ trợ người thân đang gặp vấn đề...',
-            author: 'Lê Thị D',
+            title: 'How to Support Family Members in Difficulty',
+            excerpt: 'Guide on approaching and supporting family members facing issues...',
+            author: 'Le Thi D',
             publishDate: '2024-01-12',
             readCount: 890,
-            category: 'Hỗ trợ'
+            category: 'Support'
           }
         ],
         consultants: [
           {
             id: 1,
-            name: 'Nguyễn Văn E',
-            specialization: 'Tư vấn tâm lý',
-            experience: '5 năm',
+            name: 'Nguyen Van E',
+            specialization: 'Psychological Counseling',
+            experience: '5 years',
             rating: 4.7,
             availableSlots: 3,
             avatar: null
           },
           {
             id: 2,
-            name: 'Trần Thị F',
-            specialization: 'Tư vấn phòng chống ma túy',
-            experience: '8 năm',
+            name: 'Tran Thi F',
+            specialization: 'Drug Prevention Counseling',
+            experience: '8 years',
             rating: 4.9,
             availableSlots: 1,
             avatar: null
@@ -110,19 +110,19 @@ const SearchPage = () => {
         assessments: [
           {
             id: 1,
-            title: 'Đánh giá nguy cơ CRAFFT',
-            description: 'Công cụ đánh giá nguy cơ sử dụng chất gây nghiện cho thanh thiếu niên',
-            duration: '10 phút',
+            title: 'CRAFFT Risk Assessment',
+            description: 'Tool for assessing substance use risk for adolescents',
+            duration: '10 minutes',
             questions: 20,
-            category: 'Nguy cơ'
+            category: 'Risk'
           },
           {
             id: 2,
-            title: 'Đánh giá mức độ nghiện ASSIST',
-            description: 'Bảng câu hỏi đánh giá mức độ nghiện và cần can thiệp',
-            duration: '15 phút',
+            title: 'ASSIST Addiction Level Assessment',
+            description: 'Questionnaire for assessing addiction level and intervention needs',
+            duration: '15 minutes',
             questions: 25,
-            category: 'Nghiện'
+            category: 'Addiction'
           }
         ]
       };
@@ -186,7 +186,7 @@ const SearchPage = () => {
       key={course.id}
       actions={[
         <Button type="primary" size="small" onClick={() => navigate(`/courses/${course.id}`)}>
-          Xem chi tiết
+          View Details
         </Button>
       ]}
     >
@@ -201,12 +201,13 @@ const SearchPage = () => {
         }
         description={
           <div>
-            <div style={{ marginBottom: '8px' }}>{course.description}</div>
-            <Space size="small">
-              <Text type="secondary">Giảng viên: {course.instructor}</Text>
-              <Text type="secondary">Thời gian: {course.duration}</Text>
-              <Text type="secondary">⭐ {course.rating}</Text>
-              <Text type="secondary">👥 {course.enrolledCount} học viên</Text>
+            <Text>{course.description}</Text>
+            <br />
+            <Space>
+              <Text type="secondary">Instructor: {course.instructor}</Text>
+              <Text type="secondary">Duration: {course.duration}</Text>
+              <Text type="secondary">Rating: ⭐ {course.rating}</Text>
+              <Text type="secondary">Enrolled: {course.enrolledCount}</Text>
             </Space>
           </div>
         }
@@ -218,8 +219,8 @@ const SearchPage = () => {
     <List.Item
       key={blog.id}
       actions={[
-        <Button type="link" size="small" onClick={() => navigate(`/blogs/${blog.id}`)}>
-          Đọc bài viết
+        <Button type="primary" size="small" onClick={() => navigate(`/blogs/${blog.id}`)}>
+          Read More
         </Button>
       ]}
     >
@@ -228,16 +229,17 @@ const SearchPage = () => {
         title={
           <Space>
             <Text strong>{blog.title}</Text>
-            <Tag color="green">{blog.category}</Tag>
+            <Tag color="orange">{blog.category}</Tag>
           </Space>
         }
         description={
           <div>
-            <div style={{ marginBottom: '8px' }}>{blog.excerpt}</div>
-            <Space size="small">
-              <Text type="secondary">Tác giả: {blog.author}</Text>
-              <Text type="secondary">📅 {blog.publishDate}</Text>
-              <Text type="secondary">👁️ {blog.readCount} lượt đọc</Text>
+            <Text>{blog.excerpt}</Text>
+            <br />
+            <Space>
+              <Text type="secondary">Author: {blog.author}</Text>
+              <Text type="secondary">Published: {blog.publishDate}</Text>
+              <Text type="secondary">Reads: {blog.readCount}</Text>
             </Space>
           </div>
         }
@@ -249,25 +251,25 @@ const SearchPage = () => {
     <List.Item
       key={consultant.id}
       actions={[
-        <Button type="primary" size="small" onClick={() => navigate(`/appointments?consultant=${consultant.id}`)}>
-          Đặt lịch
+        <Button type="primary" size="small" onClick={() => navigate(`/consultants/${consultant.id}`)}>
+          View Profile
         </Button>
       ]}
     >
       <List.Item.Meta
-        avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#faad14' }} />}
+        avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#722ed1' }} />}
         title={
           <Space>
             <Text strong>{consultant.name}</Text>
-            <Tag color="orange">{consultant.specialization}</Tag>
+            <Tag color="purple">{consultant.specialization}</Tag>
           </Space>
         }
         description={
           <div>
-            <Space size="small">
-              <Text type="secondary">Kinh nghiệm: {consultant.experience}</Text>
-              <Text type="secondary">⭐ {consultant.rating}</Text>
-              <Text type="secondary">📅 {consultant.availableSlots} slot trống</Text>
+            <Space>
+              <Text type="secondary">Experience: {consultant.experience}</Text>
+              <Text type="secondary">Rating: ⭐ {consultant.rating}</Text>
+              <Text type="secondary">Available slots: {consultant.availableSlots}</Text>
             </Space>
           </div>
         }
@@ -279,25 +281,26 @@ const SearchPage = () => {
     <List.Item
       key={assessment.id}
       actions={[
-        <Button type="primary" size="small" onClick={() => navigate(`/surveys/${assessment.id}`)}>
-          Bắt đầu đánh giá
+        <Button type="primary" size="small" onClick={() => navigate(`/assessments/${assessment.id}`)}>
+          Take Assessment
         </Button>
       ]}
     >
       <List.Item.Meta
-        avatar={<Avatar icon={<CalendarOutlined />} style={{ backgroundColor: '#722ed1' }} />}
+        avatar={<Avatar icon={<CalendarOutlined />} style={{ backgroundColor: '#fa8c16' }} />}
         title={
           <Space>
             <Text strong>{assessment.title}</Text>
-            <Tag color="purple">{assessment.category}</Tag>
+            <Tag color="red">{assessment.category}</Tag>
           </Space>
         }
         description={
           <div>
-            <div style={{ marginBottom: '8px' }}>{assessment.description}</div>
-            <Space size="small">
-              <Text type="secondary">⏱️ {assessment.duration}</Text>
-              <Text type="secondary">❓ {assessment.questions} câu hỏi</Text>
+            <Text>{assessment.description}</Text>
+            <br />
+            <Space>
+              <Text type="secondary">Duration: {assessment.duration}</Text>
+              <Text type="secondary">Questions: {assessment.questions}</Text>
             </Space>
           </div>
         }
@@ -307,164 +310,160 @@ const SearchPage = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-      <Card>
-        <div style={{ marginBottom: '24px' }}>
-          <Title level={3}>🔍 Tìm Kiếm</Title>
-          <Search
-            placeholder="Tìm kiếm khóa học, bài viết, tư vấn viên..."
-            enterButton={<SearchOutlined />}
-            size="large"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onSearch={handleSearch}
-            style={{ marginBottom: '16px' }}
-          />
+      <Title level={3}>🔍 Search</Title>
+      
+      {/* Search Bar */}
+      <Card style={{ marginBottom: '24px' }}>
+        <Search
+          placeholder="Search courses, articles, consultants..."
+          enterButton={<SearchOutlined />}
+          size="large"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onSearch={handleSearch}
+          loading={loading}
+        />
+      </Card>
+
+      {/* Filters */}
+      <Card title="Filters" style={{ marginBottom: '24px' }}>
+        <Space wrap>
+          <Select
+            placeholder="Category"
+            style={{ width: 150 }}
+            value={filters.category}
+            onChange={(value) => handleFilterChange('category', value)}
+          >
+            <Option value="all">All Categories</Option>
+            <Option value="prevention">Prevention</Option>
+            <Option value="counseling">Counseling</Option>
+            <Option value="recognition">Recognition</Option>
+            <Option value="support">Support</Option>
+          </Select>
           
-          <Space wrap>
-            <Select
-              placeholder="Danh mục"
-              style={{ width: 150 }}
-              value={filters.category}
-              onChange={(value) => handleFilterChange('category', value)}
-            >
-              <Option value="all">Tất cả danh mục</Option>
-              <Option value="phòng chống">Phòng chống</Option>
-              <Option value="tư vấn">Tư vấn</Option>
-              <Option value="nhận biết">Nhận biết</Option>
-              <Option value="hỗ trợ">Hỗ trợ</Option>
-            </Select>
-            
-            <Select
-              placeholder="Độ khó"
-              style={{ width: 120 }}
-              value={filters.difficulty}
-              onChange={(value) => handleFilterChange('difficulty', value)}
-            >
-              <Option value="all">Tất cả</Option>
-              <Option value="Cơ bản">Cơ bản</Option>
-              <Option value="Trung bình">Trung bình</Option>
-              <Option value="Nâng cao">Nâng cao</Option>
-            </Select>
-            
-            <Select
-              placeholder="Thời gian"
-              style={{ width: 120 }}
-              value={filters.duration}
-              onChange={(value) => handleFilterChange('duration', value)}
-            >
-              <Option value="all">Tất cả</Option>
-              <Option value="2">≤ 2 tuần</Option>
-              <Option value="4">≤ 4 tuần</Option>
-              <Option value="6">≤ 6 tuần</Option>
-            </Select>
-          </Space>
-        </div>
+          <Select
+            placeholder="Difficulty"
+            style={{ width: 150 }}
+            value={filters.difficulty}
+            onChange={(value) => handleFilterChange('difficulty', value)}
+          >
+            <Option value="all">All Levels</Option>
+            <Option value="Basic">Basic</Option>
+            <Option value="Intermediate">Intermediate</Option>
+            <Option value="Advanced">Advanced</Option>
+          </Select>
+          
+          <Select
+            placeholder="Duration"
+            style={{ width: 150 }}
+            value={filters.duration}
+            onChange={(value) => handleFilterChange('duration', value)}
+          >
+            <Option value="all">Any Duration</Option>
+            <Option value="2">2 weeks or less</Option>
+            <Option value="4">4 weeks or less</Option>
+            <Option value="6">6 weeks or less</Option>
+            <Option value="8">8 weeks or less</Option>
+          </Select>
+        </Space>
+      </Card>
 
-        {searchTerm && (
-          <div style={{ marginBottom: '16px' }}>
-            <Text type="secondary">
-              Tìm thấy {getTotalResults()} kết quả cho "{searchTerm}"
-            </Text>
-          </div>
-        )}
-
-        {searchTerm ? (
+      {/* Results */}
+      {searchTerm && (
+        <Card title={`Search Results (${getTotalResults()} found)`}>
           <Tabs activeKey={activeTab} onChange={setActiveTab}>
-            <TabPane tab={`Tất cả (${getTotalResults()})`} key="all">
-              {getTotalResults() === 0 ? (
-                <Empty description="Không tìm thấy kết quả nào" />
-              ) : (
-                <div>
-                  {results.courses.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <Title level={4}>📚 Khóa học ({results.courses.length})</Title>
-                      <List
-                        loading={loading}
-                        dataSource={results.courses}
-                        renderItem={renderCourseItem}
-                      />
-                    </div>
-                  )}
-                  
-                  {results.blogs.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <Title level={4}>📝 Bài viết ({results.blogs.length})</Title>
-                      <List
-                        loading={loading}
-                        dataSource={results.blogs}
-                        renderItem={renderBlogItem}
-                      />
-                    </div>
-                  )}
-                  
-                  {results.consultants.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <Title level={4}>👨‍⚕️ Tư vấn viên ({results.consultants.length})</Title>
-                      <List
-                        loading={loading}
-                        dataSource={results.consultants}
-                        renderItem={renderConsultantItem}
-                      />
-                    </div>
-                  )}
-                  
-                  {results.assessments.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <Title level={4}>📋 Đánh giá ({results.assessments.length})</Title>
-                      <List
-                        loading={loading}
-                        dataSource={results.assessments}
-                        renderItem={renderAssessmentItem}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+            <TabPane tab={`All (${getTotalResults()})`} key="all">
+              <div>
+                {results.courses.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <Title level={4}>📚 Courses ({results.courses.length})</Title>
+                    <List
+                      dataSource={results.courses}
+                      renderItem={renderCourseItem}
+                      locale={{ emptyText: <Empty description="No courses found" /> }}
+                    />
+                  </div>
+                )}
+                
+                {results.blogs.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <Title level={4}>📝 Articles ({results.blogs.length})</Title>
+                    <List
+                      dataSource={results.blogs}
+                      renderItem={renderBlogItem}
+                      locale={{ emptyText: <Empty description="No articles found" /> }}
+                    />
+                  </div>
+                )}
+                
+                {results.consultants.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <Title level={4}>👨‍⚕️ Consultants ({results.consultants.length})</Title>
+                    <List
+                      dataSource={results.consultants}
+                      renderItem={renderConsultantItem}
+                      locale={{ emptyText: <Empty description="No consultants found" /> }}
+                    />
+                  </div>
+                )}
+                
+                {results.assessments.length > 0 && (
+                  <div>
+                    <Title level={4}>📊 Assessments ({results.assessments.length})</Title>
+                    <List
+                      dataSource={results.assessments}
+                      renderItem={renderAssessmentItem}
+                      locale={{ emptyText: <Empty description="No assessments found" /> }}
+                    />
+                  </div>
+                )}
+              </div>
             </TabPane>
             
-            <TabPane tab={`Khóa học (${results.courses.length})`} key="courses">
+            <TabPane tab={`Courses (${results.courses.length})`} key="courses">
               <List
-                loading={loading}
                 dataSource={results.courses}
                 renderItem={renderCourseItem}
-                locale={{ emptyText: <Empty description="Không tìm thấy khóa học nào" /> }}
+                locale={{ emptyText: <Empty description="No courses found" /> }}
               />
             </TabPane>
             
-            <TabPane tab={`Bài viết (${results.blogs.length})`} key="blogs">
+            <TabPane tab={`Articles (${results.blogs.length})`} key="blogs">
               <List
-                loading={loading}
                 dataSource={results.blogs}
                 renderItem={renderBlogItem}
-                locale={{ emptyText: <Empty description="Không tìm thấy bài viết nào" /> }}
+                locale={{ emptyText: <Empty description="No articles found" /> }}
               />
             </TabPane>
             
-            <TabPane tab={`Tư vấn viên (${results.consultants.length})`} key="consultants">
+            <TabPane tab={`Consultants (${results.consultants.length})`} key="consultants">
               <List
-                loading={loading}
                 dataSource={results.consultants}
                 renderItem={renderConsultantItem}
-                locale={{ emptyText: <Empty description="Không tìm thấy tư vấn viên nào" /> }}
+                locale={{ emptyText: <Empty description="No consultants found" /> }}
               />
             </TabPane>
             
-            <TabPane tab={`Đánh giá (${results.assessments.length})`} key="assessments">
+            <TabPane tab={`Assessments (${results.assessments.length})`} key="assessments">
               <List
-                loading={loading}
                 dataSource={results.assessments}
                 renderItem={renderAssessmentItem}
-                locale={{ emptyText: <Empty description="Không tìm thấy đánh giá nào" /> }}
+                locale={{ emptyText: <Empty description="No assessments found" /> }}
               />
             </TabPane>
           </Tabs>
-        ) : (
-          <Empty 
-            description="Nhập từ khóa để bắt đầu tìm kiếm"
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {!searchTerm && (
+        <Card>
+          <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Enter keywords to start searching"
           />
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 };

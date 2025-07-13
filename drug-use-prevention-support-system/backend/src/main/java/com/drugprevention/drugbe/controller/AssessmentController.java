@@ -67,12 +67,29 @@ public class AssessmentController {
     @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
     public ResponseEntity<?> submitAssessment(@RequestBody AssessmentSubmissionDTO submission) {
         try {
+            // Validate submission
+            if (submission == null) {
+                return ResponseEntity.badRequest().body("Submission cannot be null");
+            }
+            
+            if (submission.getAssessmentId() == null) {
+                return ResponseEntity.badRequest().body("Assessment ID cannot be null");
+            }
+            
+            if (submission.getUserId() == null) {
+                return ResponseEntity.badRequest().body("User ID cannot be null");
+            }
+            
+            if (submission.getAnswers() == null || submission.getAnswers().isEmpty()) {
+                return ResponseEntity.badRequest().body("Answers cannot be null or empty");
+            }
+            
             AssessmentResultDTO result = assessmentService.submitAssessment(submission);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Lỗi xử lý đánh giá: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error processing assessment: " + e.getMessage());
         }
     }
 
@@ -81,6 +98,19 @@ public class AssessmentController {
     @PostMapping("/calculate")
     public ResponseEntity<?> calculateAssessment(@RequestBody AssessmentSubmissionDTO submission) {
         try {
+            // Validate submission
+            if (submission == null) {
+                return ResponseEntity.badRequest().body("Submission cannot be null");
+            }
+            
+            if (submission.getAssessmentId() == null) {
+                return ResponseEntity.badRequest().body("Assessment ID cannot be null");
+            }
+            
+            if (submission.getAnswers() == null || submission.getAnswers().isEmpty()) {
+                return ResponseEntity.badRequest().body("Answers cannot be null or empty");
+            }
+            
             // Set userId to null for anonymous assessment
             submission.setUserId(null);
             AssessmentResultDTO result = assessmentService.calculateAssessmentResult(submission);
@@ -88,7 +118,7 @@ public class AssessmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Lỗi tính toán đánh giá: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error calculating assessment: " + e.getMessage());
         }
     }
 
@@ -138,7 +168,7 @@ public class AssessmentController {
             Assessment createdAssessment = assessmentService.createAssessment(assessment);
             return ResponseEntity.ok(createdAssessment);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi tạo đánh giá: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error creating assessment: " + e.getMessage());
         }
     }
 
@@ -151,7 +181,7 @@ public class AssessmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi cập nhật đánh giá: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error updating assessment: " + e.getMessage());
         }
     }
 
@@ -164,7 +194,7 @@ public class AssessmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi xóa đánh giá: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error deleting assessment: " + e.getMessage());
         }
     }
 
@@ -200,7 +230,7 @@ public class AssessmentController {
             
             // Get consultant ID from username
             User consultant = userRepository.findByUsername(consultantUsername)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+                    .orElseThrow(() -> new RuntimeException("Consultant not found"));
             
             List<AssessmentResultDTO> results = assessmentService
                     .getClientAssessmentResultsForConsultant(consultant.getId(), clientId);
@@ -209,7 +239,7 @@ public class AssessmentController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Lỗi lấy kết quả đánh giá: " + e.getMessage()));
+                    .body(Map.of("error", "Error getting assessment results: " + e.getMessage()));
         }
     }
     
@@ -224,7 +254,7 @@ public class AssessmentController {
             
             // Get consultant ID from username
             User consultant = userRepository.findByUsername(consultantUsername)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+                    .orElseThrow(() -> new RuntimeException("Consultant not found"));
             
             Optional<AssessmentResultDTO> result = assessmentService
                     .getLatestClientAssessmentForConsultant(consultant.getId(), clientId);
@@ -233,7 +263,7 @@ public class AssessmentController {
                 return ResponseEntity.ok(result.get());
             } else {
                 return ResponseEntity.ok(Map.of(
-                    "message", "Khách hàng chưa có kết quả đánh giá nào",
+                    "message", "Client has no assessment results yet",
                     "clientId", clientId
                 ));
             }
@@ -241,7 +271,7 @@ public class AssessmentController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Lỗi lấy kết quả đánh giá: " + e.getMessage()));
+                    .body(Map.of("error", "Error getting assessment results: " + e.getMessage()));
         }
     }
 } 

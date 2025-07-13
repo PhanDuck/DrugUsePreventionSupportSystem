@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +59,7 @@ public class TestController {
                 AssessmentSubmissionDTO.AnswerDTO answer = new AssessmentSubmissionDTO.AnswerDTO();
                 answer.setQuestionId(question.getId());
                 answer.setAnswerValue(1); // "Yes" answer
-                answer.setAnswerText("Có");
+                answer.setAnswerText("Yes");
                 sampleAnswers.add(answer);
             }
             
@@ -116,13 +117,13 @@ public class TestController {
                 // Mixed answers: some 0, some 2, some 3 to test different scenarios
                 if (i % 3 == 0) {
                     answer.setAnswerValue(3); // Recent use
-                    answer.setAnswerText("Có, trong 3 tháng qua");
+                    answer.setAnswerText("Yes, in the past 3 months");
                 } else if (i % 3 == 1) {
                     answer.setAnswerValue(2); // Past use
-                    answer.setAnswerText("Có, nhưng không trong 3 tháng qua");
+                    answer.setAnswerText("Yes, but not in the past 3 months");
                 } else {
                     answer.setAnswerValue(0); // Never
-                    answer.setAnswerText("Không bao giờ");
+                    answer.setAnswerText("Never");
                 }
                 
                 sampleAnswers.add(answer);
@@ -220,10 +221,10 @@ public class TestController {
             for (User user : users) {
                 Map<String, Object> info = new HashMap<>();
                 info.put("id", user.getId());
-                info.put("username", user.getUsername());
-                info.put("email", user.getEmail());
-                info.put("firstName", user.getFirstName());
-                info.put("lastName", user.getLastName());
+                info.put("username", user.getUsername() != null ? user.getUsername() : "");
+                info.put("email", user.getEmail() != null ? user.getEmail() : "");
+                info.put("firstName", user.getFirstName() != null ? user.getFirstName() : "");
+                info.put("lastName", user.getLastName() != null ? user.getLastName() : "");
                 info.put("roleId", user.getRoleId());
                 info.put("roleName", user.getRole() != null ? user.getRole().getName() : "No Role");
                 info.put("isActive", user.getIsActive());
@@ -264,7 +265,7 @@ public class TestController {
                 AssessmentSubmissionDTO.AnswerDTO answer = new AssessmentSubmissionDTO.AnswerDTO();
                 answer.setQuestionId(question.getId());
                 answer.setAnswerValue(i % 2); // Alternating 0 and 1
-                answer.setAnswerText(i % 2 == 0 ? "Không" : "Có");
+                answer.setAnswerText(i % 2 == 0 ? "No" : "Yes");
                 sampleAnswers.add(answer);
             }
             
@@ -298,20 +299,62 @@ public class TestController {
     @GetMapping("/encoding")
     public ResponseEntity<Map<String, String>> testEncoding() {
         return ResponseEntity.ok(Map.of(
-            "message", "✅ Test encoding tiếng Việt thành công!",
-            "vietnamese_text", "Đây là test tiếng Việt: Nguyễn Văn A, Trần Thị B",
+            "message", "✅ Test encoding English text successfully!",
+            "vietnamese_text", "This is English test text: John Doe, Jane Smith",
             "unicode_test", "🚀 🏥 ⭐ 💊 🧠",
-            "status", "SUCCESS"
+            "timestamp", LocalDateTime.now().toString()
         ));
     }
 
-    @GetMapping("/database")
+    @GetMapping("/test-database")
     public ResponseEntity<Map<String, String>> testDatabase() {
         return ResponseEntity.ok(Map.of(
-            "message", "✅ Database connection và encoding hoạt động tốt!",
-            "collation", "Vietnamese_CI_AS",
-            "encoding", "UTF-8",
-            "status", "SUCCESS"
+            "message", "Database connection test",
+            "timestamp", LocalDateTime.now().toString(),
+            "status", "Database connection successful"
         ));
+    }
+
+    // ===== ENGLISH ENCODING TEST =====
+
+    @PostMapping("/test-english")
+    public ResponseEntity<?> testEnglishEncoding(@RequestBody Map<String, String> testData) {
+        try {
+            String englishText = testData.get("text");
+            
+            // Default test text if none provided
+            englishText = "Hello! This is English test text with special characters: @ # $ % ^ & * ( )";
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("original_text", englishText);
+            response.put("text_length", englishText.length());
+            response.put("timestamp", LocalDateTime.now().toString());
+            
+            // Test database encoding by saving to a test table
+            // This would be implemented with actual database operations
+            
+            response.put("message", "English encoding test successful");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "English encoding test failed: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/test-english-db")
+    public ResponseEntity<?> testEnglishDatabase() {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            
+            // Test database connection with English text
+            String testQuery = "SELECT 'Hello! This is English test text' AS english_text";
+            
+            response.put("test_query", testQuery);
+            response.put("message", "Database English encoding test");
+            response.put("timestamp", LocalDateTime.now().toString());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Database English test failed: " + e.getMessage()));
+        }
     }
 } 

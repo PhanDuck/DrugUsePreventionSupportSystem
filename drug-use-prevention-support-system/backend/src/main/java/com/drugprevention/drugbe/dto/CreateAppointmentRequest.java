@@ -12,26 +12,26 @@ import java.time.LocalDateTime;
 
 public class CreateAppointmentRequest {
     
-    @NotNull(message = "Client ID không được để trống")
+    @NotNull(message = "Client ID cannot be empty")
     private Long clientId;
     
-    @NotNull(message = "Consultant ID không được để trống")
+    @NotNull(message = "Consultant ID cannot be empty")
     private Long consultantId;
     
-    @NotNull(message = "Ngày hẹn không được để trống")
-    @Future(message = "Ngày hẹn phải trong tương lai")
+    @NotNull(message = "Appointment date cannot be empty")
+    @Future(message = "Appointment date must be in the future")
     private LocalDateTime appointmentDate;
     
-    @Min(value = 15, message = "Thời lượng phải ít nhất 15 phút")
+    @Min(value = 15, message = "Duration must be at least 15 minutes")
     private Integer durationMinutes = 60;
     
-    @Pattern(regexp = "^(ONLINE|IN_PERSON)$", message = "Loại cuộc hẹn phải là ONLINE hoặc IN_PERSON")
+    @Pattern(regexp = "^(ONLINE|IN_PERSON)$", message = "Appointment type must be ONLINE or IN_PERSON")
     private String appointmentType = "ONLINE"; // ONLINE or IN_PERSON
     
-    @Size(max = 500, message = "Ghi chú không được quá 500 ký tự")
+    @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String clientNotes;
     
-    @DecimalMin(value = "0.0", message = "Phí tư vấn không được âm")
+    @DecimalMin(value = "0.0", message = "Consultation fee cannot be negative")
     private BigDecimal fee = BigDecimal.valueOf(100.0);
     
     private String paymentMethod = "CASH"; // CASH, VNPAY, BANK_TRANSFER

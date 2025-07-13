@@ -36,69 +36,69 @@ const { Option } = Select;
 const courses = [
   {
     id: 1,
-    title: 'Nhận Thức Về Ma Túy',
-    description: 'Khóa học cơ bản giúp nhận biết các loại ma túy, tác hại và cách phòng tránh hiệu quả.',
+    title: 'Drug Awareness',
+    description: 'Basic course helping to identify different types of drugs, their effects and effective prevention methods.',
     image: 'https://images.unsplash.com/photo-1558010089-ff6fd29ea39a?q=80&w=1925&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    duration: '6 giờ 18 phút',
+    duration: '6 hours 18 minutes',
     lessons: 12,
-    level: 'Cơ bản',
-    category: 'Giáo dục',
-    instructor: 'TS. Nguyễn Văn Học',
+    level: 'Basic',
+    category: 'Education',
+    instructor: 'Dr. Nguyen Van Hoc',
     rating: 4.8,
     students: 1250,
     price: 0,
-    tags: ['Học sinh', 'Sinh viên', 'Cơ bản'],
+    tags: ['Students', 'Basic'],
     progress: 0,
     isEnrolled: false
   },
   {
     id: 2,
-    title: 'Kỹ Năng Phòng Tránh',
-    description: 'Trang bị kỹ năng từ chối, ứng phó và tự bảo vệ trước nguy cơ sử dụng ma túy.',
+    title: 'Prevention Skills',
+    description: 'Equipping skills to refuse, cope and self-protect against drug use risks.',
     image: 'https://images.unsplash.com/photo-1580836618305-605c32623ae0?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    duration: '4 giờ 30 phút',
+    duration: '4 hours 30 minutes',
     lessons: 8,
-    level: 'Trung bình',
-    category: 'Kỹ năng',
-    instructor: 'ThS. Trần Thị Phòng',
+    level: 'Intermediate',
+    category: 'Skills',
+    instructor: 'MSc. Tran Thi Phong',
     rating: 4.9,
     students: 980,
     price: 0,
-    tags: ['Thanh thiếu niên', 'Kỹ năng sống'],
+    tags: ['Youth', 'Life Skills'],
     progress: 25,
     isEnrolled: true
   },
   {
     id: 3,
-    title: 'Hỗ Trợ Gia Đình',
-    description: 'Hướng dẫn phụ huynh, giáo viên cách hỗ trợ và giáo dục người trẻ phòng ngừa ma túy.',
+    title: 'Family Support',
+    description: 'Guide for parents and teachers on how to support and educate young people in drug prevention.',
     image: 'https://plus.unsplash.com/premium_photo-1664373232872-e1301e6e610b?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    duration: '3 giờ 45 phút',
+    duration: '3 hours 45 minutes',
     lessons: 6,
-    level: 'Nâng cao',
-    category: 'Gia đình',
-    instructor: 'PGS. Lê Văn Trợ',
+    level: 'Advanced',
+    category: 'Family',
+    instructor: 'Assoc. Prof. Le Van Tro',
     rating: 4.7,
     students: 650,
     price: 0,
-    tags: ['Phụ huynh', 'Giáo viên', 'Gia đình'],
+    tags: ['Parents', 'Teachers', 'Family'],
     progress: 100,
     isEnrolled: true
   },
   {
     id: 4,
-    title: 'Tâm Lý Học Phòng Chống',
-    description: 'Khóa học chuyên sâu về tâm lý học trong công tác phòng chống tệ nạn xã hội.',
+    title: 'Psychology in Prevention',
+    description: 'Advanced course on psychology in social problem prevention work.',
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    duration: '8 giờ 20 phút',
+    duration: '8 hours 20 minutes',
     lessons: 16,
-    level: 'Nâng cao',
-    category: 'Tâm lý',
-    instructor: 'TS. Phạm Thị Lý',
+    level: 'Advanced',
+    category: 'Psychology',
+    instructor: 'Dr. Pham Thi Ly',
     rating: 4.9,
     students: 420,
     price: 299000,
-    tags: ['Chuyên nghiệp', 'Tâm lý học'],
+    tags: ['Professional', 'Psychology'],
     progress: 0,
     isEnrolled: false
   }
@@ -139,17 +139,17 @@ export default function CoursesPage() {
 
   const handleEnroll = (courseId) => {
     if (!authService.isAuthenticated()) {
-      message.warning('Vui lòng đăng nhập để đăng ký khóa học');
+      message.warning('Please login to enroll in courses');
       return;
     }
-    message.success('Đăng ký khóa học thành công!');
+    message.success('Course enrollment successful!');
   };
 
   const getLevelColor = (level) => {
     switch (level) {
-      case 'Cơ bản': return 'green';
-      case 'Trung bình': return 'orange';
-      case 'Nâng cao': return 'red';
+      case 'Basic': return 'green';
+      case 'Intermediate': return 'orange';
+      case 'Advanced': return 'red';
       default: return 'blue';
     }
   };
@@ -167,10 +167,10 @@ export default function CoursesPage() {
         <div style={{ padding: '40px 20px', color: '#fff' }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>📚</div>
           <Title level={2} style={{ color: '#fff', marginBottom: '16px' }}>
-            Khóa Học Phòng Chống Tệ Nạn
+            Drug Prevention Courses
           </Title>
           <Paragraph style={{ color: '#fff', fontSize: '16px', opacity: 0.9 }}>
-            Nâng cao kiến thức và kỹ năng phòng ngừa ma túy với các khóa học chất lượng
+            Enhance knowledge and skills in drug prevention with quality courses
           </Paragraph>
         </div>
       </Card>
@@ -180,7 +180,7 @@ export default function CoursesPage() {
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} md={12}>
             <Search
-              placeholder="Tìm kiếm khóa học..."
+              placeholder="Search courses..."
               allowClear
               size="large"
               prefix={<SearchOutlined />}
@@ -190,31 +190,31 @@ export default function CoursesPage() {
           </Col>
           <Col xs={12} md={6}>
             <Select
-              placeholder="Danh mục"
+              placeholder="Category"
               size="large"
               style={{ width: '100%' }}
               value={selectedCategory}
               onChange={setSelectedCategory}
             >
-              <Option value="all">Tất cả danh mục</Option>
-              <Option value="Giáo dục">Giáo dục</Option>
-              <Option value="Kỹ năng">Kỹ năng</Option>
-              <Option value="Gia đình">Gia đình</Option>
-              <Option value="Tâm lý">Tâm lý</Option>
+              <Option value="all">All Categories</Option>
+              <Option value="Education">Education</Option>
+              <Option value="Skills">Skills</Option>
+              <Option value="Family">Family</Option>
+              <Option value="Psychology">Psychology</Option>
             </Select>
           </Col>
           <Col xs={12} md={6}>
             <Select
-              placeholder="Cấp độ"
+              placeholder="Level"
               size="large"
               style={{ width: '100%' }}
               value={selectedLevel}
               onChange={setSelectedLevel}
             >
-              <Option value="all">Tất cả cấp độ</Option>
-              <Option value="Cơ bản">Cơ bản</Option>
-              <Option value="Trung bình">Trung bình</Option>
-              <Option value="Nâng cao">Nâng cao</Option>
+              <Option value="all">All Levels</Option>
+              <Option value="Basic">Basic</Option>
+              <Option value="Intermediate">Intermediate</Option>
+              <Option value="Advanced">Advanced</Option>
             </Select>
           </Col>
         </Row>
@@ -222,7 +222,7 @@ export default function CoursesPage() {
 
       {/* My Learning Progress (if user is logged in and has enrolled courses) */}
       {currentUser && (
-        <Card title="📈 Tiến Độ Học Tập Của Tôi" style={{ marginBottom: '24px' }}>
+        <Card title="📈 My Learning Progress" style={{ marginBottom: '24px' }}>
           <Row gutter={[16, 16]}>
             {courses.filter(course => course.isEnrolled).map(course => (
               <Col xs={24} md={8} key={`progress-${course.id}`}>
@@ -238,7 +238,7 @@ export default function CoursesPage() {
                       }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Text type="secondary">{course.progress}% hoàn thành</Text>
+                      <Text type="secondary">{course.progress}% completed</Text>
                       {course.progress === 100 && (
                         <Badge count={<TrophyOutlined style={{ color: '#faad14' }} />} />
                       )}
@@ -286,10 +286,10 @@ export default function CoursesPage() {
                       {course.level}
                     </Tag>
                     {course.price === 0 && (
-                      <Tag color="volcano">MIỄN PHÍ</Tag>
+                      <Tag color="volcano">FREE</Tag>
                     )}
                     {course.isEnrolled && (
-                      <Badge status="processing" text="Đã đăng ký" />
+                      <Badge status="processing" text="Enrolled" />
                     )}
                   </div>
                   {course.isEnrolled && course.progress > 0 && (
@@ -354,7 +354,7 @@ export default function CoursesPage() {
                   <Col span={12}>
                     <Space size="small">
                       <BookOutlined style={{ color: '#666' }} />
-                      <Text type="secondary">{course.lessons} bài</Text>
+                      <Text type="secondary">{course.lessons} lessons</Text>
                     </Space>
                   </Col>
                   <Col span={12}>
@@ -374,7 +374,7 @@ export default function CoursesPage() {
                 {course.price > 0 && (
                   <div style={{ textAlign: 'center', margin: '8px 0' }}>
                     <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
-                      {course.price.toLocaleString()} VNĐ
+                      {course.price.toLocaleString()} VND
                     </Text>
                   </div>
                 )}
@@ -392,8 +392,8 @@ export default function CoursesPage() {
                   }}
                 >
                   {course.isEnrolled 
-                    ? (course.progress === 100 ? '🏆 Đã Hoàn Thành' : '📖 Tiếp Tục Học')
-                    : '🚀 Đăng Ký Ngay'
+                    ? (course.progress === 100 ? '🏆 Completed' : '📖 Continue Learning')
+                    : '🚀 Enroll Now'
                   }
                 </Button>
               </Space>
@@ -405,9 +405,9 @@ export default function CoursesPage() {
       {filteredCourses.length === 0 && (
         <Card style={{ textAlign: 'center', padding: '40px', marginTop: '24px' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔍</div>
-          <Title level={4}>Không tìm thấy khóa học phù hợp</Title>
+          <Title level={4}>No suitable courses found</Title>
           <Paragraph type="secondary">
-            Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc để tìm khóa học mong muốn.
+            Try changing search keywords or filters to find your desired course.
           </Paragraph>
         </Card>
       )}

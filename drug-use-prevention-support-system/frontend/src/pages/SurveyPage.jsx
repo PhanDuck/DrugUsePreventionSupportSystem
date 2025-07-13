@@ -73,7 +73,7 @@ const SurveyPage = () => {
       
     } catch (error) {
       console.error('Error loading questions:', error);
-      alert('Không thể tải câu hỏi. Vui lòng thử lại.');
+      alert('Unable to load questions. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +145,7 @@ const SurveyPage = () => {
       console.error('❌ Error submitting survey:', error);
       console.error('❌ Error response data:', error.response?.data);
       console.error('❌ Error status:', error.response?.status);
-      alert('Có lỗi xảy ra khi gửi bài đánh giá: ' + error.message);
+      alert('An error occurred while submitting the assessment: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -163,16 +163,13 @@ const SurveyPage = () => {
   const getRiskLevelInfo = (riskLevel) => {
     switch (riskLevel?.toLowerCase()) {
       case 'low':
-      case 'thấp':
-        return { text: 'Nguy cơ thấp', color: '#52c41a', bgColor: '#f6ffed' };
+        return { text: 'Low Risk', color: '#52c41a', bgColor: '#f6ffed' };
       case 'moderate':
-      case 'trung bình':
-        return { text: 'Nguy cơ trung bình', color: '#fa8c16', bgColor: '#fff7e6' };
+        return { text: 'Moderate Risk', color: '#fa8c16', bgColor: '#fff7e6' };
       case 'high':
-      case 'cao':
-        return { text: 'Nguy cơ cao', color: '#f5222d', bgColor: '#fff2f0' };
+        return { text: 'High Risk', color: '#f5222d', bgColor: '#fff2f0' };
       default:
-        return { text: riskLevel || 'Không xác định', color: '#666', bgColor: '#f5f5f5' };
+        return { text: riskLevel || 'Undetermined', color: '#666', bgColor: '#f5f5f5' };
     }
   };
 
@@ -242,7 +239,7 @@ const SurveyPage = () => {
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }}></div>
-        <p style={{ color: '#666', fontSize: '16px' }}>Đang tải...</p>
+        <p style={{ color: '#666', fontSize: '16px' }}>Loading...</p>
       </div>
     );
   }
@@ -267,14 +264,14 @@ const SurveyPage = () => {
             marginBottom: '16px',
             color: '#262626'
           }}>
-            Chọn Loại Đánh Giá
+            Choose Assessment Type
           </h1>
           <p style={{ 
             fontSize: '16px', 
             color: '#666',
             marginBottom: '0'
           }}>
-            Vui lòng chọn bài đánh giá phù hợp với bạn
+            Please select the assessment that is appropriate for you
           </p>
         </div>
 
@@ -428,7 +425,7 @@ const SurveyPage = () => {
                     fontSize: '12px',
                     fontWeight: '500'
                   }}>
-                    {assessment.assessmentType?.targetAgeGroup || 'Tất cả độ tuổi'}
+                    {assessment.assessmentType?.targetAgeGroup || 'All ages'}
                   </span>
                 </div>
               </div>
@@ -438,7 +435,7 @@ const SurveyPage = () => {
                 marginBottom: '20px',
                 lineHeight: 1.6
               }}>
-                {assessment.description || 'Đánh giá mức độ nguy cơ và đưa ra khuyến nghị phù hợp'}
+                {assessment.description || 'Assess risk level and provide appropriate recommendations'}
               </p>
               
               <button style={{
@@ -453,7 +450,7 @@ const SurveyPage = () => {
                 width: '100%',
                 transition: 'all 0.2s ease'
               }}>
-                Bắt đầu đánh giá
+                Start Assessment
               </button>
             </div>
           ))}
@@ -475,13 +472,13 @@ const SurveyPage = () => {
               marginBottom: '8px',
               color: '#262626'
             }}>
-              Chưa có bài đánh giá nào
+              No assessments available
             </h3>
             <p style={{ 
               fontSize: '16px', 
               color: '#666'
             }}>
-              Vui lòng liên hệ quản trị viên để thêm bài đánh giá
+              Please contact administrator to add assessments
             </p>
           </div>
         )}
@@ -511,7 +508,7 @@ const SurveyPage = () => {
             marginBottom: '20px',
             color: '#262626'
           }}>
-            Kết Quả Đánh Giá
+            Assessment Results
           </h2>
           
           <div style={{
@@ -547,7 +544,7 @@ const SurveyPage = () => {
               {riskInfo.text}
             </h3>
             <p style={{ fontSize: '18px', color: '#666', marginBottom: '16px' }}>
-              Tổng điểm: <strong>{result.totalScore}</strong>
+              Total Score: <strong>{result.totalScore}</strong>
             </p>
             
             {/* Risk Description */}
@@ -572,7 +569,7 @@ const SurveyPage = () => {
                   color: '#262626',
                   marginBottom: '12px'
                 }}>
-                  📋 Khuyến nghị:
+                  📋 Recommendations:
                 </h4>
                 <ul style={{ 
                   margin: 0, 
@@ -610,7 +607,7 @@ const SurveyPage = () => {
               marginBottom: '20px'
             }}>
               <p style={{ color: '#1890ff', fontSize: '14px', margin: 0 }}>
-                ✅ Kết quả đã được lưu vào hồ sơ của bạn
+                ✅ Results have been saved to your profile
               </p>
             </div>
           )}
@@ -635,7 +632,7 @@ const SurveyPage = () => {
                 transition: 'all 0.2s ease'
               }}
             >
-              Làm bài đánh giá khác
+              Take Another Assessment
             </button>
             
             <button
@@ -652,7 +649,7 @@ const SurveyPage = () => {
                 transition: 'all 0.2s ease'
               }}
             >
-              Về trang chủ
+              Back to Home
             </button>
 
             {!isAuthenticated && (
@@ -670,7 +667,7 @@ const SurveyPage = () => {
                   transition: 'all 0.2s ease'
                 }}
               >
-                Đăng ký để lưu kết quả
+                Register to Save Results
               </button>
             )}
           </div>
@@ -698,7 +695,7 @@ const SurveyPage = () => {
             color: '#262626',
             margin: 0
           }}>
-            {selectedAssessment?.title || 'Đánh Giá Nguy Cơ'}
+            {selectedAssessment?.title || 'Risk Assessment'}
           </h1>
           <span style={{ 
             fontSize: '14px', 
@@ -819,7 +816,7 @@ const SurveyPage = () => {
             transition: 'all 0.2s ease'
           }}
         >
-          ← Câu trước
+          ← Previous Question
         </button>
 
         <button
@@ -842,7 +839,7 @@ const SurveyPage = () => {
             transition: 'all 0.2s ease'
           }}
         >
-          Chọn lại bài đánh giá
+          Choose Different Assessment
         </button>
 
         {currentQuestion === questions.length - 1 ? (
@@ -861,7 +858,7 @@ const SurveyPage = () => {
               transition: 'all 0.2s ease'
             }}
           >
-            {isSubmitting ? 'Đang xử lý...' : 'Hoàn thành'}
+            {isSubmitting ? 'Processing...' : 'Complete'}
           </button>
         ) : (
           <button
@@ -879,7 +876,7 @@ const SurveyPage = () => {
               transition: 'all 0.2s ease'
             }}
           >
-            Câu tiếp theo →
+            Next Question →
           </button>
         )}
       </div>
@@ -898,10 +895,10 @@ const SurveyPage = () => {
           margin: 0,
           lineHeight: 1.5
         }}>
-          💡 <strong>Lưu ý:</strong> Đây là công cụ sàng lọc ban đầu. Kết quả chỉ mang tính tham khảo. 
+          💡 <strong>Note:</strong> This is an initial screening tool. Results are for reference only. 
           {isAuthenticated 
-            ? ' Kết quả sẽ được lưu vào hồ sơ của bạn để theo dõi tiến trình.'
-            : ' Đăng ký tài khoản để lưu và theo dõi kết quả đánh giá của bạn.'
+            ? ' Results will be saved to your profile to track your progress.'
+            : ' Register an account to save and track your assessment results.'
           }
         </p>
       </div>

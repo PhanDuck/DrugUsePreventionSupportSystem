@@ -6,10 +6,10 @@ const { Content } = Layout;
 
 export default function LogoutPage() {
   useEffect(() => {
-    // Xử lý logout ở đây (xóa token, v.v.)
+    // Handle logout here (remove token, etc.)
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    toast.success('Đăng xuất thành công!');
+    toast.success('Logout successful!');
   }, []);
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -23,7 +23,7 @@ export default function LogoutPage() {
       }}>
         <Result 
           status="success" 
-          title="Đăng xuất thành công!" 
+          title="Logout successful!" 
           style={{
             padding: 'clamp(24px, 4vw, 32px)',
             textAlign: 'center'

@@ -6,8 +6,14 @@ import ForgotPasswordPage from './ForgotPasswordPage';
 import HomePage from './HomePage';
 import CoursesPage from './CoursesPage';
 import AppointmentPage from './AppointmentPage';
+import AppointmentDetailPage from './AppointmentDetailPage';
+import AppointmentListPage from './AppointmentListPage';
 import SurveyPage from './SurveyPage';
 import BlogPage from './BlogPage';
+import ProfilePage from './ProfilePage';
+import NotificationsPage from './NotificationsPage';
+import SearchPage from './SearchPage';
+import SettingsPage from './SettingsPage';
 import UnauthorizedPage from './UnauthorizedPage';
 import LayoutComponent from './Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -81,11 +87,47 @@ function App() {
           </ProtectedRoute>
         } />
         
+        <Route path="/appointments/list" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <AppointmentListPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/appointments/:id" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <AppointmentDetailPage />
+          </ProtectedRoute>
+        } />
+        
         {/* Surveys - accessible to all users (public) */}
         <Route path="/surveys" element={<SurveyPage />} />
         
         {/* Blog - accessible to all users (public) */}
         <Route path="/blogs" element={<BlogPage />} />
+
+        {/* Profile - accessible to authenticated users */}
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+
+        {/* Notifications - accessible to authenticated users */}
+        <Route path="/notifications" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <NotificationsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Search - accessible to all users (public) */}
+        <Route path="/search" element={<SearchPage />} />
+
+        {/* Settings - accessible to authenticated users */}
+        <Route path="/settings" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <SettingsPage />
+          </ProtectedRoute>
+        } />
 
         {/* Dashboard redirect based on role */}
         <Route path="/dashboard" element={

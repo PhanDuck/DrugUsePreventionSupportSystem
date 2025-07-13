@@ -11,56 +11,55 @@ import java.util.List;
 @Repository
 public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
     
-    // Tìm recommendations theo user ID
+    // Find recommendations by user ID
     List<Recommendation> findByUserId(Long userId);
     
-    // Tìm recommendations theo assessment result ID
+    // Find recommendations by assessment result ID
     List<Recommendation> findByAssessmentResultId(Long assessmentResultId);
     
-    // Tìm recommendations theo type
+    // Find recommendations by type
     List<Recommendation> findByRecommendationType(String recommendationType);
     
-    // Tìm recommendations theo risk level
+    // Find recommendations by risk level
     List<Recommendation> findByRiskLevel(String riskLevel);
     
-    // Tìm recommendations theo status
+    // Find recommendations by status
     List<Recommendation> findByStatus(String status);
     
-    // Tìm active recommendations
+    // Find active recommendations
     List<Recommendation> findByIsActiveTrue();
     
-    // Tìm recommendations theo user và status
+    // Find recommendations by user and status
     List<Recommendation> findByUserIdAndStatus(Long userId, String status);
     
-    // Tìm recommendations theo user và type
+    // Find recommendations by user and type
     List<Recommendation> findByUserIdAndRecommendationType(Long userId, String recommendationType);
     
-    // Tìm recommendations theo priority
+    // Find recommendations by priority
     List<Recommendation> findByPriority(Integer priority);
     
-    // Tìm high priority recommendations
-    @Query("SELECT r FROM Recommendation r WHERE r.priority <= 2 ORDER BY r.priority ASC")
+    // Find high priority recommendations
+    @Query("SELECT r FROM Recommendation r WHERE r.priority = 1 AND r.isActive = true")
     List<Recommendation> findHighPriorityRecommendations();
     
-    // Tìm recommendations theo user và priority
-    @Query("SELECT r FROM Recommendation r WHERE r.userId = :userId ORDER BY r.priority ASC, r.createdAt DESC")
-    List<Recommendation> findByUserIdOrderByPriority(@Param("userId") Long userId);
+    // Find recommendations by user and priority
+    List<Recommendation> findByUserIdAndPriority(Long userId, Integer priority);
     
-    // Tìm pending recommendations cho user
-    @Query("SELECT r FROM Recommendation r WHERE r.userId = :userId AND r.status = 'pending' AND r.isActive = true ORDER BY r.priority ASC")
+    // Find pending recommendations for user
+    @Query("SELECT r FROM Recommendation r WHERE r.userId = :userId AND r.status = 'pending' AND r.isActive = true")
     List<Recommendation> findPendingByUserId(@Param("userId") Long userId);
     
-    // Đếm recommendations theo user
+    // Count recommendations by user
     @Query("SELECT COUNT(r) FROM Recommendation r WHERE r.userId = :userId")
     Long countByUserId(@Param("userId") Long userId);
     
-    // Đếm pending recommendations theo user
+    // Count pending recommendations by user
     @Query("SELECT COUNT(r) FROM Recommendation r WHERE r.userId = :userId AND r.status = 'pending' AND r.isActive = true")
     Long countPendingByUserId(@Param("userId") Long userId);
     
-    // Lấy recommendations mới nhất
+    // Get recent recommendations
     List<Recommendation> findTop10ByOrderByCreatedAtDesc();
     
-    // Tìm recommendations theo target ID
+    // Find recommendations by target ID
     List<Recommendation> findByTargetId(Long targetId);
 } 

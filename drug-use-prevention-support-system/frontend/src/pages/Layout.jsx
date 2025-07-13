@@ -12,7 +12,7 @@ const LayoutComponent = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập và lấy thông tin user
+    // Check login status and get user information
     const checkAuth = () => {
       const isAuth = authService.isAuthenticated();
       const user = authService.getCurrentUser();
@@ -44,7 +44,7 @@ const LayoutComponent = () => {
       console.log('Auth data cleared, redirecting...');
       
       // Show success message and redirect
-      toast.success('Đăng xuất thành công!');
+      toast.success('Logout successful!');
       
       // Immediate redirect
       setTimeout(() => {
@@ -60,12 +60,12 @@ const LayoutComponent = () => {
 
   // Navigation items
   const navigationItems = [
-    { path: '/', label: 'Trang chủ', icon: '🏠' },
-    { path: '/search', label: 'Tìm kiếm', icon: '🔍' },
+    { path: '/', label: 'Home', icon: '🏠' },
+    { path: '/search', label: 'Search', icon: '🔍' },
     { path: '/blogs', label: 'Blog', icon: '📝' },
-    { path: '/courses', label: 'Khóa học', icon: '📚' },
-    { path: '/surveys', label: 'Đánh giá', icon: '📋' },
-    { path: '/appointments', label: 'Tư vấn', icon: '💬' },
+    { path: '/courses', label: 'Courses', icon: '📚' },
+    { path: '/surveys', label: 'Assessments', icon: '📋' },
+    { path: '/appointments', label: 'Consultation', icon: '💬' },
   ];
 
   // Get user display name
@@ -78,10 +78,10 @@ const LayoutComponent = () => {
   const getUserRoleDisplay = () => {
     const role = authService.getUserRole();
     switch(role) {
-      case 'ADMIN': return 'Quản trị viên';
-      case 'CONSULTANT': return 'Tư vấn viên';
-      case 'MANAGER': return 'Quản lý';
-      case 'USER': return 'Người dùng';
+      case 'ADMIN': return 'Administrator';
+      case 'CONSULTANT': return 'Consultant';
+      case 'MANAGER': return 'Manager';
+      case 'USER': return 'User';
       default: return 'Guest';
     }
   };
@@ -154,7 +154,7 @@ const LayoutComponent = () => {
                 color: '#666',
                 lineHeight: 1,
                 margin: 0
-              }}>Hỗ trợ phòng chống tệ nạn</p>
+              }}>Support System</p>
             </div>
           </div>
 
@@ -331,7 +331,7 @@ const LayoutComponent = () => {
                       onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
-                      👤 Thông tin cá nhân
+                      👤 Personal Information
                     </button>
                     <button
                       style={{
@@ -357,7 +357,7 @@ const LayoutComponent = () => {
                       onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
-                      🔔 Thông báo
+                      🔔 Notifications
                     </button>
                     <button
                       style={{
@@ -383,7 +383,7 @@ const LayoutComponent = () => {
                       onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
-                      ⚙️ Cài đặt
+                      ⚙️ Settings
                     </button>
                     <button
                       style={{
@@ -408,7 +408,7 @@ const LayoutComponent = () => {
                       onMouseEnter={(e) => e.target.style.background = '#fff2f0'}
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
-                      🚪 Đăng xuất
+                      🚪 Logout
                     </button>
                   </div>
                 )}
@@ -437,7 +437,7 @@ const LayoutComponent = () => {
                     e.target.style.borderColor = '#d9d9d9';
                   }}
                 >
-                  Đăng nhập
+                  Login
                 </button>
                 <button
                   style={{
@@ -465,7 +465,7 @@ const LayoutComponent = () => {
                     e.target.style.boxShadow = 'none';
                   }}
                 >
-                  Đăng ký
+                  Register
                 </button>
               </div>
             )}
@@ -501,7 +501,7 @@ const LayoutComponent = () => {
         }}>
           Drug Prevention Support System ©{new Date().getFullYear()} 
           <span style={{ margin: '0 8px' }}>•</span>
-          Được phát triển bởi Nhóm 1
+          Developed by Team 1
         </p>
       </footer>
 

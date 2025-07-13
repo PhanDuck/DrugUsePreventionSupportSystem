@@ -84,7 +84,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/appointments/health").permitAll()  // Appointment health check
                 
                 // ===== ROLE-BASED ENDPOINTS =====
-                // Appointment endpoints - cho phép tất cả authenticated users truy cập
+                // Appointment endpoints - allow all authenticated users to access
                 .requestMatchers("/api/appointments/**").hasAnyRole("USER", "CONSULTANT", "ADMIN", "STAFF")
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

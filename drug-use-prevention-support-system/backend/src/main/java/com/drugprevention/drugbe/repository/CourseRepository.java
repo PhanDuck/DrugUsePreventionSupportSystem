@@ -14,57 +14,57 @@ import java.util.List;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
     
-    // Tìm courses theo instructor ID
+    // Find courses by instructor ID
     List<Course> findByInstructorId(Long instructorId);
     
-    // Tìm courses theo category ID
+    // Find courses by category ID
     List<Course> findByCategoryId(Long categoryId);
     
-    // Tìm courses theo status
+    // Find courses by status
     List<Course> findByStatus(String status);
     
-    // Tìm courses active
+    // Find active courses
     List<Course> findByIsActiveTrue();
     
-    // Tìm featured courses
+    // Find featured courses
     List<Course> findByIsFeaturedTrue();
     
-    // Tìm open courses
+    // Find open courses
     List<Course> findByStatusAndIsActiveTrue(String status);
     
-    // Tìm courses theo title
+    // Find courses by title
     List<Course> findByTitleContaining(String title);
     
-    // Tìm courses theo keyword trong title hoặc description
+    // Find courses by keyword in title or description
     @Query("SELECT c FROM Course c WHERE c.title LIKE %:keyword% OR c.description LIKE %:keyword%")
     List<Course> findByKeyword(@Param("keyword") String keyword);
     
-    // Tìm courses theo thời gian
+    // Find courses by time
     List<Course> findByStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<Course> findByStartDateAfter(LocalDateTime startDate);
     
-    // Tìm courses có chỗ trống
+    // Find courses with available spots
     @Query("SELECT c FROM Course c WHERE c.currentParticipants < c.maxParticipants AND c.status = 'open'")
     List<Course> findAvailableCourses();
     
-    // Lấy courses mới nhất
+    // Get latest courses
     List<Course> findTop10ByStatusOrderByCreatedAtDesc(String status);
     
-    // Lấy popular courses
+    // Get popular courses
     List<Course> findTop10ByStatusOrderByCurrentParticipantsDesc(String status);
     
-    // Page courses với filter
+    // Page courses with filter
     Page<Course> findByStatusAndIsActiveTrue(String status, Pageable pageable);
     Page<Course> findByCategoryIdAndStatusAndIsActiveTrue(Long categoryId, String status, Pageable pageable);
     
-    // Đếm courses theo category
+    // Count courses by category
     @Query("SELECT COUNT(c) FROM Course c WHERE c.categoryId = :categoryId")
     Long countByCategoryId(@Param("categoryId") Long categoryId);
     
-    // Đếm courses theo instructor
+    // Count courses by instructor
     @Query("SELECT COUNT(c) FROM Course c WHERE c.instructorId = :instructorId")
     Long countByInstructorId(@Param("instructorId") Long instructorId);
     
-    // Lấy courses theo instructor và status
+    // Get courses by instructor and status
     List<Course> findByInstructorIdAndStatus(Long instructorId, String status);
 } 

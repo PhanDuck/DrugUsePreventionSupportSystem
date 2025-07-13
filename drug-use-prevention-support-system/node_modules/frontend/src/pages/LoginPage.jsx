@@ -57,13 +57,13 @@ const LoginPage = () => {
         const result = await authService.login(formData.username, formData.password);
         
         if (result.success) {
-          toast.success('Đăng nhập thành công!');
+          toast.success('Login successful!');
           
           // Navigate based on user role
           const dashboardPath = authService.getDashboardPath();
           navigate(dashboardPath);
         } else {
-          toast.error(result.message || 'Đăng nhập thất bại');
+          toast.error(result.message || 'Login failed');
           setErrors(prev => ({
             ...prev,
             submit: result.message
@@ -71,10 +71,10 @@ const LoginPage = () => {
         }
       } catch (error) {
         console.error('Login error:', error);
-        toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
+        toast.error('An error occurred. Please try again.');
         setErrors(prev => ({
           ...prev,
-          submit: 'Đăng nhập thất bại. Vui lòng thử lại.'
+          submit: 'Login failed. Please try again.'
         }));
       } finally {
         setIsLoading(false);
@@ -98,7 +98,7 @@ const LoginPage = () => {
   // };
 
   const handleLoginGoogle = async () => {
-    toast.info('Google login chưa được hỗ trợ. Vui lòng sử dụng tài khoản hệ thống.');
+    toast.info('Google login is not supported yet. Please use system account.');
   };
 
   return (

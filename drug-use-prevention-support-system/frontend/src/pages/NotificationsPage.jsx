@@ -21,8 +21,8 @@ const NotificationsPage = () => {
       const mockNotifications = [
         {
           id: 1,
-          title: 'Lịch hẹn mới',
-          message: 'Bạn có lịch hẹn với tư vấn viên vào ngày mai lúc 14:00',
+          title: 'New Appointment',
+          message: 'You have an appointment with a consultant tomorrow at 14:00',
           type: 'appointment',
           isRead: false,
           createdAt: '2024-01-15T10:30:00Z',
@@ -30,8 +30,8 @@ const NotificationsPage = () => {
         },
         {
           id: 2,
-          title: 'Khóa học mới',
-          message: 'Khóa học "Phòng chống tệ nạn xã hội" đã được mở đăng ký',
+          title: 'New Course',
+          message: 'Course "Social Problem Prevention" is now open for registration',
           type: 'course',
           isRead: true,
           createdAt: '2024-01-14T15:20:00Z',
@@ -39,8 +39,8 @@ const NotificationsPage = () => {
         },
         {
           id: 3,
-          title: 'Kết quả đánh giá',
-          message: 'Kết quả đánh giá nguy cơ của bạn đã sẵn sàng',
+          title: 'Assessment Results',
+          message: 'Your risk assessment results are ready',
           type: 'assessment',
           isRead: false,
           createdAt: '2024-01-13T09:15:00Z',
@@ -48,8 +48,8 @@ const NotificationsPage = () => {
         },
         {
           id: 4,
-          title: 'Bài viết mới',
-          message: 'Bài viết "Dấu hiệu nhận biết tệ nạn xã hội" đã được đăng',
+          title: 'New Article',
+          message: 'Article "Signs of Social Problems" has been published',
           type: 'blog',
           isRead: true,
           createdAt: '2024-01-12T16:45:00Z',
@@ -57,8 +57,8 @@ const NotificationsPage = () => {
         },
         {
           id: 5,
-          title: 'Nhắc nhở',
-          message: 'Đừng quên hoàn thành khóa học "Kỹ năng phòng chống"',
+          title: 'Reminder',
+          message: 'Don\'t forget to complete the course "Prevention Skills"',
           type: 'reminder',
           isRead: false,
           createdAt: '2024-01-11T11:00:00Z',
@@ -131,9 +131,9 @@ const NotificationsPage = () => {
 
   const getPriorityText = (priority) => {
     const texts = {
-      high: 'Cao',
-      medium: 'Trung bình',
-      low: 'Thấp'
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low'
     };
     return texts[priority] || priority;
   };
@@ -144,11 +144,11 @@ const NotificationsPage = () => {
     const diffInHours = (now - date) / (1000 * 60 * 60);
     
     if (diffInHours < 1) {
-      return 'Vừa xong';
+      return 'Just now';
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)} giờ trước`;
+      return `${Math.floor(diffInHours)} hours ago`;
     } else {
-      return date.toLocaleDateString('vi-VN');
+      return date.toLocaleDateString('en-US');
     }
   };
 
@@ -185,7 +185,7 @@ const NotificationsPage = () => {
         title={
           <Space>
             <BellOutlined />
-            <span>Thông Báo</span>
+            <span>Notifications</span>
             {unreadCount > 0 && (
               <Badge count={unreadCount} style={{ backgroundColor: '#1890ff' }} />
             )}
@@ -199,149 +199,119 @@ const NotificationsPage = () => {
                 onClick={markAllAsRead}
                 icon={<CheckOutlined />}
               >
-                Đánh dấu tất cả đã đọc
+                Mark all as read
               </Button>
             )}
           </Space>
         }
       >
-        {notifications.length === 0 ? (
-          <Empty 
-            description="Không có thông báo nào"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        ) : (
-          <List
-            loading={loading}
-            dataSource={notifications}
-            renderItem={(notification) => (
-              <List.Item
-                style={{
-                  backgroundColor: notification.isRead ? 'transparent' : '#f0f8ff',
-                  borderRadius: '8px',
-                  marginBottom: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  border: notification.isRead ? '1px solid #f0f0f0' : '1px solid #1890ff'
-                }}
-                onClick={() => handleNotificationClick(notification)}
-                actions={[
-                  !notification.isRead && (
-                    <Button 
-                      type="link" 
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markAsRead(notification.id);
-                      }}
-                      icon={<CheckOutlined />}
-                    >
-                      Đánh dấu đã đọc
-                    </Button>
-                  ),
-                  <Button 
-                    type="link" 
+        <List
+          loading={loading}
+          dataSource={notifications}
+          locale={{ emptyText: <Empty description="No notifications" /> }}
+          renderItem={(notification) => (
+            <List.Item
+              key={notification.id}
+              style={{
+                backgroundColor: notification.isRead ? 'transparent' : '#f0f8ff',
+                padding: '12px',
+                borderRadius: '8px',
+                marginBottom: '8px',
+                cursor: 'pointer'
+              }}
+              onClick={() => handleNotificationClick(notification)}
+              actions={[
+                !notification.isRead && (
+                  <Button
+                    type="text"
                     size="small"
-                    danger
+                    icon={<CheckOutlined />}
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteNotification(notification.id);
+                      markAsRead(notification.id);
                     }}
-                    icon={<DeleteOutlined />}
                   >
-                    Xóa
+                    Mark as read
                   </Button>
-                ].filter(Boolean)}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <Avatar 
-                      size={40}
-                      style={{ 
-                        backgroundColor: notification.isRead ? '#d9d9d9' : '#1890ff',
-                        fontSize: '16px'
-                      }}
-                    >
-                      {getNotificationIcon(notification.type)}
-                    </Avatar>
-                  }
-                  title={
-                    <Space>
-                      <Text strong={!notification.isRead}>
-                        {notification.title}
-                      </Text>
-                      {!notification.isRead && (
-                        <Badge status="processing" />
-                      )}
-                      <Tag color={getPriorityColor(notification.priority)} size="small">
-                        {getPriorityText(notification.priority)}
-                      </Tag>
-                    </Space>
-                  }
-                  description={
-                    <div>
-                      <div style={{ marginBottom: '8px' }}>
-                        {notification.message}
-                      </div>
-                      <Space size="small">
-                        <ClockCircleOutlined style={{ color: '#999' }} />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          {formatDate(notification.createdAt)}
-                        </Text>
-                      </Space>
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        )}
+                ),
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteNotification(notification.id);
+                  }}
+                >
+                  Delete
+                </Button>
+              ].filter(Boolean)}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Avatar 
+                    icon={getNotificationIcon(notification.type)}
+                    style={{ backgroundColor: notification.isRead ? '#d9d9d9' : '#1890ff' }}
+                  />
+                }
+                title={
+                  <Space>
+                    <Text strong={!notification.isRead}>
+                      {notification.title}
+                    </Text>
+                    <Tag color={getPriorityColor(notification.priority)} size="small">
+                      {getPriorityText(notification.priority)}
+                    </Tag>
+                    {!notification.isRead && <Badge status="processing" />}
+                  </Space>
+                }
+                description={
+                  <div>
+                    <Text>{notification.message}</Text>
+                    <br />
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      <ClockCircleOutlined /> {formatDate(notification.createdAt)}
+                    </Text>
+                  </div>
+                }
+              />
+            </List.Item>
+          )}
+        />
       </Card>
 
       {/* Notification Settings */}
-      <Card title="Cài Đặt Thông Báo" style={{ marginTop: '24px' }}>
-        <List>
-          <List.Item>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
-                <Text strong>Thông báo lịch hẹn</Text>
-                <br />
-                <Text type="secondary">Nhận thông báo về lịch hẹn mới và thay đổi</Text>
-              </div>
-              <Button type="primary" size="small">Bật</Button>
-            </div>
-          </List.Item>
-          <List.Item>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
-                <Text strong>Thông báo khóa học</Text>
-                <br />
-                <Text type="secondary">Nhận thông báo về khóa học mới và tiến độ</Text>
-              </div>
-              <Button type="primary" size="small">Bật</Button>
-            </div>
-          </List.Item>
-          <List.Item>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
-                <Text strong>Thông báo đánh giá</Text>
-                <br />
-                <Text type="secondary">Nhận thông báo về kết quả đánh giá</Text>
-              </div>
-              <Button type="primary" size="small">Bật</Button>
-            </div>
-          </List.Item>
-          <List.Item>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
-                <Text strong>Thông báo bài viết</Text>
-                <br />
-                <Text type="secondary">Nhận thông báo về bài viết mới</Text>
-              </div>
-              <Button type="default" size="small">Tắt</Button>
-            </div>
-          </List.Item>
-        </List>
+      <Card title="Notification Settings" style={{ marginTop: '24px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <Text strong>Appointment notifications</Text>
+          <br />
+          <Text type="secondary">Receive notifications about new appointments and changes</Text>
+        </div>
+        
+        <Divider />
+        
+        <div style={{ marginBottom: '16px' }}>
+          <Text strong>Course notifications</Text>
+          <br />
+          <Text type="secondary">Receive notifications about new courses and progress</Text>
+        </div>
+        
+        <Divider />
+        
+        <div style={{ marginBottom: '16px' }}>
+          <Text strong>Assessment notifications</Text>
+          <br />
+          <Text type="secondary">Receive notifications about assessment results</Text>
+        </div>
+        
+        <Divider />
+        
+        <div style={{ marginBottom: '16px' }}>
+          <Text strong>Article notifications</Text>
+          <br />
+          <Text type="secondary">Receive notifications about new articles</Text>
+        </div>
       </Card>
     </div>
   );

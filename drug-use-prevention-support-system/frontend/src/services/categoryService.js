@@ -14,7 +14,7 @@ class CategoryService {
       console.error('Error fetching categories:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải danh mục'
+        message: error.response?.data?.message || 'Unable to load categories'
       };
     }
   }
@@ -31,7 +31,7 @@ class CategoryService {
       console.error('Error fetching category:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải thông tin danh mục'
+        message: error.response?.data?.message || 'Unable to load category information'
       };
     }
   }
@@ -48,7 +48,7 @@ class CategoryService {
       console.error('Error creating category:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tạo danh mục'
+        message: error.response?.data?.message || 'Unable to create category'
       };
     }
   }
@@ -65,7 +65,7 @@ class CategoryService {
       console.error('Error updating category:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể cập nhật danh mục'
+        message: error.response?.data?.message || 'Unable to update category'
       };
     }
   }
@@ -76,21 +76,21 @@ class CategoryService {
       await api.delete(`/categories/${categoryId}`);
       return {
         success: true,
-        message: 'Xóa danh mục thành công'
+        message: 'Category deleted successfully'
       };
     } catch (error) {
       console.error('Error deleting category:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể xóa danh mục'
+        message: error.response?.data?.message || 'Unable to delete category'
       };
     }
   }
 
   // ===== SEARCH CATEGORIES =====
-  async searchCategories(name) {
+  async searchCategories(keyword) {
     try {
-      const response = await api.get(`/categories/search?name=${name}`);
+      const response = await api.get(`/categories/search?keyword=${keyword}`);
       return {
         success: true,
         data: response.data
@@ -99,7 +99,7 @@ class CategoryService {
       console.error('Error searching categories:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tìm kiếm danh mục'
+        message: error.response?.data?.message || 'Unable to search categories'
       };
     }
   }

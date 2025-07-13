@@ -2,39 +2,10 @@ import api from '../config/axios';
 
 class PaymentService {
   
-  // ===== HEALTH CHECK =====
-  async healthCheck() {
+  // ===== CREATE VNPAY PAYMENT =====
+  async createVNPayPayment(paymentData) {
     try {
-      const response = await api.get('/payment/health');
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Error checking payment service health:', error);
-      return {
-        success: false,
-        message: 'Payment service không khả dụng'
-      };
-    }
-  }
-
-  // ===== VNPAY INTEGRATION =====
-  
-  /**
-   * Create VNPay payment URL
-   */
-  async createVNPayPayment(appointmentId, amount, description) {
-    try {
-      const paymentRequest = {
-        appointmentId,
-        amount,
-        description,
-        returnUrl: `${window.location.origin}/payment/return`,
-        cancelUrl: `${window.location.origin}/appointment`
-      };
-
-      const response = await api.post('/payment/vnpay/create', paymentRequest);
+      const response = await api.post('/payments/vnpay/create', paymentData);
       return {
         success: true,
         data: response.data
@@ -43,17 +14,15 @@ class PaymentService {
       console.error('Error creating VNPay payment:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tạo thanh toán VNPay'
+        message: error.response?.data?.message || 'Unable to create VNPay payment'
       };
     }
   }
 
-  /**
-   * Get payment status for an appointment
-   */
-  async getPaymentStatus(appointmentId) {
+  // ===== GET PAYMENT STATUS =====
+  async getPaymentStatus(paymentId) {
     try {
-      const response = await api.get(`/payment/status/${appointmentId}`);
+      const response = await api.get(`/payments/${paymentId}/status`);
       return {
         success: true,
         data: response.data
@@ -62,73 +31,60 @@ class PaymentService {
       console.error('Error fetching payment status:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải trạng thái thanh toán'
+        message: error.response?.data?.message || 'Unable to load payment status'
       };
     }
   }
 
-  // ===== PAYMENT UTILITIES =====
-  
-  /**
-   * Format amount for VNPay (VND, no decimal)
-   */
-  formatVNPayAmount(amount) {
-    return Math.round(amount);
+  // ===== GET PAYMENT HISTORY =====
+  async getPaymentHistory(userId) {
+    try {
+      const response = await api.get(`/payments/history/${userId}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Unable to load payment history'
+      };
+    }
   }
 
-  /**
-   * Generate payment description
-   */
-  generatePaymentDescription(appointmentId, consultantName) {
-    return `Thanh toan tu van - Appointment #${appointmentId} - ${consultantName}`;
+  // ===== REFUND PAYMENT =====
+  async refundPayment(paymentId, reason) {
+    try {
+      const response = await api.post(`/payments/${paymentId}/refund`, { reason });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error refunding payment:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Unable to refund payment'
+      };
+    }
   }
 
-  /**
-   * Redirect to VNPay payment page
-   */
-  redirectToVNPay(paymentUrl) {
-    window.location.href = paymentUrl;
-  }
-
-  /**
-   * Get payment method display name
-   */
-  getPaymentMethodDisplayName(method) {
-    const methodMap = {
-      'CASH': '💵 Tiền mặt',
-      'VNPAY': '🏧 VNPay',
-      'BANK_TRANSFER': '🏦 Chuyển khoản',
-      'CARD': '💳 Thẻ tín dụng'
-    };
-    return methodMap[method] || method;
-  }
-
-  /**
-   * Get payment status color for UI
-   */
-  getPaymentStatusColor(status) {
-    const colorMap = {
-      'PAID': '#52c41a',      // Green
-      'UNPAID': '#faad14',    // Orange
-      'FAILED': '#f5222d',    // Red
-      'PENDING': '#1890ff',   // Blue
-      'REFUNDED': '#722ed1'   // Purple
-    };
-    return colorMap[status] || '#666666';
-  }
-
-  /**
-   * Get payment status icon
-   */
-  getPaymentStatusIcon(status) {
-    const iconMap = {
-      'PAID': '✅',
-      'UNPAID': '⏳',
-      'FAILED': '❌',
-      'PENDING': '🕐',
-      'REFUNDED': '↩️'
-    };
-    return iconMap[status] || '❓';
+  // ===== GET PAYMENT STATISTICS =====
+  async getPaymentStatistics(period = 'month') {
+    try {
+      const response = await api.get(`/payments/statistics?period=${period}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching payment statistics:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Unable to load payment statistics'
+      };
+    }
   }
 }
 

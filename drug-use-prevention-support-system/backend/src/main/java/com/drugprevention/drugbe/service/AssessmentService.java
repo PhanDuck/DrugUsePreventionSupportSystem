@@ -34,37 +34,37 @@ public class AssessmentService {
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 1. Lấy danh sách khảo sát
+    // 1. Get all assessments
     public List<Assessment> getAllAssessments() {
         return assessmentRepository.findAll();
     }
 
-    // 2. Lấy danh sách khảo sát theo type ID
+    // 2. Get assessments by type ID
     public List<Assessment> getAssessmentsByTypeId(Long typeId) {
         return assessmentRepository.findByAssessmentTypeId(typeId);
     }
 
-    // 3. Lấy danh sách câu hỏi của 1 khảo sát
+    // 3. Get questions for an assessment
     public List<AssessmentQuestion> getQuestionsByAssessmentId(Long assessmentId) {
         return assessmentQuestionRepository.findByAssessmentIdOrderByOrderIndex(assessmentId);
     }
 
-    // 4. Lấy assessment theo ID
+    // 4. Get assessment by ID
     public Optional<Assessment> getAssessmentById(Long id) {
         return assessmentRepository.findById(id);
     }
 
-    // 5. Lấy assessment type theo ID
+    // 5. Get assessment type by ID
     public Optional<AssessmentType> getAssessmentTypeById(Long id) {
         return assessmentTypeRepository.findById(id);
     }
 
-    // 6. Lấy results theo user ID (deprecated - use getUserAssessmentResults)
+    // 6. Get results by user ID (deprecated - use getUserAssessmentResults)
     public List<AssessmentResult> getResultsByUserId(Long userId) {
         return assessmentResultRepository.findByUserId(userId);
     }
 
-    // 7. Lấy results theo assessment ID
+    // 7. Get results by assessment ID
     public List<AssessmentResult> getResultsByAssessmentId(Long assessmentId) {
         return assessmentResultRepository.findByAssessmentId(assessmentId);
     }
@@ -115,6 +115,23 @@ public class AssessmentService {
     // 13. Submit assessment result
     @Transactional
     public AssessmentResultDTO submitAssessment(AssessmentSubmissionDTO submission) {
+        // Validate submission
+        if (submission == null) {
+            throw new RuntimeException("Submission cannot be null");
+        }
+        
+        if (submission.getAssessmentId() == null) {
+            throw new RuntimeException("Assessment ID cannot be null");
+        }
+        
+        if (submission.getUserId() == null) {
+            throw new RuntimeException("User ID cannot be null");
+        }
+        
+        if (submission.getAnswers() == null || submission.getAnswers().isEmpty()) {
+            throw new RuntimeException("Answers cannot be null or empty");
+        }
+        
         // Validate assessment exists
         Assessment assessment = assessmentRepository.findById(submission.getAssessmentId())
                 .orElseThrow(() -> new RuntimeException("Assessment not found"));
@@ -141,7 +158,7 @@ public class AssessmentService {
             String answersJson = objectMapper.writeValueAsString(submission.getAnswers());
             result.setAnswersJson(answersJson);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to serialize answers to JSON: " + e.getMessage());
         }
         
         // Save assessment result
@@ -149,6 +166,10 @@ public class AssessmentService {
         
         // Save individual answers
         for (AssessmentSubmissionDTO.AnswerDTO answerDTO : submission.getAnswers()) {
+            if (answerDTO.getQuestionId() == null) {
+                throw new RuntimeException("Question ID cannot be null in answer");
+            }
+            
             Answer answer = new Answer();
             answer.setAssessmentResultId(result.getId());
             answer.setAssessmentQuestionId(answerDTO.getQuestionId());
@@ -182,7 +203,10 @@ public class AssessmentService {
     public List<AssessmentQuestionDTO> getAssessmentQuestionsDTO(Long assessmentId) {
         List<AssessmentQuestion> questions = assessmentQuestionRepository
                 .findByAssessmentIdOrderByOrderIndex(assessmentId);
-        
+        // Log English values retrieved from database to console
+        for (AssessmentQuestion q : questions) {
+            System.out.println("[DEBUG] Question (id=" + q.getId() + "): " + q.getQuestion());
+        }
         return questions.stream()
                 .map(this::convertToQuestionDTO)
                 .collect(Collectors.toList());
@@ -227,11 +251,20 @@ public class AssessmentService {
     // ===== SCORING LOGIC =====
     
     private ScoreResult calculateAssessmentScore(Assessment assessment, List<AssessmentSubmissionDTO.AnswerDTO> answers) {
+        // Validate inputs
+        if (assessment == null) {
+            throw new RuntimeException("Assessment cannot be null");
+        }
+        
+        if (answers == null || answers.isEmpty()) {
+            throw new RuntimeException("Answers cannot be null or empty");
+        }
+        
         // Get assessment type to determine scoring method
         AssessmentType assessmentType = assessmentTypeRepository.findById(assessment.getAssessmentTypeId())
                 .orElseThrow(() -> new RuntimeException("Assessment type not found"));
         
-        String typeName = assessmentType.getName().toUpperCase();
+        String typeName = assessmentType.getName() != null ? assessmentType.getName().toUpperCase() : "GENERAL";
         
         switch (typeName) {
             case "CRAFFT":
@@ -249,10 +282,7 @@ public class AssessmentService {
 
     /**
      * CRAFFT Scoring: Car, Relax, Alone, Forget, Friends, Trouble
-     * Each "Yes" answer = 1 point
-     * Score 0: Low risk
-     * Score 1: Medium risk  
-     * Score 2+: High risk
+     * 6 yes/no questions about substance use behavior
      */
     private ScoreResult calculateCRAFFTScore(List<AssessmentSubmissionDTO.AnswerDTO> answers) {
         System.out.println("🔍 CRAFFT Scoring Debug:");
@@ -260,17 +290,17 @@ public class AssessmentService {
         
         int totalScore = 0;
         
-        // CRAFFT: Each "Yes" (value = 1) counts as 1 point
         for (AssessmentSubmissionDTO.AnswerDTO answer : answers) {
             System.out.println("🔍 Processing answer - QuestionID: " + answer.getQuestionId() + 
                              ", Value: " + answer.getAnswerValue() + 
                              ", Text: " + answer.getAnswerText());
             
-            if (answer.getAnswerValue() != null && answer.getAnswerValue() == 1) {
-                totalScore += 1;
-                System.out.println("🔍 ✅ Added 1 point (answer = 1). Total score now: " + totalScore);
+            Integer value = answer.getAnswerValue();
+            if (value != null) {
+                totalScore += value;
+                System.out.println("🔍 Added " + value + " points. Total score now: " + totalScore);
             } else {
-                System.out.println("🔍 ❌ No point added (answer = " + answer.getAnswerValue() + ")");
+                System.out.println("🔍 ❌ Answer value is null, skipping");
             }
         }
         
@@ -281,26 +311,26 @@ public class AssessmentService {
         List<String> recommendations = new ArrayList<>();
         
         if (totalScore == 0) {
-            riskLevel = "THẤP";
-            riskDescription = "Nguy cơ thấp về việc sử dụng chất gây nghiện. Bạn không có dấu hiệu sử dụng có vấn đề.";
-            recommendations.add("Tiếp tục duy trì lối sống lành mạnh và tránh xa các chất gây nghiện");
-            recommendations.add("Tham gia các hoạt động tích cực như thể thao, học tập");
-            recommendations.add("Chia sẻ với bạn bè về tác hại của chất gây nghiện");
+            riskLevel = "LOW";
+            riskDescription = "Low risk of substance use. You show no signs of problematic use.";
+            recommendations.add("Continue maintaining a healthy lifestyle and stay away from addictive substances");
+            recommendations.add("Participate in positive activities like sports and learning");
+            recommendations.add("Share with friends about the harms of addictive substances");
         } else if (totalScore == 1) {
-            riskLevel = "TRUNG BÌNH";
-            riskDescription = "Nguy cơ trung bình. Bạn có một số dấu hiệu cần lưu ý về việc sử dụng chất gây nghiện.";
-            recommendations.add("Cần tham khảo ý kiến chuyên gia tư vấn để đánh giá kỹ hơn");
-            recommendations.add("Tham gia các khóa học về kỹ năng sống và quản lý stress");
-            recommendations.add("Tăng cường hoạt động thể thao và sở thích lành mạnh");
-            recommendations.add("Nói chuyện với gia đình hoặc người tin tưởng");
+            riskLevel = "MEDIUM";
+            riskDescription = "Medium risk. You have some signs that need attention regarding substance use.";
+            recommendations.add("Consider consulting a professional counselor for better assessment");
+            recommendations.add("Participate in life skills and stress management courses");
+            recommendations.add("Increase sports activities and healthy hobbies");
+            recommendations.add("Talk to family or trusted person");
         } else { // totalScore >= 2
-            riskLevel = "CAO";
-            riskDescription = "Nguy cơ cao về việc sử dụng chất gây nghiện. Cần can thiệp và hỗ trợ chuyên môn ngay lập tức.";
-            recommendations.add("KHẨN CẤP: Tham khảo ý kiến bác sĩ chuyên khoa hoặc chuyên gia tư vấn nghiện chất ngay");
-            recommendations.add("Tham gia chương trình tư vấn và điều trị chuyên sâu");
-            recommendations.add("Thông báo cho gia đình để nhận được sự hỗ trợ cần thiết");
-            recommendations.add("Tránh xa những tình huống và môi trường có nguy cơ tiếp xúc với chất gây nghiện");
-            recommendations.add("Liên hệ hotline hỗ trợ 24/7: 1900 1234 (miễn phí)");
+            riskLevel = "HIGH";
+            riskDescription = "High risk of substance use. Immediate professional intervention and support required.";
+            recommendations.add("URGENT: Consult a specialist doctor or substance addiction counselor immediately");
+            recommendations.add("Participate in intensive counseling and treatment programs");
+            recommendations.add("Notify family to receive necessary support");
+            recommendations.add("Stay away from situations and environments with risk of exposure to addictive substances");
+            recommendations.add("Contact 24/7 support hotline: 1900 1234 (free)");
         }
         
         System.out.println("🔍 Risk Level: " + riskLevel);
@@ -362,36 +392,36 @@ public class AssessmentService {
         // But also consider number of substances and recent use
         
         if (totalScore == 0) {
-            riskLevel = "THẤP";
-            riskDescription = "Bạn không có lịch sử sử dụng các chất gây nghiện. Đây là kết quả tích cực.";
-            recommendations.add("Tiếp tục duy trì lối sống không sử dụng chất gây nghiện");
-            recommendations.add("Tham gia các hoạt động tuyên truyền phòng chống tệ nạn xã hội");
-            recommendations.add("Chia sẻ kiến thức về tác hại của chất gây nghiện với người thân");
+            riskLevel = "LOW";
+            riskDescription = "You have no history of using addictive substances. This is a positive result.";
+            recommendations.add("Continue maintaining a lifestyle without using addictive substances");
+            recommendations.add("Participate in activities to prevent social vices");
+            recommendations.add("Share knowledge about the harms of addictive substances with family");
         } else if (totalScore <= 3 && recentUse == 0) {
-            riskLevel = "THẤP";
-            riskDescription = "Bạn có lịch sử sử dụng nhưng không sử dụng trong 3 tháng gần đây. Nguy cơ hiện tại thấp.";
-            recommendations.add("Tiếp tục duy trì việc không sử dụng các chất gây nghiện");
-            recommendations.add("Tham gia các hoạt động tích cực để duy trì lối sống lành mạnh");
-            recommendations.add("Cảnh giác với các tình huống có thể dẫn đến tái sử dụng");
+            riskLevel = "LOW";
+            riskDescription = "You have a history of use but haven't used in the past 3 months. Current risk is low.";
+            recommendations.add("Continue maintaining abstinence from addictive substances");
+            recommendations.add("Participate in positive activities to maintain a healthy lifestyle");
+            recommendations.add("Be vigilant about situations that could lead to relapse");
         } else if (totalScore <= 15 || (recentUse > 0 && recentUse <= 2)) {
-            riskLevel = "TRUNG BÌNH";
-            riskDescription = String.format("Nguy cơ trung bình. Bạn đã sử dụng %d loại chất, trong đó %d loại sử dụng gần đây.", 
+            riskLevel = "MEDIUM";
+            riskDescription = String.format("Medium risk. You have used %d types of substances, of which %d types were used recently.", 
                 substancesUsed, recentUse);
-            recommendations.add("CẦN THIẾT: Tham gia tư vấn chuyên sâu về tác hại và cách ngừng sử dụng");
-            recommendations.add("Học các kỹ năng đối phó với căng thẳng và áp lực không qua chất gây nghiện");
-            recommendations.add("Tham gia nhóm hỗ trợ cộng đồng hoặc nhóm tự giúp");
-            recommendations.add("Cân nhắc thông báo cho gia đình để nhận hỗ trợ");
-            recommendations.add("Tránh xa môi trường và những người có thể khuyến khích sử dụng");
+            recommendations.add("NECESSARY: Participate in intensive counseling about harms and how to stop using");
+            recommendations.add("Learn coping skills for stress and pressure without using addictive substances");
+            recommendations.add("Join community support groups or self-help groups");
+            recommendations.add("Consider notifying family to receive support");
+            recommendations.add("Stay away from environments and people who might encourage use");
         } else {
-            riskLevel = "CAO";
-            riskDescription = String.format("Nguy cơ rất cao. Bạn đang sử dụng nhiều loại chất (%d loại) và có %d loại sử dụng gần đây.", 
+            riskLevel = "HIGH";
+            riskDescription = String.format("Very high risk. You are using many types of substances (%d types) and have %d types used recently.", 
                 substancesUsed, recentUse);
-            recommendations.add("KHẨN CẤP: Liên hệ ngay với chuyên gia điều trị nghiện chất");
-            recommendations.add("Cần tham gia chương trình điều trị nội trú hoặc ngoại trú");
-            recommendations.add("Thông báo cho gia đình và người thân để nhận hỗ trợ tối đa");
-            recommendations.add("Theo dõi y tế định kỳ để kiểm tra sức khỏe");
-            recommendations.add("Tham gia chương trình phục hồi dài hạn");
-            recommendations.add("Hotline khẩn cấp: 115 hoặc 1900 1234");
+            recommendations.add("URGENT: Contact substance addiction treatment specialist immediately");
+            recommendations.add("Need to participate in inpatient or outpatient treatment programs");
+            recommendations.add("Notify family and relatives to receive maximum support");
+            recommendations.add("Regular medical monitoring to check health");
+            recommendations.add("Participate in long-term recovery programs");
+            recommendations.add("Emergency hotline: 115 or 1900 1234");
         }
         
         return new ScoreResult(totalScore, riskLevel, riskDescription, recommendations);
@@ -428,28 +458,28 @@ public class AssessmentService {
         List<String> recommendations = new ArrayList<>();
         
         if (totalScore <= 7) {
-            riskLevel = "THẤP";
-            riskDescription = "Sử dụng rượu ở mức độ thấp hoặc không có nguy cơ.";
-            recommendations.add("Duy trì mức sử dụng hiện tại hoặc cân nhắc giảm bớt");
-            recommendations.add("Tìm hiểu về tác hại của rượu đối với sức khỏe");
+            riskLevel = "LOW";
+            riskDescription = "Low level alcohol use or no risk.";
+            recommendations.add("Maintain current usage level or consider reducing");
+            recommendations.add("Learn about the harms of alcohol to health");
         } else if (totalScore <= 15) {
-            riskLevel = "TRUNG BÌNH";
-            riskDescription = "Sử dụng rượu có nguy cơ, cần can thiệp ngắn hạn.";
-            recommendations.add("Cần giảm đáng kể lượng rượu sử dụng");
-            recommendations.add("Tham gia tư vấn về tác hại của rượu");
-            recommendations.add("Học các kỹ năng thay thế cho việc uống rượu");
+            riskLevel = "MEDIUM";
+            riskDescription = "Risky alcohol use, short-term intervention needed.";
+            recommendations.add("Need to significantly reduce alcohol consumption");
+            recommendations.add("Participate in counseling about alcohol harms");
+            recommendations.add("Learn alternative skills to drinking");
         } else if (totalScore <= 19) {
-            riskLevel = "CAO";
-            riskDescription = "Sử dụng rượu có hại, cần can thiệp chuyên môn.";
-            recommendations.add("Cần can thiệp y tế và tư vấn chuyên sâu");
-            recommendations.add("Cân nhắc tham gia chương trình cai rượu");
-            recommendations.add("Theo dõi y tế định kỳ");
+            riskLevel = "HIGH";
+            riskDescription = "Harmful alcohol use, professional intervention needed.";
+            recommendations.add("Need medical intervention and intensive counseling");
+            recommendations.add("Consider participating in alcohol cessation programs");
+            recommendations.add("Regular medical monitoring");
         } else {
-            riskLevel = "RẤT CAO";
-            riskDescription = "Có dấu hiệu nghiện rượu, cần điều trị ngay lập tức.";
-            recommendations.add("CẦN THIẾT: Điều trị nghiện rượu chuyên môn ngay");
-            recommendations.add("Tham gia chương trình cai rượu nội trú");
-            recommendations.add("Hỗ trợ y tế và tâm lý toàn diện");
+            riskLevel = "VERY HIGH";
+            riskDescription = "Signs of alcohol addiction, immediate treatment required.";
+            recommendations.add("NECESSARY: Professional alcohol addiction treatment immediately");
+            recommendations.add("Participate in inpatient alcohol cessation programs");
+            recommendations.add("Comprehensive medical and psychological support");
         }
         
         return new ScoreResult(totalScore, riskLevel, riskDescription, recommendations);
@@ -485,26 +515,29 @@ public class AssessmentService {
         String riskDescription;
         List<String> recommendations = new ArrayList<>();
         
-        if (totalScore <= 2) {
-            riskLevel = "THẤP";
-            riskDescription = "Nguy cơ lạm dụng chất gây nghiện thấp.";
-            recommendations.add("Duy trì lối sống lành mạnh");
-            recommendations.add("Tiếp tục tránh xa các chất gây nghiện");
+        if (totalScore <= 1) {
+            riskLevel = "LOW";
+            riskDescription = "Low risk of drug abuse.";
+            recommendations.add("Continue monitoring and maintain healthy lifestyle");
+            recommendations.add("Learn about drug abuse prevention");
+        } else if (totalScore <= 3) {
+            riskLevel = "MEDIUM";
+            riskDescription = "Moderate risk of drug abuse.";
+            recommendations.add("Consider professional assessment");
+            recommendations.add("Participate in drug abuse prevention programs");
+            recommendations.add("Learn coping skills");
         } else if (totalScore <= 5) {
-            riskLevel = "TRUNG BÌNH";
-            riskDescription = "Nguy cơ lạm dụng chất gây nghiện trung bình.";
-            recommendations.add("Cần tư vấn và đánh giá thêm");
-            recommendations.add("Học kỹ năng phòng ngừa và đối phó");
-        } else if (totalScore <= 8) {
-            riskLevel = "CAO";
-            riskDescription = "Nguy cơ lạm dụng chất gây nghiện cao.";
-            recommendations.add("Cần can thiệp chuyên môn ngay");
-            recommendations.add("Tham gia chương trình điều trị");
+            riskLevel = "HIGH";
+            riskDescription = "High risk of drug abuse.";
+            recommendations.add("Immediate professional intervention required");
+            recommendations.add("Participate in intensive treatment programs");
+            recommendations.add("Regular medical monitoring");
         } else {
-            riskLevel = "RẤT CAO";
-            riskDescription = "Nguy cơ lạm dụng chất gây nghiện rất cao.";
-            recommendations.add("CẦN THIẾT: Điều trị chuyên môn khẩn cấp");
-            recommendations.add("Chương trình điều trị toàn diện");
+            riskLevel = "VERY HIGH";
+            riskDescription = "Very high risk of drug abuse.";
+            recommendations.add("URGENT: Immediate professional treatment required");
+            recommendations.add("Inpatient treatment program recommended");
+            recommendations.add("Comprehensive medical and psychological support");
         }
         
         return new ScoreResult(totalScore, riskLevel, riskDescription, recommendations);
@@ -515,8 +548,8 @@ public class AssessmentService {
                 .mapToInt(answer -> answer.getAnswerValue() != null ? answer.getAnswerValue() : 0)
                 .sum();
         
-        return new ScoreResult(totalScore, "TỔNG QUÁT", "Đánh giá tổng quát về tình trạng sức khỏe tâm lý", 
-                List.of("Tham khảo ý kiến chuyên gia để có lời khuyên cụ thể"));
+        return new ScoreResult(totalScore, "TOTAL", "General assessment of mental health status", 
+                List.of("Consult a specialist for specific advice"));
     }
 
     // ===== RESULT RETRIEVAL =====
@@ -556,7 +589,7 @@ public class AssessmentService {
         }
         
         String riskDescription = scoreResult != null ? scoreResult.getRiskDescription() : 
-                                "Mô tả chi tiết về mức độ nguy cơ";
+                                "Detailed description of risk level";
         
         return new AssessmentResultDTO(
                 result.getId(),
@@ -640,7 +673,7 @@ public class AssessmentService {
                 .anyMatch(appointment -> appointment.getClientId().equals(clientId));
                 
         if (!hasAppointments) {
-            throw new RuntimeException("Bạn không có quyền xem kết quả đánh giá của khách hàng này");
+            throw new RuntimeException("You do not have permission to view this client's assessment results");
         }
         
         // Get all assessment results for this client
@@ -658,7 +691,7 @@ public class AssessmentService {
                 .anyMatch(appointment -> appointment.getClientId().equals(clientId));
                 
         if (!hasAppointments) {
-            throw new RuntimeException("Bạn không có quyền xem kết quả đánh giá của khách hàng này");
+            throw new RuntimeException("You do not have permission to view this client's assessment results");
         }
         
         // Get latest assessment result

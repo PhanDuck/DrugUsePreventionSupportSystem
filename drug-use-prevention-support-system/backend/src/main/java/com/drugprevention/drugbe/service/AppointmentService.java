@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.DayOfWeek;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,19 +32,45 @@ public class AppointmentService {
     // ===== CREATE APPOINTMENT =====
     
     public AppointmentDTO createAppointment(CreateAppointmentRequest request) {
+        // Validate request
+        if (request == null) {
+            throw new RuntimeException("Request cannot be null");
+        }
+        
+        if (request.getClientId() == null) {
+            throw new RuntimeException("Client ID cannot be null");
+        }
+        
+        if (request.getConsultantId() == null) {
+            throw new RuntimeException("Consultant ID cannot be null");
+        }
+        
+        if (request.getAppointmentDate() == null) {
+            throw new RuntimeException("Appointment date cannot be null");
+        }
+        
+        if (request.getDurationMinutes() == null || request.getDurationMinutes() <= 0) {
+            throw new RuntimeException("Duration must be greater than 0");
+        }
+        
         // Validate appointment date/time
         validateAppointmentDateTime(request.getAppointmentDate());
         
         // Validate client and consultant exist
         User client = userRepository.findById(request.getClientId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new RuntimeException("Client not found"));
         
         User consultant = userRepository.findById(request.getConsultantId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+                .orElseThrow(() -> new RuntimeException("Consultant not found"));
 
         // Check if consultant has CONSULTANT role
-        if (!"CONSULTANT".equals(consultant.getRole().getName())) {
-            throw new RuntimeException("Người được chọn không phải là tư vấn viên");
+        if (consultant.getRole() == null || !"CONSULTANT".equals(consultant.getRole().getName())) {
+            throw new RuntimeException("Selected person is not a consultant");
+        }
+        
+        // Check if client and consultant are different
+        if (request.getClientId().equals(request.getConsultantId())) {
+            throw new RuntimeException("Client and consultant cannot be the same person");
         }
 
         // Check for scheduling conflicts
@@ -52,7 +79,7 @@ public class AppointmentService {
                 request.getConsultantId(), request.getAppointmentDate(), endTime);
         
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Tư vấn viên đã có lịch hẹn trong thời gian này");
+            throw new RuntimeException("Consultant already has an appointment during this time");
         }
 
         // Create new appointment
@@ -61,10 +88,10 @@ public class AppointmentService {
         appointment.setConsultantId(request.getConsultantId());
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setDurationMinutes(request.getDurationMinutes());
-        appointment.setAppointmentType(request.getAppointmentType());
+        appointment.setAppointmentType(request.getAppointmentType() != null ? request.getAppointmentType() : "ONLINE");
         appointment.setClientNotes(request.getClientNotes());
-        appointment.setFee(request.getFee());
-        appointment.setPaymentMethod(request.getPaymentMethod());
+        appointment.setFee(request.getFee() != null ? request.getFee() : BigDecimal.valueOf(100.0));
+        appointment.setPaymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod() : "VNPAY");
         appointment.setStatus("PENDING");
 
         appointment = appointmentRepository.save(appointment);
@@ -76,30 +103,30 @@ public class AppointmentService {
     private void validateAppointmentDateTime(LocalDateTime appointmentDate) {
         // Check if date is in the past
         if (appointmentDate.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Không thể đặt lịch trong quá khứ");
+            throw new RuntimeException("Cannot schedule appointments in the past");
         }
         
         // Check if date is too far in the future (max 30 days)
         if (appointmentDate.isAfter(LocalDateTime.now().plusDays(30))) {
-            throw new RuntimeException("Chỉ có thể đặt lịch trong vòng 30 ngày tới");
+            throw new RuntimeException("Can only schedule appointments within 30 days");
         }
         
         // Check if it's weekend
         DayOfWeek dayOfWeek = appointmentDate.getDayOfWeek();
         if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-            throw new RuntimeException("Không thể đặt lịch vào cuối tuần");
+            throw new RuntimeException("Cannot schedule appointments on weekends");
         }
         
         // Check working hours (8 AM - 6 PM)
         int hour = appointmentDate.getHour();
         if (hour < 8 || hour >= 18) {
-            throw new RuntimeException("Giờ làm việc từ 8:00 sáng đến 6:00 chiều");
+            throw new RuntimeException("Working hours are from 8:00 AM to 6:00 PM");
         }
         
         // Check if time is at 15-minute intervals
         int minute = appointmentDate.getMinute();
         if (minute % 15 != 0) {
-            throw new RuntimeException("Thời gian phải là bội số của 15 phút (00, 15, 30, 45)");
+            throw new RuntimeException("Time must be in 15-minute intervals (00, 15, 30, 45)");
         }
     }
 
@@ -135,7 +162,7 @@ public class AppointmentService {
 
     public AppointmentDTO getAppointmentById(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
         return convertToDTO(appointment);
     }
 
@@ -143,14 +170,14 @@ public class AppointmentService {
     
     public AppointmentDTO confirmAppointment(Long appointmentId, Long consultantId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if (!appointment.getConsultantId().equals(consultantId)) {
-            throw new RuntimeException("Bạn không có quyền xác nhận lịch hẹn này");
+            throw new RuntimeException("You do not have permission to confirm this appointment");
         }
         
         if (!"PENDING".equals(appointment.getStatus())) {
-            throw new RuntimeException("Chỉ có thể xác nhận lịch hẹn đang chờ");
+            throw new RuntimeException("Can only confirm pending appointments");
         }
 
         appointment.setStatus("CONFIRMED");
@@ -161,15 +188,15 @@ public class AppointmentService {
 
     public AppointmentDTO cancelAppointment(Long appointmentId, Long userId, String reason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         // Check if user has permission to cancel
         if (!appointment.getClientId().equals(userId) && !appointment.getConsultantId().equals(userId)) {
-            throw new RuntimeException("Bạn không có quyền hủy lịch hẹn này");
+            throw new RuntimeException("You do not have permission to cancel this appointment");
         }
 
         if ("CANCELLED".equals(appointment.getStatus()) || "COMPLETED".equals(appointment.getStatus())) {
-            throw new RuntimeException("Không thể hủy lịch hẹn này");
+            throw new RuntimeException("Cannot cancel this appointment");
         }
 
         appointment.cancel(userId, reason);
@@ -180,14 +207,14 @@ public class AppointmentService {
 
     public AppointmentDTO completeAppointment(Long appointmentId, Long consultantId, String notes) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if (!appointment.getConsultantId().equals(consultantId)) {
-            throw new RuntimeException("Bạn không có quyền hoàn thành lịch hẹn này");
+            throw new RuntimeException("You do not have permission to complete this appointment");
         }
 
         if (!"CONFIRMED".equals(appointment.getStatus())) {
-            throw new RuntimeException("Chỉ có thể hoàn thành lịch hẹn đã xác nhận");
+            throw new RuntimeException("Can only complete confirmed appointments");
         }
 
         appointment.setStatus("COMPLETED");
@@ -199,10 +226,10 @@ public class AppointmentService {
 
     public AppointmentDTO addMeetingLink(Long appointmentId, Long consultantId, String meetingLink) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if (!appointment.getConsultantId().equals(consultantId)) {
-            throw new RuntimeException("Bạn không có quyền thêm link meeting");
+            throw new RuntimeException("You do not have permission to add meeting link");
         }
 
         appointment.setMeetingLink(meetingLink);
@@ -261,17 +288,29 @@ public class AppointmentService {
         Optional<User> client = userRepository.findById(appointment.getClientId());
         if (client.isPresent()) {
             User clientUser = client.get();
-            dto.setClientName(clientUser.getFirstName() + " " + clientUser.getLastName());
+            String firstName = clientUser.getFirstName() != null ? clientUser.getFirstName() : "";
+            String lastName = clientUser.getLastName() != null ? clientUser.getLastName() : "";
+            dto.setClientName(firstName + " " + lastName);
             dto.setClientEmail(clientUser.getEmail());
             dto.setClientPhone(clientUser.getPhone());
+        } else {
+            dto.setClientName("Unknown Client");
+            dto.setClientEmail("");
+            dto.setClientPhone("");
         }
 
         Optional<User> consultant = userRepository.findById(appointment.getConsultantId());
         if (consultant.isPresent()) {
             User consultantUser = consultant.get();
-            dto.setConsultantName(consultantUser.getFirstName() + " " + consultantUser.getLastName());
+            String firstName = consultantUser.getFirstName() != null ? consultantUser.getFirstName() : "";
+            String lastName = consultantUser.getLastName() != null ? consultantUser.getLastName() : "";
+            dto.setConsultantName(firstName + " " + lastName);
             dto.setConsultantEmail(consultantUser.getEmail());
             dto.setConsultantExpertise(consultantUser.getExpertise());
+        } else {
+            dto.setConsultantName("Unknown Consultant");
+            dto.setConsultantEmail("");
+            dto.setConsultantExpertise("");
         }
 
         return dto;
@@ -292,16 +331,16 @@ public class AppointmentService {
     public List<String> getAvailableTimeSlots(Long consultantId, LocalDateTime date) {
         // Validate consultant exists
         User consultant = userRepository.findById(consultantId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+                .orElseThrow(() -> new RuntimeException("Consultant not found"));
                 
         if (!"CONSULTANT".equals(consultant.getRole().getName())) {
-            throw new RuntimeException("Người được chọn không phải là tư vấn viên");
+            throw new RuntimeException("Selected person is not a consultant");
         }
         
         // Validate date
         LocalDateTime startOfDay = date.toLocalDate().atStartOfDay();
         if (startOfDay.isBefore(LocalDateTime.now().toLocalDate().atStartOfDay())) {
-            throw new RuntimeException("Không thể xem lịch trong quá khứ");
+            throw new RuntimeException("Cannot view appointments in the past");
         }
         
         // Check if it's weekend
@@ -359,11 +398,11 @@ public class AppointmentService {
     
     public AppointmentDTO rescheduleAppointment(Long appointmentId, RescheduleRequest request) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         // Check if appointment can be rescheduled
         if ("CANCELLED".equals(appointment.getStatus()) || "COMPLETED".equals(appointment.getStatus())) {
-            throw new RuntimeException("Không thể đổi lịch hẹn đã hủy hoặc hoàn thành");
+            throw new RuntimeException("Cannot reschedule appointments that have been cancelled or completed");
         }
 
         // Validate new appointment date/time
@@ -380,7 +419,7 @@ public class AppointmentService {
                 .collect(Collectors.toList());
         
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Tư vấn viên đã có lịch hẹn trong thời gian này");
+            throw new RuntimeException("Consultant already has an appointment during this time");
         }
 
         // Update appointment

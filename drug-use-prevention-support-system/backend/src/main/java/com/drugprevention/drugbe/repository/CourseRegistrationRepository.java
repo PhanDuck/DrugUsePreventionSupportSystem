@@ -13,48 +13,51 @@ import java.util.Optional;
 @Repository
 public interface CourseRegistrationRepository extends JpaRepository<CourseRegistration, Long> {
     
-    // Tìm registrations theo user ID
+    // Find registrations by user ID
     List<CourseRegistration> findByUserId(Long userId);
     
-    // Tìm registrations theo course ID
+    // Find registrations by course ID
     List<CourseRegistration> findByCourseId(Long courseId);
     
-    // Tìm registration theo user và course
+    // Find registration by user and course
     Optional<CourseRegistration> findByUserIdAndCourseId(Long userId, Long courseId);
     
-    // Tìm registrations theo status
+    // Find registrations by status
     List<CourseRegistration> findByStatus(String status);
     
-    // Tìm active registrations
+    // Find active registrations
     List<CourseRegistration> findByIsActiveTrue();
     
-    // Tìm registrations theo user và status
+    // Find registrations by user and status
     List<CourseRegistration> findByUserIdAndStatus(Long userId, String status);
     
-    // Tìm registrations theo course và status
+    // Find registrations by course and status
     List<CourseRegistration> findByCourseIdAndStatus(Long courseId, String status);
     
-    // Tìm registrations theo thời gian đăng ký
+    // Find registrations by registration date
     List<CourseRegistration> findByRegistrationDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    // Tìm completed registrations
+    // Find completed registrations
     List<CourseRegistration> findByStatusAndCompletionDateIsNotNull(String status);
     
-    // Đếm registrations theo course
+    // Count registrations by course
     @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.courseId = :courseId")
     Long countByCourseId(@Param("courseId") Long courseId);
     
-    // Đếm registrations theo user
+    // Count registrations by user
     @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.userId = :userId")
     Long countByUserId(@Param("userId") Long userId);
     
-    // Đếm active registrations theo course
+    // Count active registrations by course
     @Query("SELECT COUNT(cr) FROM CourseRegistration cr WHERE cr.courseId = :courseId AND cr.status = 'registered' AND cr.isActive = true")
     Long countActiveByCourseId(@Param("courseId") Long courseId);
     
-    // Lấy registrations mới nhất
+    // Get latest registrations
     List<CourseRegistration> findTop10ByOrderByRegistrationDateDesc();
     
     // Check if user is already registered for course
     boolean existsByUserIdAndCourseIdAndIsActiveTrue(Long userId, Long courseId);
+    
+    // Check if user is registered for course (any status)
+    boolean existsByUserIdAndCourseId(Long userId, Long courseId);
 } 

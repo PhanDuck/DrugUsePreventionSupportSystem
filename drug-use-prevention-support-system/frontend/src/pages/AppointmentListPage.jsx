@@ -105,7 +105,7 @@ const AppointmentListPage = () => {
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
-      message.error('Không thể tải danh sách lịch hẹn');
+      message.error('Unable to load appointment list');
     } finally {
       setLoading(false);
     }
@@ -123,17 +123,17 @@ const AppointmentListPage = () => {
   const handleCancelAppointment = async (appointmentId) => {
     try {
       const currentUser = authService.getCurrentUser();
-      const response = await appointmentService.cancelAppointment(appointmentId, currentUser.id, 'Hủy bởi khách hàng');
+      const response = await appointmentService.cancelAppointment(appointmentId, currentUser.id, 'Cancelled by client');
       
       if (response.success) {
-        message.success('Đã hủy lịch hẹn thành công');
+        message.success('Appointment cancelled successfully');
         loadAppointments();
       } else {
         message.error(response.message);
       }
     } catch (error) {
       console.error('Error canceling appointment:', error);
-      message.error('Không thể hủy lịch hẹn');
+      message.error('Unable to cancel appointment');
     }
   };
 
@@ -141,17 +141,17 @@ const AppointmentListPage = () => {
     try {
       const currentUser = authService.getCurrentUser();
       const promises = selectedAppointments.map(id => 
-        appointmentService.cancelAppointment(id, currentUser.id, 'Hủy hàng loạt')
+        appointmentService.cancelAppointment(id, currentUser.id, 'Bulk cancellation')
       );
       
       await Promise.all(promises);
-      message.success(`Đã hủy ${selectedAppointments.length} lịch hẹn`);
+      message.success(`Cancelled ${selectedAppointments.length} appointments`);
       setSelectedAppointments([]);
       setShowBulkActions(false);
       loadAppointments();
     } catch (error) {
       console.error('Error bulk canceling appointments:', error);
-      message.error('Không thể hủy lịch hẹn hàng loạt');
+      message.error('Unable to bulk cancel appointments');
     }
   };
 
@@ -168,17 +168,17 @@ const AppointmentListPage = () => {
 
   const getStatusText = (status) => {
     const texts = {
-      'PENDING': 'Chờ xác nhận',
-      'CONFIRMED': 'Đã xác nhận',
-      'COMPLETED': 'Hoàn thành',
-      'CANCELLED': 'Đã hủy',
-      'RESCHEDULED': 'Đã đổi lịch'
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'COMPLETED': 'Completed',
+      'CANCELLED': 'Cancelled',
+      'RESCHEDULED': 'Rescheduled'
     };
     return texts[status] || status;
   };
 
   const getAppointmentTypeText = (type) => {
-    return type === 'ONLINE' ? 'Online' : 'Trực tiếp';
+    return type === 'ONLINE' ? 'Online' : 'In-person';
   };
 
   const columns = [
@@ -190,7 +190,7 @@ const AppointmentListPage = () => {
       render: (id) => <Text code>{id}</Text>
     },
     {
-      title: 'Tư vấn viên',
+      title: 'Consultant',
       dataIndex: 'consultant',
       key: 'consultant',
       render: (consultant) => (
@@ -201,7 +201,7 @@ const AppointmentListPage = () => {
       )
     },
     {
-      title: 'Ngày giờ',
+      title: 'Date & Time',
       dataIndex: 'appointmentDate',
       key: 'appointmentDate',
       render: (date) => (
@@ -218,7 +218,7 @@ const AppointmentListPage = () => {
       )
     },
     {
-      title: 'Hình thức',
+      title: 'Type',
       dataIndex: 'appointmentType',
       key: 'appointmentType',
       render: (type) => (
@@ -228,7 +228,7 @@ const AppointmentListPage = () => {
       )
     },
     {
-      title: 'Trạng thái',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
@@ -244,7 +244,7 @@ const AppointmentListPage = () => {
       )
     },
     {
-      title: 'Thanh toán',
+      title: 'Payment',
       dataIndex: 'paymentMethod',
       key: 'paymentMethod',
       render: (method) => (
@@ -252,11 +252,11 @@ const AppointmentListPage = () => {
       )
     },
     {
-      title: 'Hành động',
+      title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Tooltip title="Xem chi tiết">
+          <Tooltip title="View details">
             <Button 
               type="primary" 
               size="small" 
@@ -267,7 +267,7 @@ const AppointmentListPage = () => {
           
           {record.status === 'PENDING' && (
             <>
-              <Tooltip title="Đổi lịch">
+              <Tooltip title="Reschedule">
                 <Button 
                   size="small" 
                   icon={<EditOutlined />}
@@ -275,12 +275,12 @@ const AppointmentListPage = () => {
                 />
               </Tooltip>
               <Popconfirm
-                title="Bạn có chắc chắn muốn hủy lịch hẹn này?"
+                title="Are you sure you want to cancel this appointment?"
                 onConfirm={() => handleCancelAppointment(record.id)}
-                okText="Hủy"
-                cancelText="Không"
+                okText="Cancel"
+                cancelText="No"
               >
-                <Tooltip title="Hủy lịch">
+                <Tooltip title="Cancel appointment">
                   <Button 
                     danger 
                     size="small" 
@@ -297,7 +297,7 @@ const AppointmentListPage = () => {
               size="small"
               onClick={() => navigate(`/appointments/${record.id}`)}
             >
-              Tham gia
+              Join
             </Button>
           )}
           
@@ -306,7 +306,7 @@ const AppointmentListPage = () => {
               size="small"
               onClick={() => navigate(`/appointments/${record.id}?action=review`)}
             >
-              Đánh giá
+              Review
             </Button>
           )}
         </Space>
@@ -339,14 +339,14 @@ const AppointmentListPage = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-      <Title level={2}>📅 Quản Lý Lịch Hẹn</Title>
+      <Title level={2}>📅 Appointment Management</Title>
 
       {/* Statistics */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={12} sm={6}>
           <Card>
             <Statistic
-              title="Tổng lịch hẹn"
+              title="Total Appointments"
               value={stats.total}
               valueStyle={{ color: '#1890ff' }}
             />
@@ -355,7 +355,7 @@ const AppointmentListPage = () => {
         <Col xs={12} sm={6}>
           <Card>
             <Statistic
-              title="Chờ xác nhận"
+              title="Pending"
               value={stats.pending}
               valueStyle={{ color: '#faad14' }}
             />
@@ -364,7 +364,7 @@ const AppointmentListPage = () => {
         <Col xs={12} sm={6}>
           <Card>
             <Statistic
-              title="Đã xác nhận"
+              title="Confirmed"
               value={stats.confirmed}
               valueStyle={{ color: '#52c41a' }}
             />
@@ -373,7 +373,7 @@ const AppointmentListPage = () => {
         <Col xs={12} sm={6}>
           <Card>
             <Statistic
-              title="Hoàn thành"
+              title="Completed"
               value={stats.completed}
               valueStyle={{ color: '#722ed1' }}
             />
@@ -382,11 +382,11 @@ const AppointmentListPage = () => {
       </Row>
 
       {/* Filters */}
-      <Card title="🔍 Bộ Lọc" style={{ marginBottom: '24px' }}>
+      <Card title="🔍 Filters" style={{ marginBottom: '24px' }}>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={6}>
             <Input
-              placeholder="Tìm kiếm..."
+              placeholder="Search..."
               prefix={<SearchOutlined />}
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -394,22 +394,22 @@ const AppointmentListPage = () => {
           </Col>
           <Col xs={24} sm={6}>
             <Select
-              placeholder="Trạng thái"
+              placeholder="Status"
               style={{ width: '100%' }}
               value={filters.status}
               onChange={(value) => handleFilterChange('status', value)}
             >
-              <Option value="all">Tất cả</Option>
-              <Option value="PENDING">Chờ xác nhận</Option>
-              <Option value="CONFIRMED">Đã xác nhận</Option>
-              <Option value="COMPLETED">Hoàn thành</Option>
-              <Option value="CANCELLED">Đã hủy</Option>
+              <Option value="all">All</Option>
+              <Option value="PENDING">Pending</Option>
+              <Option value="CONFIRMED">Confirmed</Option>
+              <Option value="COMPLETED">Completed</Option>
+              <Option value="CANCELLED">Cancelled</Option>
             </Select>
           </Col>
           <Col xs={24} sm={6}>
             <RangePicker
               style={{ width: '100%' }}
-              placeholder={['Từ ngày', 'Đến ngày']}
+              placeholder={['From date', 'To date']}
               value={filters.dateRange}
               onChange={(dates) => handleFilterChange('dateRange', dates)}
             />
@@ -420,14 +420,14 @@ const AppointmentListPage = () => {
                 icon={<ReloadOutlined />}
                 onClick={loadAppointments}
               >
-                Làm mới
+                Refresh
               </Button>
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />}
                 onClick={() => navigate('/appointments')}
               >
-                Đặt lịch mới
+                New Appointment
               </Button>
             </Space>
           </Col>
@@ -438,19 +438,19 @@ const AppointmentListPage = () => {
       {showBulkActions && (
         <Card style={{ marginBottom: '16px', background: '#f0f8ff' }}>
           <Space>
-            <Text strong>Đã chọn {selectedAppointments.length} lịch hẹn</Text>
+            <Text strong>Selected {selectedAppointments.length} appointments</Text>
             <Popconfirm
-              title={`Bạn có chắc chắn muốn hủy ${selectedAppointments.length} lịch hẹn?`}
+              title={`Are you sure you want to cancel ${selectedAppointments.length} appointments?`}
               onConfirm={handleBulkCancel}
-              okText="Hủy"
-              cancelText="Không"
+              okText="Cancel"
+              cancelText="No"
             >
               <Button danger icon={<DeleteOutlined />}>
-                Hủy hàng loạt
+                Bulk Cancel
               </Button>
             </Popconfirm>
             <Button onClick={() => setSelectedAppointments([])}>
-              Bỏ chọn
+              Clear Selection
             </Button>
           </Space>
         </Card>
@@ -468,7 +468,7 @@ const AppointmentListPage = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
-              `${range[0]}-${range[1]} của ${total} lịch hẹn`
+              `${range[0]}-${range[1]} of ${total} appointments`
           }}
           onChange={handleTableChange}
           rowSelection={rowSelection}

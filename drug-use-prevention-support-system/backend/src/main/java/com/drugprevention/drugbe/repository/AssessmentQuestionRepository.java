@@ -7,34 +7,35 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQuestion, Long> {
     
-    // Tìm questions theo assessment ID
+    // Find questions by assessment ID
     List<AssessmentQuestion> findByAssessmentId(Long assessmentId);
     
-    // Tìm questions theo assessment ID và sắp xếp theo order
+    // Find questions by assessment ID and order by order index
     List<AssessmentQuestion> findByAssessmentIdOrderByOrderIndex(Long assessmentId);
     
-    // Tìm questions active
+    // Find active questions
     List<AssessmentQuestion> findByIsActiveTrue();
     
-    // Tìm questions theo type
+    // Find questions by type
     List<AssessmentQuestion> findByQuestionType(String questionType);
     
-    // Tìm questions required
+    // Find required questions
     List<AssessmentQuestion> findByIsRequiredTrue();
     
-    // Tìm questions theo keyword
-    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.question LIKE %:keyword%")
-    List<AssessmentQuestion> findByQuestionContaining(@Param("keyword") String keyword);
+    // Find questions by keyword
+    @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.question LIKE %:keyword% OR aq.description LIKE %:keyword%")
+    List<AssessmentQuestion> findByKeyword(@Param("keyword") String keyword);
     
-    // Đếm questions theo assessment
+    // Count questions by assessment
     @Query("SELECT COUNT(aq) FROM AssessmentQuestion aq WHERE aq.assessmentId = :assessmentId")
     Long countByAssessmentId(@Param("assessmentId") Long assessmentId);
     
-    // Lấy question tiếp theo trong assessment
+    // Get next question in assessment
     @Query("SELECT aq FROM AssessmentQuestion aq WHERE aq.assessmentId = :assessmentId AND aq.orderIndex > :currentOrder ORDER BY aq.orderIndex ASC LIMIT 1")
-    AssessmentQuestion findNextQuestion(@Param("assessmentId") Long assessmentId, @Param("currentOrder") Integer currentOrder);
+    Optional<AssessmentQuestion> findNextQuestion(@Param("assessmentId") Long assessmentId, @Param("currentOrder") Integer currentOrder);
 } 

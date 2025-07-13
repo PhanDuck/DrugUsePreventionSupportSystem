@@ -12,23 +12,23 @@ import java.util.Optional;
 @Repository
 public interface AssessmentTypeRepository extends JpaRepository<AssessmentType, Long> {
     
-    // Tìm assessment type theo name
+    // Find assessment type by name
     Optional<AssessmentType> findByName(String name);
     
-    // Kiểm tra tồn tại theo name
+    // Check if assessment type exists by name
     boolean existsByName(String name);
     
-    // Tìm assessment types active
+    // Find assessment types by active status
     List<AssessmentType> findByIsActiveTrue();
     
-    // Tìm theo target age group
+    // Find by target age group
     List<AssessmentType> findByTargetAgeGroup(String targetAgeGroup);
     
-    // Tìm theo keyword trong name hoặc description
+    // Find by keyword in name or description
     @Query("SELECT at FROM AssessmentType at WHERE at.name LIKE %:keyword% OR at.description LIKE %:keyword%")
     List<AssessmentType> findByKeyword(@Param("keyword") String keyword);
     
-    // Đếm assessments theo type
-    @Query("SELECT at.name, COUNT(a) FROM AssessmentType at LEFT JOIN Assessment a ON at.id = a.assessmentTypeId GROUP BY at.name")
-    List<Object[]> countAssessmentsByType();
+    // Count assessments by type
+    @Query("SELECT COUNT(a) FROM Assessment a WHERE a.assessmentType.id = :typeId")
+    Long countAssessmentsByType(@Param("typeId") Long typeId);
 } 

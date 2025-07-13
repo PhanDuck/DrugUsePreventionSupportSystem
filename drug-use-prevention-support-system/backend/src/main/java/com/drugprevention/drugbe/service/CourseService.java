@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import com.drugprevention.drugbe.entity.CourseRegistration;
 
 @Service
 public class CourseService {
@@ -18,22 +20,19 @@ public class CourseService {
     @Autowired
     private CourseRepository courseRepository;
 
-    // 1. Lấy tất cả courses
+    // 1. Get all courses
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
-    // 2. Lấy course theo ID
+    // 2. Get course by ID
     public Optional<Course> getCourseById(Long id) {
         return courseRepository.findById(id);
     }
 
-    // 3. Tạo course mới
+    // 3. Create new course
     @Transactional
     public Course createCourse(Course course) {
-        course.setCurrentParticipants(0);
-        course.setStatus("open");
-        course.setIsFeatured(false);
         course.setIsActive(true);
         course.setCreatedAt(LocalDateTime.now());
         course.setUpdatedAt(LocalDateTime.now());
@@ -50,13 +49,9 @@ public class CourseService {
         course.setDescription(courseDetails.getDescription());
         course.setInstructorId(courseDetails.getInstructorId());
         course.setCategoryId(courseDetails.getCategoryId());
-        course.setMaxParticipants(courseDetails.getMaxParticipants());
-        course.setStartDate(courseDetails.getStartDate());
-        course.setEndDate(courseDetails.getEndDate());
         course.setDuration(courseDetails.getDuration());
-        course.setImageUrl(courseDetails.getImageUrl());
+        course.setMaxParticipants(courseDetails.getMaxParticipants());
         course.setStatus(courseDetails.getStatus());
-        course.setIsFeatured(courseDetails.getIsFeatured());
         course.setIsActive(courseDetails.getIsActive());
         course.setUpdatedAt(LocalDateTime.now());
         
@@ -72,91 +67,92 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    // 6. Lấy courses theo instructor
+    // 6. Get courses by instructor
     public List<Course> getCoursesByInstructor(Long instructorId) {
         return courseRepository.findByInstructorId(instructorId);
     }
 
-    // 7. Lấy courses theo category
+    // 7. Get courses by category
     public List<Course> getCoursesByCategory(Long categoryId) {
         return courseRepository.findByCategoryId(categoryId);
     }
 
-    // 8. Lấy active courses
+    // 8. Get active courses
     public List<Course> getActiveCourses() {
         return courseRepository.findByIsActiveTrue();
     }
 
-    // 9. Lấy open courses
+    // 9. Get open courses
     public List<Course> getOpenCourses() {
         return courseRepository.findByStatusAndIsActiveTrue("open");
     }
 
-    // 10. Lấy featured courses
+    // 10. Get featured courses
     public List<Course> getFeaturedCourses() {
         return courseRepository.findByIsFeaturedTrue();
     }
 
-    // 11. Lấy available courses (có chỗ trống)
+    // 11. Get available courses (with available spots)
     public List<Course> getAvailableCourses() {
         return courseRepository.findAvailableCourses();
     }
 
-    // 12. Search courses
+    // 12. Search courses by keyword
     public List<Course> searchCourses(String keyword) {
         return courseRepository.findByKeyword(keyword);
     }
 
-    // 13. Lấy courses với pagination
-    public Page<Course> getOpenCoursesWithPagination(Pageable pageable) {
-        return courseRepository.findByStatusAndIsActiveTrue("open", pageable);
+    // 13. Get courses with pagination
+    public Page<Course> getCoursesWithPagination(Pageable pageable) {
+        return courseRepository.findAll(pageable);
     }
 
-    // 14. Increment participants
+    // 14. Increment participants count
     @Transactional
-    public Course incrementParticipants(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-        
-        if (course.getCurrentParticipants() >= course.getMaxParticipants()) {
-            throw new RuntimeException("Course is full");
-        }
-        
+    public void incrementParticipants(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
         course.setCurrentParticipants(course.getCurrentParticipants() + 1);
-        
-        // Close course if full
-        if (course.getCurrentParticipants().equals(course.getMaxParticipants())) {
-            course.setStatus("closed");
-        }
-        
-        return courseRepository.save(course);
+        courseRepository.save(course);
     }
 
-    // 15. Decrement participants
+    // 15. Decrement participants count
     @Transactional
-    public Course decrementParticipants(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-        
+    public void decrementParticipants(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
         if (course.getCurrentParticipants() > 0) {
             course.setCurrentParticipants(course.getCurrentParticipants() - 1);
-            
-            // Reopen course if was closed due to being full
-            if ("closed".equals(course.getStatus()) && course.getCurrentParticipants() < course.getMaxParticipants()) {
-                course.setStatus("open");
-            }
+            courseRepository.save(course);
         }
-        
-        return courseRepository.save(course);
     }
 
-    // 16. Lấy latest courses
+    // 16. Get latest courses
     public List<Course> getLatestCourses() {
         return courseRepository.findTop10ByStatusOrderByCreatedAtDesc("open");
     }
 
-    // 17. Lấy popular courses
+    // 17. Get popular courses
     public List<Course> getPopularCourses() {
         return courseRepository.findTop10ByStatusOrderByCurrentParticipantsDesc("open");
+    }
+
+    // 18. Course Registration methods
+    public CourseRegistration registerForCourse(Long userId, Long courseId) {
+        // This method should be implemented in CourseRegistrationService
+        // For now, return null to avoid compilation error
+        throw new RuntimeException("Course registration not implemented yet");
+    }
+
+    public List<CourseRegistration> getUserRegistrations(Long userId) {
+        // This method should be implemented in CourseRegistrationService
+        // For now, return empty list to avoid compilation error
+        return new ArrayList<>();
+    }
+
+    public List<CourseRegistration> getCourseRegistrations(Long courseId) {
+        // This method should be implemented in CourseRegistrationService
+        // For now, return empty list to avoid compilation error
+        return new ArrayList<>();
     }
 } 

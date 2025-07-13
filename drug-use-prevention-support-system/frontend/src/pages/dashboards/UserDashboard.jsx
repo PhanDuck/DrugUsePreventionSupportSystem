@@ -47,16 +47,13 @@ const UserDashboard = () => {
   const getRiskLevelInfo = (riskLevel) => {
     switch (riskLevel?.toLowerCase()) {
       case 'low':
-      case 'thấp':
-        return { text: 'Nguy cơ thấp', color: '#52c41a', bgColor: '#f6ffed' };
+        return { text: 'Low Risk', color: '#52c41a', bgColor: '#f6ffed' };
       case 'moderate':
-      case 'trung bình':
-        return { text: 'Nguy cơ trung bình', color: '#fa8c16', bgColor: '#fff7e6' };
+        return { text: 'Moderate Risk', color: '#fa8c16', bgColor: '#fff7e6' };
       case 'high':
-      case 'cao':
-        return { text: 'Nguy cơ cao', color: '#f5222d', bgColor: '#fff2f0' };
+        return { text: 'High Risk', color: '#f5222d', bgColor: '#fff2f0' };
       default:
-        return { text: riskLevel || 'Không xác định', color: '#666', bgColor: '#f5f5f5' };
+        return { text: riskLevel || 'Undetermined', color: '#666', bgColor: '#f5f5f5' };
     }
   };
 
@@ -78,7 +75,7 @@ const UserDashboard = () => {
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }}></div>
-        <p style={{ color: '#666', fontSize: '16px' }}>Đang tải thông tin...</p>
+        <p style={{ color: '#666', fontSize: '16px' }}>Loading information...</p>
       </div>
     );
   }
@@ -107,14 +104,14 @@ const UserDashboard = () => {
           marginBottom: '8px',
           color: '#262626'
         }}>
-          Xin chào, {getUserDisplayName()}!
+          Hello, {getUserDisplayName()}!
         </h1>
         <p style={{ 
           fontSize: '18px', 
           color: '#666',
           marginBottom: '0'
         }}>
-          Chào mừng bạn đến với bảng điều khiển cá nhân
+          Welcome to your personal dashboard
         </p>
       </div>
 
@@ -158,7 +155,7 @@ const UserDashboard = () => {
                 marginBottom: '4px',
                 color: '#262626'
               }}>
-                Đánh giá đã hoàn thành
+                Completed Assessments
               </h3>
               <p style={{ 
                 fontSize: '24px', 
@@ -175,7 +172,7 @@ const UserDashboard = () => {
             color: '#666',
             margin: 0
           }}>
-            Số lượng bài đánh giá bạn đã thực hiện
+            Number of assessments you have completed
           </p>
         </div>
 
@@ -212,7 +209,7 @@ const UserDashboard = () => {
                 marginBottom: '4px',
                 color: '#262626'
               }}>
-                Đánh giá gần nhất
+                Latest Assessment
               </h3>
               {userStats?.latestAssessment ? (
                 <div>
@@ -234,7 +231,7 @@ const UserDashboard = () => {
                   color: '#999',
                   margin: 0
                 }}>
-                  Chưa có đánh giá nào
+                  No assessments yet
                 </p>
               )}
             </div>
@@ -245,8 +242,8 @@ const UserDashboard = () => {
             margin: 0
           }}>
             {userStats?.latestAssessment 
-              ? `Điểm số: ${userStats.latestAssessment.totalScore}`
-              : 'Hãy thực hiện đánh giá đầu tiên'
+              ? `Score: ${userStats.latestAssessment.totalScore}`
+              : 'Take your first assessment'
             }
           </p>
         </div>
@@ -284,14 +281,14 @@ const UserDashboard = () => {
                 marginBottom: '4px',
                 color: '#262626'
               }}>
-                Tiến trình
+                Progress
               </h3>
               <p style={{ 
                 fontSize: '14px', 
                 color: '#666',
                 margin: 0
               }}>
-                Theo dõi sự phát triển của bạn
+                Track your development
               </p>
             </div>
           </div>
@@ -328,7 +325,7 @@ const UserDashboard = () => {
           marginBottom: '20px',
           color: '#262626'
         }}>
-          Hành động nhanh
+          Quick Actions
         </h2>
         <div style={{
           display: 'grid',
@@ -366,7 +363,7 @@ const UserDashboard = () => {
             }}
           >
             <span>📋</span>
-            Thực hiện đánh giá mới
+            Take New Assessment
           </button>
 
           <button
@@ -396,7 +393,7 @@ const UserDashboard = () => {
             }}
           >
             <span>💬</span>
-            Đặt lịch tư vấn
+            Schedule Consultation
           </button>
 
           <button
@@ -426,7 +423,7 @@ const UserDashboard = () => {
             }}
           >
             <span>📚</span>
-            Xem khóa học
+            View Courses
           </button>
         </div>
       </div>
@@ -446,7 +443,7 @@ const UserDashboard = () => {
             marginBottom: '20px',
             color: '#262626'
           }}>
-            Lịch sử đánh giá
+            Assessment History
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {userStats.assessmentHistory.slice(0, 5).map((assessment, index) => {
@@ -471,14 +468,14 @@ const UserDashboard = () => {
                       marginBottom: '4px',
                       color: '#262626'
                     }}>
-                      Đánh giá #{userStats.assessmentHistory.length - index}
+                      Assessment #{userStats.assessmentHistory.length - index}
                     </p>
                     <p style={{ 
                       fontSize: '14px', 
                       color: '#666',
                       margin: 0
                     }}>
-                      Điểm số: {assessment.totalScore}
+                      Score: {assessment.totalScore}
                     </p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -498,7 +495,7 @@ const UserDashboard = () => {
                       color: '#999',
                       margin: '4px 0 0 0'
                     }}>
-                      {new Date(assessment.submittedAt).toLocaleDateString('vi-VN')}
+                      {new Date(assessment.submittedAt).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -513,7 +510,7 @@ const UserDashboard = () => {
                 fontSize: '14px',
                 margin: 0
               }}>
-                Và {userStats.assessmentHistory.length - 5} đánh giá khác...
+                And {userStats.assessmentHistory.length - 5} other assessments...
               </p>
             </div>
           )}
@@ -537,14 +534,14 @@ const UserDashboard = () => {
             marginBottom: '8px',
             color: '#262626'
           }}>
-            Chưa có đánh giá nào
+            No assessments yet
           </h3>
           <p style={{ 
             fontSize: '16px', 
             color: '#666',
             marginBottom: '24px'
           }}>
-            Hãy bắt đầu với đánh giá đầu tiên để theo dõi tiến trình của bạn
+            Start with your first assessment to track your progress
           </p>
           <button
             onClick={() => navigate('/surveys')}
@@ -572,7 +569,7 @@ const UserDashboard = () => {
               e.target.style.boxShadow = 'none';
             }}
           >
-            Bắt đầu đánh giá
+            Start Assessment
           </button>
         </div>
       )}

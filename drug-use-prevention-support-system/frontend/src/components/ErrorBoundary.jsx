@@ -43,14 +43,14 @@ class ErrorBoundary extends React.Component {
         }}>
           <Result
             status="500"
-            title="Đã xảy ra lỗi"
-            subTitle="Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại."
+            title="An error occurred"
+            subTitle="Sorry, something went wrong. Please try again."
             extra={[
               <Button type="primary" key="reload" onClick={this.handleReload}>
-                Tải lại trang
+                Reload page
               </Button>,
               <Button key="home" onClick={this.handleGoHome}>
-                Về trang chủ
+                Go to homepage
               </Button>
             ]}
           />

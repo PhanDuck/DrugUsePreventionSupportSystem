@@ -19,9 +19,14 @@ public class UserService {
     public UserDTO convertToDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setUserID(user.getId());
-        dto.setUserName(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setFullName(user.getFirstName() + " " + user.getLastName());
+        dto.setUserName(user.getUsername() != null ? user.getUsername() : "");
+        dto.setEmail(user.getEmail() != null ? user.getEmail() : "");
+        
+        // Safe null handling for name
+        String firstName = user.getFirstName() != null ? user.getFirstName() : "";
+        String lastName = user.getLastName() != null ? user.getLastName() : "";
+        dto.setFullName(firstName + " " + lastName);
+        
         dto.setPhone(user.getPhone());
         dto.setDateOfBirth(user.getDateOfBirth());
         dto.setGender(user.getGender());

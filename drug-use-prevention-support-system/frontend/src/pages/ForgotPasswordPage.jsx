@@ -15,16 +15,16 @@ export default function ForgotPasswordPage() {
 
   const steps = [
     {
-      title: 'Nhập email',
-      description: 'Nhập email đã đăng ký',
+      title: 'Enter email',
+      description: 'Enter registered email',
     },
     {
-      title: 'Xác thực',
-      description: 'Nhập mã xác thực',
+      title: 'Verify',
+      description: 'Enter verification code',
     },
     {
-      title: 'Đặt lại mật khẩu',
-      description: 'Tạo mật khẩu mới',
+      title: 'Reset password',
+      description: 'Create new password',
     },
   ];
 
@@ -41,14 +41,14 @@ export default function ForgotPasswordPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Không thể gửi mã xác thực');
+        throw new Error('Unable to send verification code');
       }
 
       setEmail(values.email);
       setCurrentStep(1);
-      message.success('Mã xác thực đã được gửi đến email của bạn!');
+      message.success('Verification code has been sent to your email!');
     } catch (error) {
-      message.error(error.message || 'Có lỗi xảy ra. Vui lòng thử lại!');
+      message.error(error.message || 'An error occurred. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -70,14 +70,14 @@ export default function ForgotPasswordPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Mã xác thực không đúng');
+        throw new Error('Invalid verification code');
       }
 
       setVerificationCode(values.code);
       setCurrentStep(2);
-      message.success('Xác thực thành công!');
+      message.success('Verification successful!');
     } catch (error) {
-      message.error(error.message || 'Có lỗi xảy ra. Vui lòng thử lại!');
+      message.error(error.message || 'An error occurred. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -100,13 +100,13 @@ export default function ForgotPasswordPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Không thể đặt lại mật khẩu');
+        throw new Error('Unable to reset password');
       }
 
-      message.success('Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.');
+      message.success('Password reset successful! Please login again.');
       navigate('/login');
     } catch (error) {
-      message.error(error.message || 'Có lỗi xảy ra. Vui lòng thử lại!');
+      message.error(error.message || 'An error occurred. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -114,23 +114,23 @@ export default function ForgotPasswordPage() {
 
   const validatePassword = (_, value) => {
     if (!value) {
-      return Promise.reject('Vui lòng nhập mật khẩu mới!');
+      return Promise.reject('Please enter new password!');
     }
     if (value.length < 6) {
-      return Promise.reject('Mật khẩu phải có ít nhất 6 ký tự!');
+      return Promise.reject('Password must be at least 6 characters!');
     }
     if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-      return Promise.reject('Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số!');
+      return Promise.reject('Password must contain at least 1 uppercase, 1 lowercase and 1 number!');
     }
     return Promise.resolve();
   };
 
   const validateConfirmPassword = (_, value) => {
     if (!value) {
-      return Promise.reject('Vui lòng xác nhận mật khẩu!');
+      return Promise.reject('Please confirm password!');
     }
     if (value !== form.getFieldValue('newPassword')) {
-      return Promise.reject('Mật khẩu xác nhận không khớp!');
+      return Promise.reject('Password confirmation does not match!');
     }
     return Promise.resolve();
   };
@@ -148,13 +148,13 @@ export default function ForgotPasswordPage() {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: 'Vui lòng nhập email!' },
-                { type: 'email', message: 'Email không hợp lệ!' }
+                { required: true, message: 'Please enter email!' },
+                { type: 'email', message: 'Invalid email!' }
               ]}
             >
               <Input
                 prefix={<MailOutlined style={{ color: '#1f7c83' }} />}
-                placeholder="Email đã đăng ký"
+                placeholder="Registered email"
                 type="email"
               />
             </Form.Item>
@@ -171,7 +171,7 @@ export default function ForgotPasswordPage() {
                   borderRadius: '8px'
                 }}
               >
-                Gửi mã xác thực
+                Send verification code
               </Button>
             </Form.Item>
           </Form>
@@ -188,12 +188,12 @@ export default function ForgotPasswordPage() {
             <Form.Item
               name="code"
               rules={[
-                { required: true, message: 'Vui lòng nhập mã xác thực!' },
-                { len: 6, message: 'Mã xác thực phải có 6 ký tự!' }
+                { required: true, message: 'Please enter verification code!' },
+                { len: 6, message: 'Verification code must be 6 characters!' }
               ]}
             >
               <Input
-                placeholder="Nhập mã xác thực 6 ký tự"
+                placeholder="Enter 6-digit verification code"
                 maxLength={6}
               />
             </Form.Item>
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
                   borderRadius: '8px'
                 }}
               >
-                Xác thực
+                Verify
               </Button>
             </Form.Item>
           </Form>
@@ -232,7 +232,7 @@ export default function ForgotPasswordPage() {
             >
               <Input.Password
                 prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
-                placeholder="Mật khẩu mới"
+                placeholder="New password"
                 iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
               />
             </Form.Item>
@@ -245,7 +245,7 @@ export default function ForgotPasswordPage() {
             >
               <Input.Password
                 prefix={<LockOutlined style={{ color: '#1f7c83' }} />}
-                placeholder="Xác nhận mật khẩu mới"
+                placeholder="Confirm new password"
                 iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
               />
             </Form.Item>
@@ -262,7 +262,7 @@ export default function ForgotPasswordPage() {
                   borderRadius: '8px'
                 }}
               >
-                Đặt lại mật khẩu
+                Reset password
               </Button>
             </Form.Item>
           </Form>
@@ -296,10 +296,10 @@ export default function ForgotPasswordPage() {
               <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center' }}>
                   <Title level={3} style={{ color: '#1f7c83', marginBottom: '8px' }}>
-                    Quên mật khẩu
+                    Forgot Password
                   </Title>
                   <Text type="secondary">
-                    Vui lòng làm theo các bước để đặt lại mật khẩu
+                    Please follow the steps to reset your password
                   </Text>
                 </div>
 
@@ -313,13 +313,13 @@ export default function ForgotPasswordPage() {
 
                 <div style={{ textAlign: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
                   <Text type="secondary">
-                    Đã nhớ mật khẩu?{' '}
+                    Remember your password?{' '}
                     <Button
                       type="link"
                       onClick={() => navigate('/login')}
                       style={{ padding: 0, color: '#1f7c83' }}
                     >
-                      Đăng nhập ngay
+                      Login now
                     </Button>
                   </Text>
                 </div>

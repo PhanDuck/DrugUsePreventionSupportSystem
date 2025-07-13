@@ -32,6 +32,9 @@ public class CourseRegistration {
     @Column(name = "completion_date")
     private LocalDateTime completionDate;
 
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
     private String notes;
 
     @Column(name = "is_active")
@@ -80,6 +83,9 @@ public class CourseRegistration {
     
     public LocalDateTime getCompletionDate() { return completionDate; }
     public void setCompletionDate(LocalDateTime completionDate) { this.completionDate = completionDate; }
+    
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
     
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }

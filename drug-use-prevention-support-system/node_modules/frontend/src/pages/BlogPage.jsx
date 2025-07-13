@@ -5,10 +5,10 @@ const BlogPage = () => {
     <div style={{ padding: '20px 0' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ fontSize: '36px', fontWeight: '700', color: '#262626', marginBottom: '16px' }}>
-          📝 Blog & Tin Tức
+          📝 Blog & News
         </h1>
         <p style={{ fontSize: '18px', color: '#666', maxWidth: '600px', margin: '0 auto' }}>
-          Các bài viết, nghiên cứu và thông tin hữu ích về phòng chống tệ nạn xã hội
+          Articles, research and useful information about social problem prevention
         </p>
       </div>
 
@@ -41,10 +41,10 @@ const BlogPage = () => {
           </div>
           <div style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Hiểu về Nghiện Chất và Tác Động Tâm Lý
+              Understanding Substance Addiction and Psychological Impact
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '16px' }}>
-              Tìm hiểu về cơ chế hoạt động của nghiện chất, tác động lên não bộ và những ảnh hưởng tâm lý lâu dài...
+              Learn about the mechanism of substance addiction, its effects on the brain and long-term psychological impacts...
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '14px', color: '#999' }}>15/12/2024</span>
@@ -56,7 +56,7 @@ const BlogPage = () => {
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                Giáo dục
+                Education
               </span>
             </div>
           </div>
@@ -85,10 +85,10 @@ const BlogPage = () => {
           </div>
           <div style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Vai Trò Của Gia Đình trong Phòng Chống Tệ Nạn
+              Family Role in Social Problem Prevention
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '16px' }}>
-              Gia đình đóng vai trò quan trọng trong việc phòng ngừa và hỗ trợ điều trị nghiện chất...
+              Family plays an important role in prevention and supporting substance addiction treatment...
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '14px', color: '#999' }}>12/12/2024</span>
@@ -100,7 +100,7 @@ const BlogPage = () => {
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                Hỗ trợ
+                Support
               </span>
             </div>
           </div>
@@ -129,10 +129,10 @@ const BlogPage = () => {
           </div>
           <div style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Kỹ Thuật Thiền và Quản Lý Stress
+              Meditation Techniques and Stress Management
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '16px' }}>
-              Các phương pháp thiền định và quản lý stress hiệu quả giúp hỗ trợ quá trình phục hồi...
+              Effective meditation and stress management methods to support recovery process...
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '14px', color: '#999' }}>10/12/2024</span>
@@ -144,7 +144,7 @@ const BlogPage = () => {
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                Phương pháp
+                Methods
               </span>
             </div>
           </div>
@@ -173,10 +173,10 @@ const BlogPage = () => {
           </div>
           <div style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Thống Kê Tệ Nạn Xã Hội tại Việt Nam 2024
+              Social Problem Statistics in Vietnam 2024
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '16px' }}>
-              Báo cáo chi tiết về tình hình tệ nạn xã hội và hiệu quả các chương trình can thiệp...
+              Detailed report on social problem situation and effectiveness of intervention programs...
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '14px', color: '#999' }}>08/12/2024</span>
@@ -188,7 +188,7 @@ const BlogPage = () => {
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                Nghiên cứu
+                Research
               </span>
             </div>
           </div>
@@ -206,11 +206,11 @@ const BlogPage = () => {
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
         <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-          Tính Năng Blog Đang Phát Triển
+          Blog Feature Under Development
         </h3>
         <p style={{ color: '#666', fontSize: '16px', maxWidth: '500px', margin: '0 auto' }}>
-          Chúng tôi đang hoàn thiện hệ thống blog với nhiều bài viết chuyên sâu và tính năng tương tác. 
-          Vui lòng quay lại sau!
+          We are completing the blog system with in-depth articles and interactive features. 
+          Please check back later!
         </p>
       </div>
     </div>

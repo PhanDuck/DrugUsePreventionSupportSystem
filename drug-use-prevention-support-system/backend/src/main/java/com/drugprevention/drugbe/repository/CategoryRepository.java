@@ -3,6 +3,7 @@ package com.drugprevention.drugbe.repository;
 import com.drugprevention.drugbe.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,26 +12,27 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     
-    // Tìm Category theo tên chính xác
+    // Find Category by exact name
     Optional<Category> findByName(String name);
     
-    // Tìm Category có tên chứa từ khóa
+    // Find Category with name containing keyword
     List<Category> findByNameContaining(String name);
     
-    // Kiểm tra Category có tồn tại không
+    // Check if Category exists by name
     boolean existsByName(String name);
     
-    // Tìm Category theo từ khóa trong tên hoặc mô tả
-    List<Category> findByNameContainingOrDescriptionContaining(String name, String description);
+    // Find Category by keyword in name or description
+    @Query("SELECT c FROM Category c WHERE c.name LIKE %:keyword% OR c.description LIKE %:keyword%")
+    List<Category> findByKeyword(@Param("keyword") String keyword);
     
-    // Tìm Category đang active
+    // Find active Category
     List<Category> findByIsActiveTrue();
     
-    // Tìm Category theo từ khóa trong tên hoặc mô tả
-    @Query("SELECT c FROM Category c WHERE c.name LIKE %:keyword% OR c.description LIKE %:keyword%")
-    List<Category> findByKeyword(String keyword);
+    // Find Category by keyword in name or description
+    @Query("SELECT c FROM Category c WHERE (c.name LIKE %:keyword% OR c.description LIKE %:keyword%) AND c.isActive = true")
+    List<Category> findByKeywordAndActive(@Param("keyword") String keyword);
     
-    // Tìm Category active theo từ khóa
-    @Query("SELECT c FROM Category c WHERE c.isActive = true AND (c.name LIKE %:keyword% OR c.description LIKE %:keyword%)")
-    List<Category> findActiveByKeyword(String keyword);
+    // Find active Category by keyword
+    @Query("SELECT c FROM Category c WHERE c.name LIKE %:keyword% AND c.isActive = true")
+    List<Category> findActiveByKeyword(@Param("keyword") String keyword);
 } 

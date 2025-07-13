@@ -5,6 +5,7 @@ import com.drugprevention.drugbe.entity.Role;
 import com.drugprevention.drugbe.entity.User;
 import com.drugprevention.drugbe.repository.RoleRepository;
 import com.drugprevention.drugbe.repository.UserRepository;
+import com.drugprevention.drugbe.util.NameConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,29 +24,63 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public User signup(SignupRequest request) {
+        // Validate request
+        if (request == null) {
+            throw new RuntimeException("Request cannot be null");
+        }
+        
+        if (request.getUserName() == null || request.getUserName().trim().isEmpty()) {
+            throw new RuntimeException("Username cannot be null or empty");
+        }
+        
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new RuntimeException("Email cannot be null or empty");
+        }
+        
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Password cannot be null or empty");
+        }
+        
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new RuntimeException("Full name cannot be null or empty");
+        }
+        
         // Check if username already exists
-        if (userRepository.findByUsername(request.getUserName()).isPresent()) {
+        if (userRepository.findByUsername(request.getUserName().trim()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
 
         // Check if email already exists
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail().trim()).isPresent()) {
             throw new RuntimeException("Email already exists");
+        }
+
+        // Validate and convert name to English format
+        String fullName = request.getFullName().trim();
+        String validationMessage = NameConverter.getNameValidationMessage(fullName);
+        if (validationMessage != null) {
+            throw new RuntimeException(validationMessage);
+        }
+
+        // Convert Vietnamese name to English if needed
+        String englishName = NameConverter.convertToEnglish(fullName);
+        if (englishName.isEmpty()) {
+            throw new RuntimeException("Name cannot be empty after conversion");
         }
 
         // Find role by name (default to USER if not specified)
         String roleName = request.getRoleName() != null ? request.getRoleName() : "USER";
         Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
 
         // Create new user
         User user = new User();
-        user.setUsername(request.getUserName());
+        user.setUsername(request.getUserName().trim());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
-        // Parse full name into first and last name
-        String fullName = request.getFullName() != null ? request.getFullName() : "";
-        String[] nameParts = fullName.split(" ", 2);
+        user.setEmail(request.getEmail().trim());
+        
+        // Parse English name into first and last name
+        String[] nameParts = englishName.split(" ", 2);
         user.setFirstName(nameParts.length > 0 ? nameParts[0] : "");
         user.setLastName(nameParts.length > 1 ? nameParts[1] : "");
         user.setRoleId(role.getId());

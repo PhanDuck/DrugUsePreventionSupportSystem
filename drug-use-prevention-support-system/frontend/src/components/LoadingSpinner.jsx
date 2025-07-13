@@ -3,7 +3,7 @@ import { Spin } from 'antd';
 
 const LoadingSpinner = ({ 
   size = 'large', 
-  text = 'Đang tải...', 
+  text = 'Loading...', 
   fullScreen = false,
   style = {}
 }) => {

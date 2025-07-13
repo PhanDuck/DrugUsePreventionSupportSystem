@@ -11,20 +11,23 @@ import java.util.List;
 @Repository
 public interface AssessmentRepository extends JpaRepository<Assessment, Long> {
     
-    // Tìm assessment theo type ID
+    // Find assessment by type ID
     List<Assessment> findByAssessmentTypeId(Long assessmentTypeId);
     
-    // Tìm assessment active
+    // Find active assessment
     List<Assessment> findByIsActiveTrue();
     
-    // Tìm assessment theo title
+    // Find assessment by title
     List<Assessment> findByTitleContaining(String title);
     
-    // Tìm assessment theo title hoặc description
+    // Find assessment by title or description
     @Query("SELECT a FROM Assessment a WHERE a.title LIKE %:keyword% OR a.description LIKE %:keyword%")
     List<Assessment> findByKeyword(@Param("keyword") String keyword);
     
-    // Đếm số assessment theo type
+    // Find assessment by type and active status
+    List<Assessment> findByAssessmentTypeIdAndIsActiveTrue(Long assessmentTypeId);
+    
+    // Count assessments by type
     @Query("SELECT COUNT(a) FROM Assessment a WHERE a.assessmentTypeId = :typeId")
     Long countByAssessmentTypeId(@Param("typeId") Long typeId);
 }

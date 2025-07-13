@@ -66,7 +66,7 @@ const AppointmentDetailPage = () => {
       setAppointment(response.data);
     } catch (error) {
       console.error('Error loading appointment:', error);
-      message.error('Không thể tải thông tin lịch hẹn');
+      message.error('Unable to load appointment information');
       navigate('/appointments');
     } finally {
       setLoading(false);
@@ -76,12 +76,12 @@ const AppointmentDetailPage = () => {
   const handleCancelAppointment = async () => {
     try {
       await appointmentService.cancelAppointment(id);
-      message.success('Đã hủy lịch hẹn thành công');
+      message.success('Appointment cancelled successfully');
       setShowCancelModal(false);
       loadAppointmentDetail();
     } catch (error) {
       console.error('Error canceling appointment:', error);
-      message.error('Không thể hủy lịch hẹn');
+      message.error('Unable to cancel appointment');
     }
   };
 
@@ -89,26 +89,26 @@ const AppointmentDetailPage = () => {
     try {
       const newDateTime = values.newDateTime.format('YYYY-MM-DDTHH:mm:ss');
       await appointmentService.rescheduleAppointment(id, { newDateTime });
-      message.success('Đã đổi lịch hẹn thành công');
+      message.success('Appointment rescheduled successfully');
       setShowRescheduleModal(false);
       form.resetFields();
       loadAppointmentDetail();
     } catch (error) {
       console.error('Error rescheduling appointment:', error);
-      message.error('Không thể đổi lịch hẹn');
+      message.error('Unable to reschedule appointment');
     }
   };
 
   const handleSubmitReview = async (values) => {
     try {
       await appointmentService.submitReview(id, values);
-      message.success('Đánh giá đã được gửi thành công');
+      message.success('Review submitted successfully');
       setShowReviewModal(false);
       reviewForm.resetFields();
       loadAppointmentDetail();
     } catch (error) {
       console.error('Error submitting review:', error);
-      message.error('Không thể gửi đánh giá');
+      message.error('Unable to submit review');
     }
   };
 
@@ -125,11 +125,11 @@ const AppointmentDetailPage = () => {
 
   const getStatusText = (status) => {
     const texts = {
-      'PENDING': 'Chờ xác nhận',
-      'CONFIRMED': 'Đã xác nhận',
-      'COMPLETED': 'Hoàn thành',
-      'CANCELLED': 'Đã hủy',
-      'RESCHEDULED': 'Đã đổi lịch'
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'COMPLETED': 'Completed',
+      'CANCELLED': 'Cancelled',
+      'RESCHEDULED': 'Rescheduled'
     };
     return texts[status] || status;
   };
@@ -139,14 +139,14 @@ const AppointmentDetailPage = () => {
   };
 
   const getAppointmentTypeText = (type) => {
-    return type === 'ONLINE' ? 'Tư vấn online' : 'Tư vấn trực tiếp';
+    return type === 'ONLINE' ? 'Online consultation' : 'In-person consultation';
   };
 
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Spin size="large" />
-        <div style={{ marginTop: '16px' }}>Đang tải thông tin lịch hẹn...</div>
+        <div style={{ marginTop: '16px' }}>Loading appointment information...</div>
       </div>
     );
   }
@@ -154,9 +154,9 @@ const AppointmentDetailPage = () => {
   if (!appointment) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Title level={3}>Không tìm thấy lịch hẹn</Title>
+        <Title level={3}>Appointment not found</Title>
         <Button type="primary" onClick={() => navigate('/appointments')}>
-          Quay lại danh sách
+          Back to list
         </Button>
       </div>
     );
@@ -169,10 +169,10 @@ const AppointmentDetailPage = () => {
         <Row justify="space-between" align="middle">
           <Col>
             <Title level={2} style={{ margin: 0 }}>
-              📅 Chi Tiết Lịch Hẹn
+              📅 Appointment Details
             </Title>
             <Text type="secondary">
-              ID: {appointment.id} • Tạo lúc: {dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}
+              ID: {appointment.id} • Created: {dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}
             </Text>
           </Col>
           <Col>
@@ -192,151 +192,79 @@ const AppointmentDetailPage = () => {
       <Row gutter={[24, 24]}>
         {/* Main Information */}
         <Col xs={24} lg={16}>
-          <Card title="📋 Thông Tin Lịch Hẹn" style={{ marginBottom: '24px' }}>
+          <Card title="📋 Appointment Information" style={{ marginBottom: '24px' }}>
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="Tư vấn viên">
+              <Descriptions.Item label="Consultant">
                 <Space>
                   <Avatar icon={<UserOutlined />} />
                   <Text strong>{appointment.consultant?.firstName} {appointment.consultant?.lastName}</Text>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày giờ">
+              <Descriptions.Item label="Date & Time">
                 <Space>
                   <CalendarOutlined />
-                  <Text>{dayjs(appointment.appointmentDate).format('DD/MM/YYYY HH:mm')}</Text>
+                  <Text>{dayjs(appointment.appointmentDate).format('DD/MM/YYYY')}</Text>
+                  <ClockCircleOutlined />
+                  <Text>{dayjs(appointment.appointmentDate).format('HH:mm')}</Text>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="Hình thức">
+              <Descriptions.Item label="Type">
                 <Space>
                   {getAppointmentTypeIcon(appointment.appointmentType)}
                   <Text>{getAppointmentTypeText(appointment.appointmentType)}</Text>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="Thời gian">
-                <Space>
-                  <ClockCircleOutlined />
-                  <Text>{appointment.durationMinutes} phút</Text>
-                </Space>
+              <Descriptions.Item label="Duration">
+                <Text>{appointment.durationMinutes || 60} minutes</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Phương thức thanh toán">
-                <Text>{appointment.paymentMethod}</Text>
+              <Descriptions.Item label="Payment Method">
+                <Tag color="purple">{appointment.paymentMethod}</Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Ghi chú">
-                <Text>{appointment.clientNotes || 'Không có'}</Text>
-              </Descriptions.Item>
+              {appointment.clientNotes && (
+                <Descriptions.Item label="Notes">
+                  <Text>{appointment.clientNotes}</Text>
+                </Descriptions.Item>
+              )}
             </Descriptions>
           </Card>
 
-          {/* Consultant Information */}
-          <Card title="👨‍⚕️ Thông Tin Tư Vấn Viên" style={{ marginBottom: '24px' }}>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={8}>
-                <div style={{ textAlign: 'center' }}>
-                  <Avatar size={80} icon={<UserOutlined />} style={{ marginBottom: '16px' }} />
-                  <Title level={4} style={{ margin: 0 }}>
-                    {appointment.consultant?.firstName} {appointment.consultant?.lastName}
-                  </Title>
-                  <Tag color="blue">{appointment.consultant?.expertise || 'Tư vấn chung'}</Tag>
-                </div>
-              </Col>
-              <Col xs={24} sm={16}>
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <div>
-                    <Text strong>Kinh nghiệm:</Text> Nhiều năm trong lĩnh vực tư vấn
-                  </div>
-                  <div>
-                    <Text strong>Đánh giá:</Text> ⭐ 4.8/5.0
-                  </div>
-                  <div>
-                    <Text strong>Chuyên môn:</Text> {appointment.consultant?.expertise || 'Tư vấn tâm lý, phòng chống tệ nạn'}
-                  </div>
-                  <Space>
-                    <Button type="primary" icon={<MessageOutlined />}>
-                      Nhắn tin
-                    </Button>
-                    <Button icon={<PhoneOutlined />}>
-                      Gọi điện
-                    </Button>
-                  </Space>
-                </Space>
-              </Col>
-            </Row>
+          {/* Status Timeline */}
+          <Card title="📊 Status Timeline" style={{ marginBottom: '24px' }}>
+            <Timeline>
+              <Timeline.Item color="green">
+                <Text strong>Created</Text>
+                <br />
+                <Text type="secondary">{dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}</Text>
+              </Timeline.Item>
+              {appointment.status === 'CONFIRMED' && (
+                <Timeline.Item color="blue">
+                  <Text strong>Confirmed</Text>
+                  <br />
+                  <Text type="secondary">{dayjs(appointment.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
+                </Timeline.Item>
+              )}
+              {appointment.status === 'COMPLETED' && (
+                <Timeline.Item color="green">
+                  <Text strong>Completed</Text>
+                  <br />
+                  <Text type="secondary">{dayjs(appointment.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
+                </Timeline.Item>
+              )}
+              {appointment.status === 'CANCELLED' && (
+                <Timeline.Item color="red">
+                  <Text strong>Cancelled</Text>
+                  <br />
+                  <Text type="secondary">{dayjs(appointment.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
+                </Timeline.Item>
+              )}
+            </Timeline>
           </Card>
-
-          {/* Meeting Details */}
-          {appointment.status === 'CONFIRMED' && (
-            <Card title="🎥 Thông Tin Buổi Tư Vấn" style={{ marginBottom: '24px' }}>
-              {appointment.appointmentType === 'ONLINE' ? (
-                <Alert
-                  message="Tư vấn online"
-                  description={
-                    <div>
-                      <p>Link meeting sẽ được gửi qua email 15 phút trước buổi tư vấn</p>
-                      <p>Vui lòng kiểm tra email và chuẩn bị thiết bị có camera, microphone</p>
-                    </div>
-                  }
-                  type="info"
-                  showIcon
-                  action={
-                    <Button size="small" type="primary">
-                      Tham gia ngay
-                    </Button>
-                  }
-                />
-              ) : (
-                <Alert
-                  message="Tư vấn trực tiếp"
-                  description={
-                    <div>
-                      <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
-                      <p>Vui lòng đến trước 10 phút để làm thủ tục</p>
-                    </div>
-                  }
-                  type="info"
-                  showIcon
-                  action={
-                    <Button size="small" type="primary">
-                      Xem bản đồ
-                    </Button>
-                  }
-                />
-              )}
-            </Card>
-          )}
-
-          {/* Review Section */}
-          {appointment.status === 'COMPLETED' && (
-            <Card title="⭐ Đánh Giá Buổi Tư Vấn">
-              {appointment.review ? (
-                <div>
-                  <Rate disabled value={appointment.review.rating} />
-                  <Paragraph style={{ marginTop: '8px' }}>
-                    {appointment.review.comment}
-                  </Paragraph>
-                  <Text type="secondary">
-                    Đánh giá lúc: {dayjs(appointment.review.createdAt).format('DD/MM/YYYY HH:mm')}
-                  </Text>
-                </div>
-              ) : (
-                <div>
-                  <Paragraph>Bạn chưa đánh giá buổi tư vấn này</Paragraph>
-                  <Button 
-                    type="primary" 
-                    onClick={() => setShowReviewModal(true)}
-                    icon={<StarOutlined />}
-                  >
-                    Viết đánh giá
-                  </Button>
-                </div>
-              )}
-            </Card>
-          )}
         </Col>
 
         {/* Sidebar */}
         <Col xs={24} lg={8}>
           {/* Actions */}
-          <Card title="⚡ Hành Động" style={{ marginBottom: '24px' }}>
+          <Card title="⚡ Actions" style={{ marginBottom: '24px' }}>
             <Space direction="vertical" style={{ width: '100%' }}>
               {appointment.status === 'PENDING' && (
                 <>
@@ -346,185 +274,158 @@ const AppointmentDetailPage = () => {
                     icon={<EditOutlined />}
                     onClick={() => setShowRescheduleModal(true)}
                   >
-                    Đổi lịch
+                    Reschedule
                   </Button>
                   <Button 
                     danger 
                     block 
-                    icon={<CloseCircleOutlined />}
+                    icon={<DeleteOutlined />}
                     onClick={() => setShowCancelModal(true)}
                   >
-                    Hủy lịch
+                    Cancel
                   </Button>
                 </>
               )}
               
               {appointment.status === 'CONFIRMED' && (
-                <>
-                  <Button 
-                    type="primary" 
-                    block 
-                    icon={<VideoCameraOutlined />}
-                  >
-                    Tham gia tư vấn
-                  </Button>
-                  <Button 
-                    block 
-                    icon={<MessageOutlined />}
-                  >
-                    Nhắn tin cho tư vấn viên
-                  </Button>
-                </>
+                <Button 
+                  type="primary" 
+                  block 
+                  icon={<VideoCameraOutlined />}
+                  onClick={() => window.open(appointment.meetingLink, '_blank')}
+                >
+                  Join Meeting
+                </Button>
               )}
-
+              
               {appointment.status === 'COMPLETED' && !appointment.review && (
                 <Button 
-                    type="primary" 
-                    block 
-                    icon={<StarOutlined />}
-                    onClick={() => setShowReviewModal(true)}
-                  >
-                    Viết đánh giá
-                  </Button>
+                  block 
+                  icon={<StarOutlined />}
+                  onClick={() => setShowReviewModal(true)}
+                >
+                  Write Review
+                </Button>
               )}
-
+              
               <Button 
                 block 
                 onClick={() => navigate('/appointments')}
               >
-                Quay lại danh sách
+                Back to List
               </Button>
             </Space>
           </Card>
 
-          {/* Timeline */}
-          <Card title="📅 Lịch Sử">
-            <Timeline>
-              <Timeline.Item color="green">
-                <Text strong>Đặt lịch</Text>
-                <br />
-                <Text type="secondary">{dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}</Text>
-              </Timeline.Item>
-              
-              {appointment.status === 'CONFIRMED' && (
-                <Timeline.Item color="blue">
-                  <Text strong>Xác nhận</Text>
-                  <br />
-                  <Text type="secondary">{dayjs(appointment.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
-                </Timeline.Item>
-              )}
-              
-              {appointment.status === 'COMPLETED' && (
-                <Timeline.Item color="green">
-                  <Text strong>Hoàn thành</Text>
-                  <br />
-                  <Text type="secondary">{dayjs(appointment.completedAt).format('DD/MM/YYYY HH:mm')}</Text>
-                </Timeline.Item>
-              )}
-              
-              {appointment.status === 'CANCELLED' && (
-                <Timeline.Item color="red">
-                  <Text strong>Đã hủy</Text>
-                  <br />
-                  <Text type="secondary">{dayjs(appointment.cancelledAt).format('DD/MM/YYYY HH:mm')}</Text>
-                </Timeline.Item>
-              )}
-            </Timeline>
+          {/* Consultant Info */}
+          <Card title="👨‍⚕️ Consultant Information" style={{ marginBottom: '24px' }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div style={{ textAlign: 'center' }}>
+                <Avatar size={64} icon={<UserOutlined />} />
+                <Title level={4} style={{ marginTop: '8px' }}>
+                  {appointment.consultant?.firstName} {appointment.consultant?.lastName}
+                </Title>
+                <Text type="secondary">{appointment.consultant?.expertise || 'General Consultation'}</Text>
+              </div>
+              <Divider />
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Button 
+                  icon={<PhoneOutlined />} 
+                  block
+                  onClick={() => window.open(`tel:${appointment.consultant?.phone}`)}
+                >
+                  Call
+                </Button>
+                <Button 
+                  icon={<MailOutlined />} 
+                  block
+                  onClick={() => window.open(`mailto:${appointment.consultant?.email}`)}
+                >
+                  Email
+                </Button>
+              </Space>
+            </Space>
           </Card>
         </Col>
       </Row>
 
-      {/* Cancel Modal */}
+      {/* Modals */}
       <Modal
-        title="Hủy lịch hẹn"
+        title="Cancel Appointment"
         open={showCancelModal}
         onCancel={() => setShowCancelModal(false)}
-        onOk={handleCancelAppointment}
-        okText="Hủy lịch"
-        cancelText="Đóng"
-        okButtonProps={{ danger: true }}
+        footer={[
+          <Button key="cancel" onClick={() => setShowCancelModal(false)}>
+            No
+          </Button>,
+          <Button key="confirm" danger onClick={handleCancelAppointment}>
+            Cancel Appointment
+          </Button>
+        ]}
       >
-        <p>Bạn có chắc chắn muốn hủy lịch hẹn này không?</p>
-        <p>Lịch hẹn sẽ không thể khôi phục sau khi hủy.</p>
+        <Alert
+          message="Warning"
+          description="Appointment cannot be restored after cancellation."
+          type="warning"
+          showIcon
+        />
       </Modal>
 
-      {/* Reschedule Modal */}
       <Modal
-        title="Đổi lịch hẹn"
+        title="Reschedule Appointment"
         open={showRescheduleModal}
         onCancel={() => setShowRescheduleModal(false)}
         footer={null}
-        width={500}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleRescheduleAppointment}
-        >
+        <Form form={form} onFinish={handleRescheduleAppointment}>
           <Form.Item
             name="newDateTime"
-            label="Thời gian mới"
-            rules={[{ required: true, message: 'Vui lòng chọn thời gian mới!' }]}
+            label="New Date & Time"
+            rules={[{ required: true, message: 'Please select new date and time!' }]}
           >
             <Input type="datetime-local" />
           </Form.Item>
-          
-          <Form.Item
-            name="reason"
-            label="Lý do đổi lịch"
-          >
-            <Input.TextArea rows={3} placeholder="Nhập lý do đổi lịch..." />
-          </Form.Item>
-
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
               <Button onClick={() => setShowRescheduleModal(false)}>
-                Hủy
+                Cancel
               </Button>
               <Button type="primary" htmlType="submit">
-                Xác nhận đổi lịch
+                Reschedule
               </Button>
             </Space>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* Review Modal */}
       <Modal
-        title="Đánh giá buổi tư vấn"
+        title="Write Review"
         open={showReviewModal}
         onCancel={() => setShowReviewModal(false)}
         footer={null}
-        width={500}
       >
-        <Form
-          form={reviewForm}
-          layout="vertical"
-          onFinish={handleSubmitReview}
-        >
+        <Form form={reviewForm} onFinish={handleSubmitReview}>
           <Form.Item
             name="rating"
-            label="Đánh giá"
-            rules={[{ required: true, message: 'Vui lòng chọn đánh giá!' }]}
+            label="Rating"
+            rules={[{ required: true, message: 'Please provide a rating!' }]}
           >
             <Rate />
           </Form.Item>
-          
           <Form.Item
             name="comment"
-            label="Nhận xét"
-            rules={[{ required: true, message: 'Vui lòng nhập nhận xét!' }]}
+            label="Comment"
+            rules={[{ required: true, message: 'Please provide a comment!' }]}
           >
-            <Input.TextArea rows={4} placeholder="Chia sẻ trải nghiệm của bạn..." />
+            <Input.TextArea rows={4} placeholder="Share your experience..." />
           </Form.Item>
-
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
               <Button onClick={() => setShowReviewModal(false)}>
-                Hủy
+                Cancel
               </Button>
               <Button type="primary" htmlType="submit">
-                Gửi đánh giá
+                Submit Review
               </Button>
             </Space>
           </Form.Item>

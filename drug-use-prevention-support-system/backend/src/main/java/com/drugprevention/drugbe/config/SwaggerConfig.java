@@ -23,7 +23,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Drug Use Prevention Support System API")
-                        .description("API documentation for Drug Use Prevention Support System - Hệ thống hỗ trợ phòng chống tệ nạn xã hội")
+                        .description("API documentation for Drug Use Prevention Support System")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("Development Team")

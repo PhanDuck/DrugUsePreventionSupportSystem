@@ -14,53 +14,53 @@ import java.util.List;
 @Repository
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     
-    // Tìm blogs theo author ID
+    // Find blogs by author ID
     List<Blog> findByAuthorId(Long authorId);
     
-    // Tìm blogs theo category ID
+    // Find blogs by category ID
     List<Blog> findByCategoryId(Long categoryId);
     
-    // Tìm blogs theo status
+    // Find blogs by status
     List<Blog> findByStatus(String status);
     
-    // Tìm blogs active
+    // Find active blogs
     List<Blog> findByIsActiveTrue();
     
-    // Tìm featured blogs
+    // Find featured blogs
     List<Blog> findByIsFeaturedTrue();
     
-    // Tìm published blogs
+    // Find published blogs
     List<Blog> findByStatusAndIsActiveTrue(String status);
     
-    // Tìm blogs theo title
+    // Find blogs by title
     List<Blog> findByTitleContaining(String title);
     
-    // Tìm blogs theo keyword trong title hoặc content
+    // Find blogs by keyword in title or content
     @Query("SELECT b FROM Blog b WHERE b.title LIKE %:keyword% OR b.content LIKE %:keyword%")
     List<Blog> findByKeyword(@Param("keyword") String keyword);
     
-    // Tìm blogs theo tags
-    @Query("SELECT b FROM Blog b WHERE b.tags LIKE %:tag%")
-    List<Blog> findByTagsContaining(@Param("tag") String tag);
+    // Find blogs by tags
+    List<Blog> findByTagsContaining(String tags);
     
-    // Tìm blogs theo thời gian published
+    // Find blogs by published time
     List<Blog> findByPublishedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    // Lấy blogs mới nhất
+    // Get latest blogs
     List<Blog> findTop10ByStatusOrderByPublishedAtDesc(String status);
     
-    // Lấy popular blogs (view count cao)
-    List<Blog> findTop10ByStatusOrderByViewCountDesc(String status);
+    // Get popular blogs (high view count)
+    @Query("SELECT b FROM Blog b WHERE b.isActive = true ORDER BY b.viewCount DESC")
+    List<Blog> findPopularBlogs();
     
-    // Page blogs với filter
+    // Page blogs with filter
     Page<Blog> findByStatusAndIsActiveTrue(String status, Pageable pageable);
     Page<Blog> findByCategoryIdAndStatusAndIsActiveTrue(Long categoryId, String status, Pageable pageable);
     
-    // Đếm blogs theo category
+    // Count blogs by category
     @Query("SELECT COUNT(b) FROM Blog b WHERE b.categoryId = :categoryId")
     Long countByCategoryId(@Param("categoryId") Long categoryId);
     
-    // Đếm blogs theo author
+    // Count blogs by author
     @Query("SELECT COUNT(b) FROM Blog b WHERE b.authorId = :authorId")
     Long countByAuthorId(@Param("authorId") Long authorId);
 } 

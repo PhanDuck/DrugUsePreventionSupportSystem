@@ -19,22 +19,19 @@ public class BlogService {
     @Autowired
     private BlogRepository blogRepository;
 
-    // 1. Lấy tất cả blogs
+    // 1. Get all blogs
     public List<Blog> getAllBlogs() {
         return blogRepository.findAll();
     }
 
-    // 2. Lấy blog theo ID
+    // 2. Get blog by ID
     public Optional<Blog> getBlogById(Long id) {
         return blogRepository.findById(id);
     }
 
-    // 3. Tạo blog mới
+    // 3. Create new blog
     @Transactional
     public Blog createBlog(Blog blog) {
-        blog.setStatus("draft");
-        blog.setViewCount(0);
-        blog.setIsFeatured(false);
         blog.setIsActive(true);
         blog.setCreatedAt(LocalDateTime.now());
         blog.setUpdatedAt(LocalDateTime.now());
@@ -49,17 +46,11 @@ public class BlogService {
         
         blog.setTitle(blogDetails.getTitle());
         blog.setContent(blogDetails.getContent());
+        blog.setAuthorId(blogDetails.getAuthorId());
         blog.setCategoryId(blogDetails.getCategoryId());
-        blog.setImageUrl(blogDetails.getImageUrl());
         blog.setStatus(blogDetails.getStatus());
-        blog.setTags(blogDetails.getTags());
-        blog.setIsFeatured(blogDetails.getIsFeatured());
         blog.setIsActive(blogDetails.getIsActive());
         blog.setUpdatedAt(LocalDateTime.now());
-        
-        if ("published".equals(blogDetails.getStatus()) && blog.getPublishedAt() == null) {
-            blog.setPublishedAt(LocalDateTime.now());
-        }
         
         return blogRepository.save(blog);
     }
@@ -73,62 +64,57 @@ public class BlogService {
         blogRepository.deleteById(id);
     }
 
-    // 6. Lấy blogs theo author
+    // 6. Get blogs by author
     public List<Blog> getBlogsByAuthor(Long authorId) {
         return blogRepository.findByAuthorId(authorId);
     }
 
-    // 7. Lấy blogs theo category
+    // 7. Get blogs by category
     public List<Blog> getBlogsByCategory(Long categoryId) {
         return blogRepository.findByCategoryId(categoryId);
     }
 
-    // 8. Lấy published blogs
+    // 8. Get published blogs
     public List<Blog> getPublishedBlogs() {
-        return blogRepository.findByStatusAndIsActiveTrue("published");
+        return blogRepository.findByStatus("published");
     }
 
-    // 9. Lấy featured blogs
+    // 9. Get featured blogs
     public List<Blog> getFeaturedBlogs() {
         return blogRepository.findByIsFeaturedTrue();
     }
 
-    // 10. Search blogs
+    // 10. Search blogs by keyword
     public List<Blog> searchBlogs(String keyword) {
         return blogRepository.findByKeyword(keyword);
     }
 
-    // 11. Lấy blogs với pagination
-    public Page<Blog> getPublishedBlogsWithPagination(Pageable pageable) {
-        return blogRepository.findByStatusAndIsActiveTrue("published", pageable);
+    // 11. Get blogs with pagination
+    public Page<Blog> getBlogsWithPagination(Pageable pageable) {
+        return blogRepository.findAll(pageable);
     }
 
-    // 12. Tăng view count
+    // 12. Increment view count
     @Transactional
-    public void incrementViewCount(Long id) {
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found with id: " + id));
+    public void incrementViewCount(Long blogId) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
         blog.setViewCount(blog.getViewCount() + 1);
         blogRepository.save(blog);
     }
 
-    // 13. Publish blog
-    @Transactional
-    public Blog publishBlog(Long id) {
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found with id: " + id));
-        blog.setStatus("published");
-        blog.setPublishedAt(LocalDateTime.now());
-        return blogRepository.save(blog);
+    // 13. Get blogs by status
+    public List<Blog> getBlogsByStatus(String status) {
+        return blogRepository.findByStatus(status);
     }
 
-    // 14. Lấy latest blogs
+    // 14. Get latest blogs
     public List<Blog> getLatestBlogs(int limit) {
         return blogRepository.findTop10ByStatusOrderByPublishedAtDesc("published");
     }
 
-    // 15. Lấy popular blogs
-    public List<Blog> getPopularBlogs(int limit) {
-        return blogRepository.findTop10ByStatusOrderByViewCountDesc("published");
+    // 15. Get popular blogs
+    public List<Blog> getPopularBlogs() {
+        return blogRepository.findPopularBlogs();
     }
 }

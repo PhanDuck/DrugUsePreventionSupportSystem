@@ -17,7 +17,7 @@ class CourseService {
     console.warn('Course service not available - backend CourseController is disabled');
     return {
       success: false,
-      message: 'Dịch vụ khóa học hiện không khả dụng'
+      message: 'Course service is currently unavailable'
     };
   }
 
@@ -25,7 +25,7 @@ class CourseService {
     console.warn('Course service not available - backend CourseController is disabled');
     return {
       success: false,
-      message: 'Dịch vụ khóa học hiện không khả dụng'
+      message: 'Course service is currently unavailable'
     };
   }
 
@@ -33,7 +33,7 @@ class CourseService {
     console.warn('Course service not available - backend CourseController is disabled');
     return {
       success: false,
-      message: 'Dịch vụ khóa học hiện không khả dụng'
+      message: 'Course service is currently unavailable'
     };
   }
 

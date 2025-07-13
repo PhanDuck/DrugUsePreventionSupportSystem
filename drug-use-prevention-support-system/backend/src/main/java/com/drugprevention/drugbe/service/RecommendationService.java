@@ -18,17 +18,17 @@ public class RecommendationService {
     @Autowired
     private RecommendationRepository recommendationRepository;
 
-    // 1. Lấy tất cả recommendations
+    // 1. Get all recommendations
     public List<Recommendation> getAllRecommendations() {
         return recommendationRepository.findAll();
     }
 
-    // 2. Lấy recommendation theo ID
+    // 2. Get recommendation by ID
     public Optional<Recommendation> getRecommendationById(Long id) {
         return recommendationRepository.findById(id);
     }
 
-    // 3. Tạo recommendation mới
+    // 3. Create new recommendation
     @Transactional
     public Recommendation createRecommendation(Recommendation recommendation) {
         recommendation.setStatus("pending");
@@ -66,27 +66,27 @@ public class RecommendationService {
         recommendationRepository.deleteById(id);
     }
 
-    // 6. Lấy recommendations theo user
+    // 6. Get recommendations by user
     public List<Recommendation> getRecommendationsByUser(Long userId) {
         return recommendationRepository.findByUserId(userId);
     }
 
-    // 7. Lấy pending recommendations cho user
+    // 7. Get pending recommendations for user
     public List<Recommendation> getPendingRecommendationsByUser(Long userId) {
         return recommendationRepository.findPendingByUserId(userId);
     }
 
-    // 8. Lấy recommendations theo type
+    // 8. Get recommendations by type
     public List<Recommendation> getRecommendationsByType(String recommendationType) {
         return recommendationRepository.findByRecommendationType(recommendationType);
     }
 
-    // 9. Lấy recommendations theo risk level
+    // 9. Get recommendations by risk level
     public List<Recommendation> getRecommendationsByRiskLevel(String riskLevel) {
         return recommendationRepository.findByRiskLevel(riskLevel);
     }
 
-    // 10. Lấy high priority recommendations
+    // 10. Get high priority recommendations
     public List<Recommendation> getHighPriorityRecommendations() {
         return recommendationRepository.findHighPriorityRecommendations();
     }
@@ -121,22 +121,22 @@ public class RecommendationService {
         return recommendationRepository.save(recommendation);
     }
 
-    // 14. Đếm recommendations theo user
+    // 14. Count recommendations by user
     public Long countRecommendationsByUser(Long userId) {
         return recommendationRepository.countByUserId(userId);
     }
 
-    // 15. Đếm pending recommendations theo user
+    // 15. Count pending recommendations by user
     public Long countPendingRecommendationsByUser(Long userId) {
         return recommendationRepository.countPendingByUserId(userId);
     }
 
-    // 16. Lấy recommendations mới nhất
+    // 16. Get recent recommendations
     public List<Recommendation> getRecentRecommendations() {
         return recommendationRepository.findTop10ByOrderByCreatedAtDesc();
     }
 
-    // 17. Tạo recommendation từ assessment result
+    // 17. Create recommendation from assessment result
     @Transactional
     public Recommendation createRecommendationFromAssessment(Long userId, Long assessmentResultId, String riskLevel) {
         Recommendation recommendation = new Recommendation();
@@ -147,18 +147,18 @@ public class RecommendationService {
         // Set recommendation based on risk level
         if ("HIGH_RISK".equals(riskLevel)) {
             recommendation.setRecommendationType("consultation");
-            recommendation.setTitle("Khuyến nghị tư vấn khẩn cấp");
-            recommendation.setDescription("Dựa trên kết quả đánh giá, bạn cần được tư vấn chuyên môn.");
+            recommendation.setTitle("Urgent Consultation Recommendation");
+            recommendation.setDescription("Based on your assessment results, you need professional consultation.");
             recommendation.setPriority(1);
         } else if ("MEDIUM_RISK".equals(riskLevel)) {
             recommendation.setRecommendationType("course");
-            recommendation.setTitle("Khuyến nghị tham gia khóa học");
-            recommendation.setDescription("Tham gia các khóa học để tăng cường kiến thức và kỹ năng.");
+            recommendation.setTitle("Course Participation Recommendation");
+            recommendation.setDescription("Participate in courses to enhance knowledge and skills.");
             recommendation.setPriority(2);
         } else {
             recommendation.setRecommendationType("blog");
-            recommendation.setTitle("Đọc thêm tài liệu");
-            recommendation.setDescription("Đọc các bài viết để nâng cao nhận thức.");
+            recommendation.setTitle("Read Additional Materials");
+            recommendation.setDescription("Read articles to raise awareness.");
             recommendation.setPriority(3);
         }
         

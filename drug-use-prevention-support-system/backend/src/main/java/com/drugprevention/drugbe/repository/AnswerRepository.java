@@ -7,32 +7,32 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
     
-    // Tìm answers theo assessment result ID
+    // Find answers by assessment result ID
     List<Answer> findByAssessmentResultId(Long assessmentResultId);
     
-    // Tìm answers theo assessment question ID
+    // Find answers by assessment question ID
     List<Answer> findByAssessmentQuestionId(Long assessmentQuestionId);
     
-    // Tìm answer theo assessment result và question
+    // Find answer by assessment result and question
     @Query("SELECT a FROM Answer a WHERE a.assessmentResultId = :resultId AND a.assessmentQuestionId = :questionId")
-    Answer findByAssessmentResultIdAndAssessmentQuestionId(@Param("resultId") Long resultId, @Param("questionId") Long questionId);
+    Optional<Answer> findByAssessmentResultAndQuestion(@Param("resultId") Long resultId, @Param("questionId") Long questionId);
     
-    // Tìm answers theo answer value
+    // Find answers by answer value
     List<Answer> findByAnswerValue(Integer answerValue);
     
-    // Tìm answers theo answer text chứa keyword
-    @Query("SELECT a FROM Answer a WHERE a.answerText LIKE %:keyword%")
-    List<Answer> findByAnswerTextContaining(@Param("keyword") String keyword);
+    // Find answers by answer text containing keyword
+    List<Answer> findByAnswerTextContaining(String keyword);
     
-    // Đếm answers theo assessment result
+    // Count answers by assessment result
     @Query("SELECT COUNT(a) FROM Answer a WHERE a.assessmentResultId = :resultId")
     Long countByAssessmentResultId(@Param("resultId") Long resultId);
     
-    // Tính tổng score theo assessment result
+    // Calculate total score by assessment result
     @Query("SELECT SUM(a.answerValue) FROM Answer a WHERE a.assessmentResultId = :resultId")
     Integer sumAnswerValueByAssessmentResultId(@Param("resultId") Long resultId);
 } 

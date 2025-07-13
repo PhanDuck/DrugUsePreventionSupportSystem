@@ -43,7 +43,7 @@ public class ReviewController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi tạo đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error creating review: " + e.getMessage()));
         }
     }
 
@@ -60,7 +60,7 @@ public class ReviewController {
             }
             return ResponseEntity.ok(review);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting review: " + e.getMessage()));
         }
     }
 
@@ -72,7 +72,7 @@ public class ReviewController {
             List<ReviewDTO> reviews = reviewService.getReviewsByConsultantId(consultantId);
             return ResponseEntity.ok(reviews);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting review list: " + e.getMessage()));
         }
     }
 
@@ -84,7 +84,7 @@ public class ReviewController {
             List<ReviewDTO> reviews = reviewService.getReviewsByClientId(clientId);
             return ResponseEntity.ok(reviews);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting review list: " + e.getMessage()));
         }
     }
 
@@ -98,7 +98,7 @@ public class ReviewController {
             ReviewService.ReviewStatistics statistics = reviewService.getConsultantReviewStatistics(consultantId);
             return ResponseEntity.ok(statistics);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thống kê đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting review statistics: " + e.getMessage()));
         }
     }
 
@@ -109,7 +109,7 @@ public class ReviewController {
             Double averageRating = reviewService.getConsultantAverageRating(consultantId);
             return ResponseEntity.ok(Map.of("averageRating", averageRating != null ? averageRating : 0.0));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy điểm trung bình: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting average rating: " + e.getMessage()));
         }
     }
 
@@ -121,7 +121,7 @@ public class ReviewController {
             List<ReviewDTO> reviews = reviewService.getRecentReviewsByConsultantId(consultantId, limit);
             return ResponseEntity.ok(reviews);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy đánh giá gần đây: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting recent reviews: " + e.getMessage()));
         }
     }
 
@@ -139,7 +139,7 @@ public class ReviewController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi cập nhật đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error updating review: " + e.getMessage()));
         }
     }
 
@@ -151,11 +151,11 @@ public class ReviewController {
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
         try {
             reviewService.deleteReview(reviewId);
-            return ResponseEntity.ok(Map.of("message", "Đánh giá đã được xóa thành công"));
+            return ResponseEntity.ok(Map.of("message", "Review deleted successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi xóa đánh giá: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error deleting review: " + e.getMessage()));
         }
     }
 } 

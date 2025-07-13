@@ -31,6 +31,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
+import appointmentService from '../services/appointmentService';
 import axios from '../config/axios';
 import dayjs from 'dayjs';
 
@@ -58,7 +59,7 @@ export default function AppointmentPage() {
 
   const checkAuthentication = () => {
     if (!authService.isAuthenticated()) {
-      message.warning('Vui lòng đăng nhập để đặt lịch tư vấn');
+      message.warning('Please login to schedule a consultation');
       navigate('/login');
       return;
     }
@@ -72,17 +73,19 @@ export default function AppointmentPage() {
       const consultantData = response.data.map(consultant => ({
         id: consultant.id,
         name: `${consultant.firstName} ${consultant.lastName}`,
-        specialty: consultant.expertise || 'Tư vấn chung',
-        experience: 'Nhiều năm kinh nghiệm',
+        specialty: consultant.expertise || 'General Consultation',
+        experience: 'Years of experience',
         rating: 4.8,
         price: 500000,
         avatar: null,
-        bio: `Chuyên gia tư vấn với chuyên môn về ${consultant.expertise || 'tư vấn tâm lý'}`
+        bio: `Professional consultant with expertise in ${consultant.expertise || 'psychological counseling'}`,
+        email: consultant.email,
+        phone: consultant.phone
       }));
       setConsultants(consultantData);
     } catch (error) {
       console.error('Error loading consultants:', error);
-      message.error('Không thể tải danh sách tư vấn viên');
+      message.error('Unable to load consultant list');
     } finally {
       setLoading(false);
     }
@@ -91,8 +94,13 @@ export default function AppointmentPage() {
   const loadAppointments = async () => {
     try {
       if (authService.isAuthenticated()) {
-        const response = await axios.get('/api/appointments/user');
-        setAppointments(response.data);
+        const result = await appointmentService.getCurrentUserAppointments();
+        if (result.success) {
+          setAppointments(result.data);
+        } else {
+          console.error('Error loading appointments:', result.message);
+          setAppointments([]);
+        }
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -104,16 +112,21 @@ export default function AppointmentPage() {
     try {
       setLoadingSlots(true);
       const formattedDate = date.format('YYYY-MM-DD');
-      const response = await axios.get(`/api/appointments/consultant/${consultantId}/available-slots?date=${formattedDate}`);
-      setAvailableSlots(response.data.availableSlots || []);
+      const result = await appointmentService.getAvailableSlots(consultantId, formattedDate);
       
-      if (response.data.availableSlots.length === 0) {
-        message.warning('Không có lịch trống trong ngày này. Vui lòng chọn ngày khác.');
+      if (result.success) {
+        setAvailableSlots(result.data.availableSlots || []);
+        
+        if (result.data.availableSlots.length === 0) {
+          message.warning('No available slots on this date. Please select another date.');
+        }
+      } else {
+        message.error(result.message);
+        setAvailableSlots([]);
       }
     } catch (error) {
       console.error('Error loading available slots:', error);
-      const errorMessage = error.response?.data?.error || 'Không thể tải lịch trống';
-      message.error(errorMessage);
+      message.error('Unable to load available slots');
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -145,17 +158,20 @@ export default function AppointmentPage() {
         paymentMethod: values.paymentMethod
       };
 
-      await axios.post('/api/appointments', appointmentData);
-      message.success('Đặt lịch tư vấn thành công! Chúng tôi sẽ liên hệ với bạn sớm.');
+      const result = await appointmentService.createAppointment(appointmentData);
       
-      setShowBookingModal(false);
-      form.resetFields();
-      loadAppointments();
+      if (result.success) {
+        message.success('Consultation appointment scheduled successfully! We will contact you soon.');
+        setShowBookingModal(false);
+        form.resetFields();
+        loadAppointments();
+      } else {
+        message.error(result.message);
+      }
       
     } catch (error) {
       console.error('Error creating appointment:', error);
-      const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại!';
-      message.error(errorMessage);
+      message.error('An error occurred while scheduling. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -181,10 +197,10 @@ export default function AppointmentPage() {
         <div style={{ padding: '40px 20px', color: '#fff' }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>💬</div>
           <Title level={2} style={{ color: '#fff', marginBottom: '16px' }}>
-            Tư Vấn Chuyên Nghiệp
+            Professional Consultation
           </Title>
           <Paragraph style={{ color: '#fff', fontSize: '16px', opacity: 0.9 }}>
-            Đặt lịch hẹn với các chuyên gia tâm lý và tư vấn viên giàu kinh nghiệm
+            Schedule appointments with experienced psychologists and counselors
           </Paragraph>
         </div>
       </Card>
@@ -195,266 +211,217 @@ export default function AppointmentPage() {
           <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
-                title="Tổng Buổi Tư Vấn"
+                title="Total Consultations"
                 value={appointments.length}
                 prefix={<CalendarOutlined />}
-                valueStyle={{ color: '#1890ff' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
-                title="Buổi Sắp Tới"
-                value={appointments.filter(apt => apt.status === 'CONFIRMED').length}
+                title="Upcoming"
+                value={appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').length}
                 prefix={<ClockCircleOutlined />}
-                valueStyle={{ color: '#52c41a' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
               <Statistic
-                title="Hoàn Thành"
-                value={appointments.filter(apt => apt.status === 'COMPLETED').length}
+                title="Completed"
+                value={appointments.filter(a => a.status === 'COMPLETED').length}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#722ed1' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={6}>
             <Card style={{ textAlign: 'center' }}>
-              <Button 
-                type="primary" 
-                block 
-                onClick={() => navigate('/appointments/list')}
-                style={{ marginTop: '16px' }}
-              >
-                📋 Xem Danh Sách
-              </Button>
+              <Statistic
+                title="Cancelled"
+                value={appointments.filter(a => a.status === 'CANCELLED').length}
+                prefix={<ExclamationCircleOutlined />}
+              />
             </Card>
           </Col>
         </Row>
       )}
 
-      {/* Consultants List */}
-      <Card title="👥 Đội Ngũ Chuyên Gia" style={{ marginBottom: '24px' }}>
-        <Spin spinning={loading}>
-          <Row gutter={[24, 24]}>
-            {consultants.map((consultant) => (
-              <Col xs={24} md={12} key={consultant.id}>
-                <Card
-                  hoverable
-                  style={{
-                    borderRadius: '12px',
-                    height: '100%'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <Avatar 
-                      size={64} 
-                      icon={<UserOutlined />}
-                      style={{ marginRight: '16px', background: '#1890ff' }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <Title level={4} style={{ margin: 0, marginBottom: '4px' }}>
-                        {consultant.name}
-                      </Title>
-                      <Tag color="blue" style={{ marginBottom: '8px' }}>
-                        {consultant.specialty}
-                      </Tag>
-                      <div>
-                        <Text type="secondary">
-                          Kinh nghiệm: {consultant.experience} • ⭐ {consultant.rating}
-                        </Text>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Paragraph style={{ color: '#666', marginBottom: '16px' }}>
-                    {consultant.bio}
-                  </Paragraph>
-                  
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-                    <div>
-                      <Text strong style={{ fontSize: '18px', color: '#1890ff' }}>
-                        {consultant.price.toLocaleString()} VNĐ
-                      </Text>
-                      <Text type="secondary"> / buổi</Text>
-                    </div>
-                  </div>
-                  
+      {/* Consultants Section */}
+      <Title level={3} style={{ marginBottom: '24px' }}>
+        Available Consultants
+      </Title>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <Spin size="large" />
+          <div style={{ marginTop: '16px' }}>Loading consultants...</div>
+        </div>
+      ) : (
+        <Row gutter={[16, 16]}>
+          {consultants.map((consultant) => (
+            <Col xs={24} sm={12} lg={8} key={consultant.id}>
+              <Card
+                hoverable
+                style={{ height: '100%' }}
+                actions={[
                   <Button 
                     type="primary" 
-                    block 
-                    size="large"
                     onClick={() => openBookingModal(consultant)}
-                    style={{
-                      borderRadius: '8px',
-                      fontWeight: '600'
-                    }}
+                    icon={<CalendarOutlined />}
                   >
-                    📅 Đặt Lịch Ngay
+                    Book Appointment
                   </Button>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Spin>
-      </Card>
+                ]}
+              >
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <Avatar 
+                    size={64} 
+                    icon={<UserOutlined />} 
+                    style={{ backgroundColor: '#1890ff' }}
+                  />
+                </div>
+                
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <Title level={4} style={{ margin: 0 }}>
+                    {consultant.name}
+                  </Title>
+                  <Text type="secondary">{consultant.specialty}</Text>
+                </div>
 
-      {/* Emergency Contact */}
-      <Card style={{
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        border: 'none',
-        borderRadius: '16px'
-      }}>
-        <Row align="middle">
-          <Col xs={24} md={16}>
-            <Title level={4} style={{ marginBottom: '8px' }}>
-              🆘 Cần Hỗ Trợ Khẩn Cấp?
-            </Title>
-            <Paragraph style={{ marginBottom: '16px' }}>
-              Nếu bạn đang gặp tình huống khẩn cấp, vui lòng liên hệ hotline 24/7
-            </Paragraph>
-            <Space>
-              <Button 
-                type="primary" 
-                danger
-                size="large"
-                icon={<PhoneOutlined />}
-                onClick={() => window.open('tel:113')}
-              >
-                Hotline: 113
-              </Button>
-              <Button 
-                size="large"
-                icon={<MailOutlined />}
-                onClick={() => window.open('mailto:support@drugprevention.com')}
-              >
-                Email Hỗ Trợ
-              </Button>
-            </Space>
-          </Col>
-          <Col xs={24} md={8} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '80px' }}>🚑</div>
-          </Col>
+                <div style={{ marginBottom: '16px' }}>
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <div>
+                      <MailOutlined /> {consultant.email}
+                    </div>
+                    {consultant.phone && (
+                      <div>
+                        <PhoneOutlined /> {consultant.phone}
+                      </div>
+                    )}
+                    <div>
+                      <Tag color="blue">{consultant.experience}</Tag>
+                      <Tag color="green">{consultant.rating} ⭐</Tag>
+                    </div>
+                  </Space>
+                </div>
+
+                <Paragraph style={{ fontSize: '12px', color: '#666' }}>
+                  {consultant.bio}
+                </Paragraph>
+              </Card>
+            </Col>
+          ))}
         </Row>
-      </Card>
+      )}
 
       {/* Booking Modal */}
       <Modal
-        title={`Đặt lịch tư vấn - ${selectedConsultant?.name}`}
+        title="Schedule Consultation"
         open={showBookingModal}
         onCancel={() => setShowBookingModal(false)}
         footer={null}
         width={600}
       >
         {selectedConsultant && (
-          <div>
+          <div style={{ marginBottom: '24px' }}>
             <Alert
-              message={`Phí tư vấn: ${selectedConsultant.price.toLocaleString()} VNĐ / buổi`}
+              message={`Booking with ${selectedConsultant.name}`}
+              description={`Specialty: ${selectedConsultant.specialty}`}
               type="info"
               showIcon
-              style={{ marginBottom: '24px' }}
             />
-            
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleBooking}
-              initialValues={{
-                appointmentType: 'ONLINE',
-                paymentMethod: 'CASH'
-              }}
-            >
+          </div>
+        )}
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleBooking}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
               <Form.Item
                 name="appointmentDate"
-                label="Chọn ngày"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+                label="Appointment Date"
+                rules={[{ required: true, message: 'Please select a date' }]}
               >
-                <DatePicker 
+                <DatePicker
                   style={{ width: '100%' }}
                   disabledDate={(current) => {
-                    return current && current < dayjs().startOf('day');
+                    // Disable weekends and past dates
+                    const day = current.day();
+                    return day === 0 || day === 6 || current.isBefore(dayjs(), 'day');
                   }}
                   onChange={handleDateChange}
                 />
               </Form.Item>
-
+            </Col>
+            <Col span={12}>
               <Form.Item
                 name="appointmentTime"
-                label="Chọn giờ"
-                rules={[{ required: true, message: 'Vui lòng chọn giờ!' }]}
+                label="Appointment Time"
+                rules={[{ required: true, message: 'Please select a time' }]}
               >
                 <Select
-                  style={{ width: '100%' }}
-                  placeholder={loadingSlots ? "Đang tải..." : "Vui lòng chọn ngày trước"}
-                  disabled={!availableSlots.length}
+                  placeholder="Select time slot"
                   loading={loadingSlots}
-                  options={availableSlots.map(slot => ({
-                    value: slot,
-                    label: slot
-                  }))}
-                />
+                  disabled={!selectedConsultant || availableSlots.length === 0}
+                >
+                  {availableSlots.map((slot) => (
+                    <Select.Option key={slot} value={slot}>
+                      {slot}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
+            </Col>
+          </Row>
 
-              <Form.Item
-                name="appointmentType"
-                label="Hình thức tư vấn"
-                rules={[{ required: true, message: 'Vui lòng chọn hình thức!' }]}
-              >
-                <Radio.Group>
-                  <Radio value="ONLINE">💻 Tư vấn online</Radio>
-                  <Radio value="IN_PERSON">🏢 Tư vấn trực tiếp</Radio>
-                </Radio.Group>
-              </Form.Item>
+          <Form.Item
+            name="appointmentType"
+            label="Appointment Type"
+            initialValue="ONLINE"
+          >
+            <Radio.Group>
+              <Radio value="ONLINE">Online Consultation</Radio>
+              <Radio value="IN_PERSON">In-Person Consultation</Radio>
+            </Radio.Group>
+          </Form.Item>
 
-              <Form.Item
-                name="paymentMethod"
-                label="Phương thức thanh toán"
-                rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
-              >
-                <Radio.Group>
-                  <Radio value="CASH">💵 Thanh toán tiền mặt</Radio>
-                  <Radio value="VNPAY">🏧 Thanh toán VNPay (sắp có)</Radio>
-                  <Radio value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</Radio>
-                </Radio.Group>
-              </Form.Item>
+          <Form.Item
+            name="paymentMethod"
+            label="Payment Method"
+            initialValue="CASH"
+          >
+            <Radio.Group>
+              <Radio value="CASH">Cash</Radio>
+              <Radio value="VNPAY">VNPay</Radio>
+              <Radio value="BANK_TRANSFER">Bank Transfer</Radio>
+            </Radio.Group>
+          </Form.Item>
 
-              <Form.Item
-                name="notes"
-                label="Ghi chú (tùy chọn)"
-              >
-                <Input.TextArea 
-                  rows={3} 
-                  placeholder="Mô tả vấn đề hoặc ghi chú đặc biệt..."
-                />
-              </Form.Item>
+          <Form.Item
+            name="notes"
+            label="Notes (Optional)"
+          >
+            <Input.TextArea
+              rows={3}
+              placeholder="Please describe your concerns or any specific topics you'd like to discuss..."
+            />
+          </Form.Item>
 
-              <Form.Item style={{ marginBottom: 0 }}>
-                <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                  <Button onClick={() => setShowBookingModal(false)}>
-                    Hủy
-                  </Button>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
-                    loading={loading}
-                    icon={<CheckCircleOutlined />}
-                  >
-                    Xác Nhận Đặt Lịch
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
-          </div>
-        )}
+          <Form.Item>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading}
+              style={{ width: '100%' }}
+            >
+              Schedule Appointment
+            </Button>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

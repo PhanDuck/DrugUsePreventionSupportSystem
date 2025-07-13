@@ -14,7 +14,7 @@ class AppointmentService {
       console.error('Error checking appointment service health:', error);
       return {
         success: false,
-        message: 'Service không khả dụng'
+        message: 'Service unavailable'
       };
     }
   }
@@ -31,7 +31,7 @@ class AppointmentService {
       console.error('Error creating appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tạo cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to create appointment'
       };
     }
   }
@@ -48,7 +48,24 @@ class AppointmentService {
       console.error('Error fetching client appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải cuộc hẹn của khách hàng'
+        message: error.response?.data?.error || 'Unable to load client appointments'
+      };
+    }
+  }
+
+  // ===== GET CURRENT USER APPOINTMENTS =====
+  async getCurrentUserAppointments() {
+    try {
+      const response = await api.get('/appointments/user');
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching current user appointments:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Unable to load your appointments'
       };
     }
   }
@@ -65,7 +82,7 @@ class AppointmentService {
       console.error('Error fetching consultant appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải lịch tư vấn'
+        message: error.response?.data?.error || 'Unable to load consultant schedule'
       };
     }
   }
@@ -82,7 +99,7 @@ class AppointmentService {
       console.error('Error fetching upcoming client appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải cuộc hẹn sắp tới'
+        message: error.response?.data?.error || 'Unable to load upcoming appointments'
       };
     }
   }
@@ -99,7 +116,7 @@ class AppointmentService {
       console.error('Error fetching upcoming consultant appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải lịch tư vấn sắp tới'
+        message: error.response?.data?.error || 'Unable to load upcoming consultant schedule'
       };
     }
   }
@@ -116,7 +133,7 @@ class AppointmentService {
       console.error('Error fetching appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải thông tin cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to load appointment information'
       };
     }
   }
@@ -133,7 +150,7 @@ class AppointmentService {
       console.error('Error confirming appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể xác nhận cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to confirm appointment'
       };
     }
   }
@@ -150,7 +167,7 @@ class AppointmentService {
       console.error('Error canceling appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể hủy cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to cancel appointment'
       };
     }
   }
@@ -167,7 +184,7 @@ class AppointmentService {
       console.error('Error completing appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể hoàn thành cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to complete appointment'
       };
     }
   }
@@ -184,7 +201,7 @@ class AppointmentService {
       console.error('Error adding meeting link:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể thêm link meeting'
+        message: error.response?.data?.error || 'Unable to add meeting link'
       };
     }
   }
@@ -201,7 +218,7 @@ class AppointmentService {
       console.error('Error fetching all appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải danh sách cuộc hẹn'
+        message: error.response?.data?.error || 'Unable to load appointment list'
       };
     }
   }
@@ -218,7 +235,7 @@ class AppointmentService {
       console.error('Error fetching appointments by status:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải cuộc hẹn theo trạng thái'
+        message: error.response?.data?.error || 'Unable to load appointments by status'
       };
     }
   }
@@ -235,7 +252,7 @@ class AppointmentService {
       console.error('Error fetching consultant statistics:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải thống kê chuyên gia'
+        message: error.response?.data?.error || 'Unable to load consultant statistics'
       };
     }
   }
@@ -252,7 +269,7 @@ class AppointmentService {
       console.error('Error fetching available slots:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải lịch trống'
+        message: error.response?.data?.error || 'Unable to load available slots'
       };
     }
   }
@@ -269,7 +286,7 @@ class AppointmentService {
       console.error('Error rescheduling appointment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể đổi lịch hẹn'
+        message: error.response?.data?.error || 'Unable to reschedule appointment'
       };
     }
   }
@@ -286,7 +303,7 @@ class AppointmentService {
       console.error('Error submitting review:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể gửi đánh giá'
+        message: error.response?.data?.error || 'Unable to submit review'
       };
     }
   }
@@ -303,7 +320,7 @@ class AppointmentService {
       console.error('Error fetching appointment reviews:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải đánh giá'
+        message: error.response?.data?.error || 'Unable to load reviews'
       };
     }
   }
@@ -320,7 +337,7 @@ class AppointmentService {
       console.error('Error fetching consultant reviews:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải đánh giá tư vấn viên'
+        message: error.response?.data?.error || 'Unable to load consultant reviews'
       };
     }
   }
@@ -337,7 +354,7 @@ class AppointmentService {
       console.error('Error sending appointment reminder:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể gửi nhắc nhở'
+        message: error.response?.data?.error || 'Unable to send reminder'
       };
     }
   }
@@ -354,7 +371,7 @@ class AppointmentService {
       console.error('Error fetching appointment statistics:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải thống kê lịch hẹn'
+        message: error.response?.data?.error || 'Unable to load appointment statistics'
       };
     }
   }
@@ -373,7 +390,7 @@ class AppointmentService {
       console.error('Error exporting appointments:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể xuất lịch hẹn'
+        message: error.response?.data?.error || 'Unable to export appointments'
       };
     }
   }

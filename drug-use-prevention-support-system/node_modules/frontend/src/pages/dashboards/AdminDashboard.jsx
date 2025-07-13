@@ -57,7 +57,7 @@ const AdminDashboard = () => {
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      message.error('Không thể tải dữ liệu dashboard');
+      message.error('Unable to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -67,13 +67,13 @@ const AdminDashboard = () => {
     try {
       const result = await userService.deleteUser(userId);
       if (result.success) {
-        message.success('Xóa người dùng thành công');
+        message.success('User deleted successfully');
         fetchDashboardData(); // Refresh data
       } else {
         message.error(result.message);
       }
     } catch (error) {
-      message.error('Không thể xóa người dùng');
+      message.error('Unable to delete user');
     }
   };
 
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
       width: 60,
     },
     {
-      title: 'Tên đăng nhập',
+      title: 'Username',
       dataIndex: 'userName',
       key: 'userName',
     },
@@ -95,12 +95,12 @@ const AdminDashboard = () => {
       key: 'email',
     },
     {
-      title: 'Họ tên',
+      title: 'Full Name',
       key: 'fullName',
       render: (_, record) => `${record.firstName || ''} ${record.lastName || ''}`.trim() || 'N/A',
     },
     {
-      title: 'Vai trò',
+      title: 'Role',
       dataIndex: ['role', 'name'],
       key: 'role',
       render: (role) => (
@@ -114,23 +114,23 @@ const AdminDashboard = () => {
       ),
     },
     {
-      title: 'Ngày tạo',
+      title: 'Created Date',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
+      render: (date) => date ? new Date(date).toLocaleDateString('en-US') : 'N/A',
     },
     {
-      title: 'Hành động',
+      title: 'Actions',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button size="small">Chỉnh sửa</Button>
+          <Button size="small">Edit</Button>
           <Button 
             size="small" 
             danger
             onClick={() => handleDeleteUser(record.id)}
           >
-            Xóa
+            Delete
           </Button>
         </Space>
       ),
@@ -141,21 +141,21 @@ const AdminDashboard = () => {
     return (
       <div style={{ padding: '24px', textAlign: 'center' }}>
         <Spin size="large" />
-        <p style={{ marginTop: '16px' }}>Đang tải dữ liệu dashboard...</p>
+        <p style={{ marginTop: '16px' }}>Loading dashboard data...</p>
       </div>
     );
   }
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Bảng điều khiển Quản trị viên</h1>
+      <h1>Administrator Dashboard</h1>
       
       {/* Statistics Cards */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng người dùng"
+              title="Total Users"
               value={stats.totalUsers}
               prefix={<UserOutlined />}
             />
@@ -164,17 +164,17 @@ const AdminDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng khóa học"
+              title="Total Courses"
               value={stats.totalCourses}
               prefix={<BookOutlined />}
-              suffix={<span style={{ fontSize: '12px', color: '#999' }}>(Chưa khả dụng)</span>}
+              suffix={<span style={{ fontSize: '12px', color: '#999' }}>(Not available)</span>}
             />
           </Card>
         </Col>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng cuộc hẹn"
+              title="Total Appointments"
               value={stats.totalAppointments}
               prefix={<CalendarOutlined />}
             />
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng đánh giá"
+              title="Total Assessments"
               value={stats.totalAssessments}
               prefix={<FileTextOutlined />}
             />
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       </Row>
 
       {/* Users Management */}
-      <Card title="Quản lý người dùng" style={{ marginBottom: '24px' }}>
+      <Card title="User Management" style={{ marginBottom: '24px' }}>
         <Table
           columns={userColumns}
           dataSource={users}
@@ -204,16 +204,16 @@ const AdminDashboard = () => {
       </Card>
 
       {/* Quick Actions */}
-      <Card title="Hành động nhanh">
+      <Card title="Quick Actions">
         <Space size="middle">
           <Button type="primary" onClick={fetchDashboardData}>
-            Làm mới dữ liệu
+            Refresh Data
           </Button>
-          <Button onClick={() => message.info('Tính năng đang phát triển')}>
-            Tạo báo cáo
+          <Button onClick={() => message.info('Feature under development')}>
+            Generate Report
           </Button>
-          <Button onClick={() => message.info('Tính năng đang phát triển')}>
-            Cài đặt hệ thống
+          <Button onClick={() => message.info('Feature under development')}>
+            System Settings
           </Button>
         </Space>
       </Card>

@@ -39,7 +39,7 @@ const HomePage = () => {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏥</div>
-          <div>Đang tải...</div>
+          <div>Loading...</div>
         </div>
       </div>
     );
@@ -71,15 +71,15 @@ const HomePage = () => {
             fontWeight: '700',
             marginBottom: '16px',
             margin: 0
-          }}>Hệ Thống Hỗ Trợ Phòng Chống Tệ Nạn</h1>
+          }}>Drug Prevention Support System</h1>
           <p style={{ 
             fontSize: '20px',
             opacity: 0.9,
             marginBottom: '40px',
             lineHeight: 1.6
           }}>
-            Cung cấp các công cụ đánh giá, khóa học và dịch vụ tư vấn chuyên nghiệp 
-            để hỗ trợ phòng chống và điều trị tệ nạn xã hội
+            Providing assessment tools, courses and professional consultation services 
+            to support drug prevention and treatment
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 
@@ -97,7 +97,7 @@ const HomePage = () => {
               }}
               onClick={() => navigate('/surveys')}
             >
-              📋 Đánh Giá Ngay
+              📋 Take Assessment Now
             </button>
             <button 
               style={{ 
@@ -113,7 +113,7 @@ const HomePage = () => {
               }}
               onClick={() => navigate('/courses')}
             >
-              📚 Xem Khóa Học
+              📚 View Courses
             </button>
             <button
               style={{ 
@@ -129,7 +129,7 @@ const HomePage = () => {
               }}
               onClick={() => navigate('/blogs')}
             >
-              📝 Đọc Blog
+              📝 Read Blog
             </button>
           </div>
         </div>
@@ -143,7 +143,7 @@ const HomePage = () => {
           fontWeight: '700',
           color: '#262626',
           marginBottom: '16px'
-        }}>Dịch Vụ Của Chúng Tôi</h2>
+        }}>Our Services</h2>
         <p style={{ 
           textAlign: 'center',
           fontSize: '18px',
@@ -152,7 +152,7 @@ const HomePage = () => {
           maxWidth: '600px',
           margin: '0 auto 40px auto'
         }}>
-          Hệ thống cung cấp các dịch vụ toàn diện từ đánh giá, tư vấn đến điều trị
+          The system provides comprehensive services from assessment to consultation and treatment
         </p>
 
         <div style={{ 
@@ -176,10 +176,10 @@ const HomePage = () => {
           >
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
             <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Đánh Giá Nguy Cơ
+              Risk Assessment
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '20px' }}>
-              Sử dụng các công cụ đánh giá chuẩn quốc tế như CRAFFT, ASSIST để xác định mức độ nguy cơ nghiện
+              Use international standard assessment tools like CRAFFT, ASSIST to determine addiction risk levels
             </p>
             <div style={{ 
               background: '#e6f7ff',
@@ -190,7 +190,7 @@ const HomePage = () => {
               fontWeight: '500',
               display: 'inline-block'
             }}>
-              Miễn phí - Không cần đăng ký
+              Free - No registration required
             </div>
           </div>
 
@@ -209,10 +209,10 @@ const HomePage = () => {
           >
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
             <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Khóa Học Giáo Dục
+              Educational Courses
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '20px' }}>
-              Các khóa học về kiến thức phòng chống tệ nạn, kỹ năng sống và phục hồi sức khỏe
+              Courses on drug prevention knowledge, life skills and health recovery
             </p>
             <div style={{
               background: '#fff7e6',
@@ -223,7 +223,7 @@ const HomePage = () => {
               fontWeight: '500',
               display: 'inline-block'
             }}>
-              Cần đăng ký để tham gia
+              Registration required to participate
             </div>
           </div>
 
@@ -248,10 +248,10 @@ const HomePage = () => {
           >
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
             <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px', color: '#262626' }}>
-              Tư Vấn Chuyên Gia
+              Expert Consultation
             </h3>
             <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '20px' }}>
-              Đặt lịch tư vấn trực tiếp với các chuyên gia tâm lý và điều trị nghiện chất
+              Schedule direct consultation with psychology and addiction treatment specialists
             </p>
             <div style={{ 
               background: '#f6ffed',
@@ -262,7 +262,7 @@ const HomePage = () => {
               fontWeight: '500',
               display: 'inline-block'
             }}>
-              Cần đăng nhập để đặt lịch
+              Login required to schedule
             </div>
           </div>
         </div>
@@ -282,7 +282,7 @@ const HomePage = () => {
             fontWeight: '600',
             marginBottom: '16px',
             color: '#262626'
-          }}>Sẵn Sàng Bắt Đầu?</h3>
+          }}>Ready to Get Started?</h3>
           <p style={{ 
             fontSize: '18px',
             color: '#666',
@@ -290,7 +290,7 @@ const HomePage = () => {
             maxWidth: '500px',
             margin: '0 auto 32px auto'
           }}>
-            Đăng ký tài khoản để truy cập đầy đủ các tính năng và theo dõi tiến trình của bạn
+            Register an account to access all features and track your progress
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
@@ -306,7 +306,7 @@ const HomePage = () => {
               }}
               onClick={() => navigate('/register')}
             >
-              Đăng Ký Ngay
+              Register Now
             </button>
             <button 
               style={{
@@ -321,7 +321,7 @@ const HomePage = () => {
               }}
               onClick={() => navigate('/login')}
             >
-              Đăng Nhập
+              Login
             </button>
           </div>
         </section>

@@ -28,7 +28,7 @@ const ConsultantDashboard = () => {
     setLoading(true);
     try {
       if (!currentUser?.id) {
-        message.error('Không tìm thấy thông tin người dùng');
+        message.error('User information not found');
         return;
       }
 
@@ -81,7 +81,7 @@ const ConsultantDashboard = () => {
       
     } catch (error) {
       console.error('Error fetching consultant dashboard data:', error);
-      message.error('Không thể tải dữ liệu dashboard');
+      message.error('Unable to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -91,13 +91,13 @@ const ConsultantDashboard = () => {
     try {
       const result = await appointmentService.confirmAppointment(appointmentId, currentUser.id);
       if (result.success) {
-        message.success('Xác nhận cuộc hẹn thành công');
+        message.success('Appointment confirmed successfully');
         fetchDashboardData(); // Refresh data
       } else {
         message.error(result.message);
       }
     } catch (error) {
-      message.error('Không thể xác nhận cuộc hẹn');
+      message.error('Unable to confirm appointment');
     }
   };
 
@@ -105,36 +105,36 @@ const ConsultantDashboard = () => {
     try {
       const result = await appointmentService.completeAppointment(appointmentId, currentUser.id, 'Completed consultation session');
       if (result.success) {
-        message.success('Hoàn thành cuộc hẹn thành công');
+        message.success('Appointment completed successfully');
         fetchDashboardData(); // Refresh data
       } else {
         message.error(result.message);
       }
     } catch (error) {
-      message.error('Không thể hoàn thành cuộc hẹn');
+      message.error('Unable to complete appointment');
     }
   };
 
   const appointmentColumns = [
     {
-      title: 'Khách hàng',
+      title: 'Client',
       dataIndex: 'clientName',
       key: 'clientName',
       render: (_, record) => record.clientName || `Client ID: ${record.clientId}`,
     },
     {
-      title: 'Ngày',
+      title: 'Date',
       dataIndex: 'appointmentDate',
       key: 'appointmentDate',
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
+      render: (date) => date ? new Date(date).toLocaleDateString('en-US') : 'N/A',
     },
     {
-      title: 'Giờ',
+      title: 'Time',
       dataIndex: 'appointmentTime',
       key: 'appointmentTime',
     },
     {
-      title: 'Trạng thái',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
@@ -143,14 +143,14 @@ const ConsultantDashboard = () => {
           status === 'PENDING' ? 'orange' :
           status === 'COMPLETED' ? 'blue' : 'red'
         }>
-          {status === 'CONFIRMED' ? 'Đã xác nhận' : 
-           status === 'PENDING' ? 'Chờ xác nhận' :
-           status === 'COMPLETED' ? 'Hoàn thành' : status}
+          {status === 'CONFIRMED' ? 'Confirmed' : 
+           status === 'PENDING' ? 'Pending' :
+           status === 'COMPLETED' ? 'Completed' : status}
         </Tag>
       ),
     },
     {
-      title: 'Hành động',
+      title: 'Actions',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
@@ -160,7 +160,7 @@ const ConsultantDashboard = () => {
               type="primary"
               onClick={() => handleConfirmAppointment(record.id)}
             >
-              Xác nhận
+              Confirm
             </Button>
           )}
           {record.status === 'CONFIRMED' && (
@@ -168,10 +168,10 @@ const ConsultantDashboard = () => {
               size="small"
               onClick={() => handleCompleteAppointment(record.id)}
             >
-              Hoàn thành
+              Complete
             </Button>
           )}
-          <Button size="small">Chi tiết</Button>
+          <Button size="small">Details</Button>
         </Space>
       ),
     },
@@ -179,41 +179,41 @@ const ConsultantDashboard = () => {
 
   const assessmentColumns = [
     {
-      title: 'Khách hàng',
+      title: 'Client',
       dataIndex: 'clientName',
       key: 'clientName',
     },
     {
-      title: 'Loại đánh giá',
+      title: 'Assessment Type',
       dataIndex: 'assessmentType',
       key: 'assessmentType',
     },
     {
-      title: 'Điểm số',
+      title: 'Score',
       dataIndex: 'totalScore',
       key: 'totalScore',
     },
     {
-      title: 'Mức độ rủi ro',
+      title: 'Risk Level',
       dataIndex: 'riskLevel',
       key: 'riskLevel',
       render: (riskLevel) => (
         <Tag color={
-          riskLevel === 'CAO' ? 'red' : 
-          riskLevel === 'TRUNG BÌNH' ? 'orange' : 'green'
+          riskLevel === 'HIGH' ? 'red' : 
+          riskLevel === 'MODERATE' ? 'orange' : 'green'
         }>
           {riskLevel}
         </Tag>
       ),
     },
     {
-      title: 'Ngày',
+      title: 'Date',
       dataIndex: 'completedAt',
       key: 'completedAt',
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
+      render: (date) => date ? new Date(date).toLocaleDateString('en-US') : 'N/A',
     },
     {
-      title: 'Hành động',
+      title: 'Actions',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
@@ -221,20 +221,20 @@ const ConsultantDashboard = () => {
             size="small" 
             type="primary"
             onClick={() => {
-              message.info(`Xem chi tiết kết quả đánh giá của ${record.clientName}`);
+              message.info(`View detailed assessment results for ${record.clientName}`);
               // TODO: Navigate to detailed view
             }}
           >
-            Xem kết quả
+            View Results
           </Button>
           <Button 
             size="small"
             onClick={() => {
-              message.info('Tính năng tư vấn đang phát triển');
+              message.info('Consultation feature under development');
               // TODO: Create consultation notes
             }}
           >
-            Tư vấn
+            Consult
           </Button>
         </Space>
       ),
@@ -245,21 +245,21 @@ const ConsultantDashboard = () => {
     return (
       <div style={{ padding: '24px', textAlign: 'center' }}>
         <Spin size="large" />
-        <p style={{ marginTop: '16px' }}>Đang tải dữ liệu chuyên gia tư vấn...</p>
+        <p style={{ marginTop: '16px' }}>Loading consultant data...</p>
       </div>
     );
   }
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Bảng điều khiển Chuyên gia tư vấn</h1>
+      <h1>Consultant Dashboard</h1>
       
       {/* Statistics Cards */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Cuộc hẹn hôm nay"
+              title="Today's Appointments"
               value={stats.todayAppointments}
               prefix={<CalendarOutlined />}
             />
@@ -268,7 +268,7 @@ const ConsultantDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Đánh giá chờ xử lý"
+              title="Pending Assessments"
               value={stats.pendingAssessments}
               prefix={<FileTextOutlined />}
             />
@@ -277,7 +277,7 @@ const ConsultantDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng khách hàng"
+              title="Total Clients"
               value={stats.totalClients}
               prefix={<UserOutlined />}
             />
@@ -286,7 +286,7 @@ const ConsultantDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Phiên hoàn thành"
+              title="Completed Sessions"
               value={stats.completedSessions}
               prefix={<ClockCircleOutlined />}
             />
@@ -295,7 +295,7 @@ const ConsultantDashboard = () => {
       </Row>
 
       {/* Today's Appointments */}
-      <Card title="Lịch hẹn của tôi" style={{ marginBottom: '24px' }}>
+      <Card title="My Appointments" style={{ marginBottom: '24px' }}>
         <Table
           columns={appointmentColumns}
           dataSource={appointments}
@@ -307,7 +307,7 @@ const ConsultantDashboard = () => {
       </Card>
 
       {/* Recent Assessment Results */}
-      <Card title="Kết quả đánh giá gần đây">
+      <Card title="Recent Assessment Results">
         <Table
           columns={assessmentColumns}
           dataSource={assessmentResults}
@@ -315,21 +315,21 @@ const ConsultantDashboard = () => {
           loading={loading}
           pagination={{ pageSize: 5 }}
           size="small"
-          locale={{ emptyText: 'Chưa có dữ liệu đánh giá' }}
+          locale={{ emptyText: 'No assessment data available' }}
         />
       </Card>
 
       {/* Quick Actions */}
-      <Card title="Hành động nhanh" style={{ marginTop: '24px' }}>
+      <Card title="Quick Actions" style={{ marginTop: '24px' }}>
         <Space size="middle">
           <Button type="primary" onClick={fetchDashboardData}>
-            Làm mới dữ liệu
+            Refresh Data
           </Button>
-          <Button onClick={() => message.info('Tính năng đang phát triển')}>
-            Xem tất cả cuộc hẹn
+          <Button onClick={() => message.info('Feature under development')}>
+            View All Appointments
           </Button>
-          <Button onClick={() => message.info('Tính năng đang phát triển')}>
-            Báo cáo tuần
+          <Button onClick={() => message.info('Feature under development')}>
+            Weekly Report
           </Button>
         </Space>
       </Card>

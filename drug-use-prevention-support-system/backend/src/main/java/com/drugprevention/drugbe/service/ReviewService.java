@@ -32,22 +32,22 @@ public class ReviewService {
         // Check if appointment exists and is completed
         Optional<Appointment> appointmentOpt = appointmentRepository.findById(appointmentId);
         if (appointmentOpt.isEmpty()) {
-            throw new RuntimeException("Lịch hẹn không tồn tại");
+            throw new RuntimeException("Appointment not found");
         }
 
         Appointment appointment = appointmentOpt.get();
         if (!"COMPLETED".equals(appointment.getStatus())) {
-            throw new RuntimeException("Chỉ có thể đánh giá lịch hẹn đã hoàn thành");
+            throw new RuntimeException("Can only review completed appointments");
         }
 
         // Check if review already exists
         if (reviewRepository.existsByAppointmentId(appointmentId)) {
-            throw new RuntimeException("Lịch hẹn này đã được đánh giá");
+            throw new RuntimeException("This appointment has already been reviewed");
         }
 
         // Validate rating
         if (rating < 1 || rating > 5) {
-            throw new RuntimeException("Đánh giá phải từ 1 đến 5 sao");
+            throw new RuntimeException("Rating must be from 1 to 5 stars");
         }
 
         // Create review
@@ -104,14 +104,14 @@ public class ReviewService {
     public ReviewDTO updateReview(Long reviewId, Integer rating, String comment) {
         Optional<Review> reviewOpt = reviewRepository.findById(reviewId);
         if (reviewOpt.isEmpty()) {
-            throw new RuntimeException("Đánh giá không tồn tại");
+            throw new RuntimeException("Review not found");
         }
 
         Review review = reviewOpt.get();
         
         // Validate rating
         if (rating != null && (rating < 1 || rating > 5)) {
-            throw new RuntimeException("Đánh giá phải từ 1 đến 5 sao");
+            throw new RuntimeException("Rating must be from 1 to 5 stars");
         }
 
         if (rating != null) {
@@ -128,7 +128,7 @@ public class ReviewService {
     // Delete review
     public void deleteReview(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
-            throw new RuntimeException("Đánh giá không tồn tại");
+            throw new RuntimeException("Review not found");
         }
         reviewRepository.deleteById(reviewId);
     }

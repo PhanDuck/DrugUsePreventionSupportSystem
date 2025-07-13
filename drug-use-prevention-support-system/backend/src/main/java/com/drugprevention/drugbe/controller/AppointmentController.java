@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import com.drugprevention.drugbe.entity.User;
+import com.drugprevention.drugbe.service.AuthService;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -24,6 +27,9 @@ public class AppointmentController {
 
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private AuthService authService;
 
     // ===== HEALTH CHECK =====
 
@@ -40,16 +46,67 @@ public class AppointmentController {
     @Operation(summary = "Create new appointment", description = "Book a new consultation appointment")
     public ResponseEntity<?> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
         try {
+            // Validate request
+            if (request == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Request cannot be null"));
+            }
+            
+            if (request.getClientId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Client ID cannot be null"));
+            }
+            
+            if (request.getConsultantId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Consultant ID cannot be null"));
+            }
+            
+            if (request.getAppointmentDate() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Appointment date cannot be null"));
+            }
+            
+            if (request.getDurationMinutes() == null || request.getDurationMinutes() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Duration must be greater than 0"));
+            }
+            
             AppointmentDTO appointment = appointmentService.createAppointment(request);
             return ResponseEntity.ok(appointment);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi tạo lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error creating appointment: " + e.getMessage()));
         }
     }
 
     // ===== GET APPOINTMENTS =====
+
+    @GetMapping("/user")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Get current user appointments", description = "Get all appointments for the current authenticated user")
+    public ResponseEntity<?> getCurrentUserAppointments(Authentication authentication) {
+        try {
+            // Validate authentication
+            if (authentication == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+            
+            String username = authentication.getName();
+            if (username == null || username.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Username cannot be null or empty"));
+            }
+            
+            // Get current user ID from authentication
+            User currentUser = authService.findByUsername(username);
+            if (currentUser == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+            }
+            
+            List<AppointmentDTO> appointments = appointmentService.getAppointmentsByClient(currentUser.getId());
+            return ResponseEntity.ok(appointments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting user appointments: " + e.getMessage()));
+        }
+    }
 
     @GetMapping("/client/{clientId}")
     @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
@@ -59,7 +116,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getAppointmentsByClient(clientId);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment list: " + e.getMessage()));
         }
     }
 
@@ -71,7 +128,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getAppointmentsByConsultant(consultantId);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment list: " + e.getMessage()));
         }
     }
 
@@ -83,7 +140,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getUpcomingAppointmentsByClient(clientId);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy lịch hẹn sắp tới: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting upcoming appointments: " + e.getMessage()));
         }
     }
 
@@ -95,7 +152,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getUpcomingAppointmentsByConsultant(consultantId);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy lịch hẹn sắp tới: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting upcoming appointments: " + e.getMessage()));
         }
     }
 
@@ -109,7 +166,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thông tin lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment information: " + e.getMessage()));
         }
     }
 
@@ -125,7 +182,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi xác nhận lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error confirming appointment: " + e.getMessage()));
         }
     }
 
@@ -141,7 +198,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi hủy lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error cancelling appointment: " + e.getMessage()));
         }
     }
 
@@ -157,7 +214,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi hoàn thành lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error completing appointment: " + e.getMessage()));
         }
     }
 
@@ -173,7 +230,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi thêm link meeting: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error adding meeting link: " + e.getMessage()));
         }
     }
 
@@ -187,7 +244,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getAllAppointments();
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment list: " + e.getMessage()));
         }
     }
 
@@ -199,7 +256,7 @@ public class AppointmentController {
             List<AppointmentDTO> appointments = appointmentService.getAppointmentsByStatus(status);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy danh sách lịch hẹn theo trạng thái: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointments by status: " + e.getMessage()));
         }
     }
 
@@ -216,7 +273,7 @@ public class AppointmentController {
             // Implementation would parse startDate and endDate strings to LocalDateTime
             return ResponseEntity.ok(Map.of("message", "Statistics endpoint - implement date parsing"));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thống kê: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting statistics: " + e.getMessage()));
         }
     }
     
@@ -238,11 +295,11 @@ public class AppointmentController {
                 "totalSlots", availableSlots.size()
             ));
         } catch (DateTimeParseException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Định dạng ngày không hợp lệ. Vui lòng sử dụng format: YYYY-MM-DD"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid date format. Please use format: YYYY-MM-DD"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy lịch trống: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting available slots: " + e.getMessage()));
         }
     }
 
@@ -259,7 +316,7 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi đổi lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error rescheduling appointment: " + e.getMessage()));
         }
     }
 
@@ -274,7 +331,7 @@ public class AppointmentController {
             AppointmentService.AppointmentStatistics statistics = appointmentService.getAppointmentStatistics(userId, period);
             return ResponseEntity.ok(statistics);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi lấy thống kê lịch hẹn: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment statistics: " + e.getMessage()));
         }
     }
 
@@ -286,9 +343,9 @@ public class AppointmentController {
     public ResponseEntity<?> autoCompletePastAppointments() {
         try {
             appointmentService.autoCompletePastAppointments();
-            return ResponseEntity.ok(Map.of("message", "Đã hoàn thành tự động các lịch hẹn quá hạn"));
+            return ResponseEntity.ok(Map.of("message", "Automatically completed overdue appointments"));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi hoàn thành tự động: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error auto-completing: " + e.getMessage()));
         }
     }
 
@@ -300,9 +357,9 @@ public class AppointmentController {
     public ResponseEntity<?> sendAppointmentReminders() {
         try {
             appointmentService.sendAppointmentReminders();
-            return ResponseEntity.ok(Map.of("message", "Đã gửi nhắc nhở lịch hẹn"));
+            return ResponseEntity.ok(Map.of("message", "Appointment reminders sent"));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi gửi nhắc nhở: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error sending reminders: " + e.getMessage()));
         }
     }
 } 

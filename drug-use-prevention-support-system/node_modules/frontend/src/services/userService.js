@@ -14,7 +14,7 @@ class UserService {
       console.error('Error fetching users:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải danh sách người dùng'
+        message: error.response?.data?.message || 'Unable to load user list'
       };
     }
   }
@@ -31,7 +31,7 @@ class UserService {
       console.error('Error fetching user:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải thông tin người dùng'
+        message: error.response?.data?.message || 'Unable to load user information'
       };
     }
   }
@@ -48,7 +48,7 @@ class UserService {
       console.error('Error updating user:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể cập nhật thông tin người dùng'
+        message: error.response?.data?.message || 'Unable to update user information'
       };
     }
   }
@@ -59,13 +59,13 @@ class UserService {
       await api.delete(`/users/${userId}`);
       return {
         success: true,
-        message: 'Xóa người dùng thành công'
+        message: 'User deleted successfully'
       };
     } catch (error) {
       console.error('Error deleting user:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể xóa người dùng'
+        message: error.response?.data?.message || 'Unable to delete user'
       };
     }
   }
@@ -82,7 +82,7 @@ class UserService {
       console.error('Error fetching user profile:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải thông tin cá nhân'
+        message: error.response?.data?.message || 'Unable to load personal information'
       };
     }
   }
@@ -99,7 +99,7 @@ class UserService {
       console.error('Error updating user profile:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể cập nhật thông tin cá nhân'
+        message: error.response?.data?.message || 'Unable to update personal information'
       };
     }
   }
@@ -116,7 +116,7 @@ class UserService {
       console.error('Error changing password:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể thay đổi mật khẩu'
+        message: error.response?.data?.message || 'Unable to change password'
       };
     }
   }
@@ -133,7 +133,7 @@ class UserService {
       console.error('Error fetching users by role:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải danh sách người dùng theo vai trò'
+        message: error.response?.data?.message || 'Unable to load user list by role'
       };
     }
   }
@@ -150,7 +150,7 @@ class UserService {
       console.error('Error assigning role:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể gán vai trò'
+        message: error.response?.data?.message || 'Unable to assign role'
       };
     }
   }
@@ -167,7 +167,7 @@ class UserService {
       console.error('Error deactivating user:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể vô hiệu hóa người dùng'
+        message: error.response?.data?.message || 'Unable to deactivate user'
       };
     }
   }
@@ -184,7 +184,7 @@ class UserService {
       console.error('Error activating user:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể kích hoạt người dùng'
+        message: error.response?.data?.message || 'Unable to activate user'
       };
     }
   }
@@ -201,7 +201,7 @@ class UserService {
       console.error('Error fetching consultants:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải danh sách chuyên gia tư vấn'
+        message: error.response?.data?.message || 'Unable to load consultant list'
       };
     }
   }
@@ -218,7 +218,7 @@ class UserService {
       console.error('Error searching users:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tìm kiếm người dùng'
+        message: error.response?.data?.message || 'Unable to search users'
       };
     }
   }
@@ -235,7 +235,7 @@ class UserService {
       console.error('Error fetching user count:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải thống kê người dùng'
+        message: error.response?.data?.message || 'Unable to load user statistics'
       };
     }
   }
@@ -252,7 +252,7 @@ class UserService {
       console.error('Error fetching user count by role:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể tải thống kê theo vai trò'
+        message: error.response?.data?.message || 'Unable to load statistics by role'
       };
     }
   }

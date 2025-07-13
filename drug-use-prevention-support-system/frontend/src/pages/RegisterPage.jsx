@@ -131,7 +131,7 @@ const RegisterPage = () => {
   //     const result = await signInWithPopup(auth, provider);
   //     const user = result.user;
   //     console.log('Google user:', user);
-  //     toast.success("Google đăng ký thành công");
+  //     toast.success("Google registration successful");
   //     navigate('/');
   //   } catch (error) {
   //     console.error('Google sign-up error:', error);

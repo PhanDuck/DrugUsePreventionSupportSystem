@@ -32,7 +32,7 @@ class AssessmentService {
       console.log('✅ Assessments loaded:', assessments);
       
       if (!assessments || assessments.length === 0) {
-        throw new Error('Không có bài đánh giá nào có sẵn');
+        throw new Error('No assessments available');
       }
       
       // Get questions from the first assessment
@@ -450,7 +450,7 @@ class AssessmentService {
       console.error('Error fetching client assessment results:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải kết quả đánh giá của khách hàng'
+        message: error.response?.data?.error || 'Unable to load client assessment results'
       };
     }
   }
@@ -469,7 +469,7 @@ class AssessmentService {
       console.error('Error fetching latest client assessment:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Không thể tải kết quả đánh giá mới nhất'
+        message: error.response?.data?.error || 'Unable to load latest assessment results'
       };
     }
   }

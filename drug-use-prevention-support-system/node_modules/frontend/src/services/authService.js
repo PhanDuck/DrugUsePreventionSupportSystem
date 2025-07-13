@@ -48,20 +48,20 @@ class AuthService {
         // Server responded with error
         return {
           success: false,
-          message: error.response.data?.message || error.response.data || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.'
+          message: error.response.data?.message || error.response.data || 'Login failed. Please check your information.'
         };
       } else if (error.request) {
         console.error('❌ Network error - no response received');
         // Network error
         return {
           success: false,
-          message: 'Không thể kết nối tới server. Vui lòng thử lại.'
+          message: 'Unable to connect to server. Please try again.'
         };
       } else {
         console.error('❌ Request setup error');
         return {
           success: false,
-          message: 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+          message: 'An error occurred. Please try again.'
         };
       }
     }
@@ -82,12 +82,12 @@ class AuthService {
       if (error.response) {
         return {
           success: false,
-          message: error.response.data?.message || error.response.data || 'Đăng ký thất bại.'
+          message: error.response.data?.message || error.response.data || 'Registration failed.'
         };
       } else {
         return {
           success: false,
-          message: 'Không thể kết nối tới server.'
+          message: 'Unable to connect to server.'
         };
       }
     }
@@ -99,7 +99,7 @@ class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     
-    // TODO: Firebase signOut khi tích hợp sau
+    // TODO: Firebase signOut when integrated later
     // await signOut(auth);
   }
 
@@ -209,19 +209,19 @@ class AuthService {
     const role = this.getUserRole();
     switch (role) {
       case 'ADMIN':
-        return 'Quản trị viên';
+        return 'Administrator';
       case 'MANAGER':
-        return 'Quản lý';
+        return 'Manager';
       case 'CONSULTANT':
-        return 'Chuyên gia tư vấn';
+        return 'Consultant';
       case 'STAFF':
-        return 'Nhân viên';
+        return 'Staff';
       case 'USER':
-        return 'Người dùng';
+        return 'User';
       case 'GUEST':
-        return 'Khách';
+        return 'Guest';
       default:
-        return 'Không xác định';
+        return 'Undetermined';
     }
   }
 

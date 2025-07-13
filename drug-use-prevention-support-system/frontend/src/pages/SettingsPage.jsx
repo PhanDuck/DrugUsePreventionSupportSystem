@@ -34,7 +34,7 @@ const SettingsPage = () => {
     },
     display: {
       theme: 'light',
-      language: 'vi',
+      language: 'en',
       fontSize: 'medium',
       compactMode: false
     }
@@ -49,7 +49,7 @@ const SettingsPage = () => {
       // Mock loading settings - replace with actual API call
       form.setFieldsValue(settings);
     } catch (error) {
-      message.error('Không thể tải cài đặt');
+      message.error('Unable to load settings');
     }
   };
 
@@ -59,9 +59,9 @@ const SettingsPage = () => {
       // Mock API call - replace with actual API
       console.log('Saving settings:', values);
       setSettings(values);
-      message.success('Cài đặt đã được lưu thành công');
+      message.success('Settings saved successfully');
     } catch (error) {
-      message.error('Có lỗi xảy ra khi lưu cài đặt');
+      message.error('An error occurred while saving settings');
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ const SettingsPage = () => {
 
   const handleResetSettings = () => {
     form.setFieldsValue(settings);
-    message.info('Cài đặt đã được khôi phục');
+    message.info('Settings have been restored');
   };
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
-      <Title level={2}>⚙️ Cài Đặt</Title>
+      <Title level={2}>⚙️ Settings</Title>
       
       <Form
         form={form}
@@ -87,36 +87,36 @@ const SettingsPage = () => {
           title={
             <Space>
               <BellOutlined />
-              <span>Cài Đặt Thông Báo</span>
+              <span>Notification Settings</span>
             </Space>
           }
           style={{ marginBottom: '24px' }}
         >
           <Row gutter={[24, 16]}>
             <Col xs={24} md={12}>
-              <Title level={4}>Kênh thông báo</Title>
-              <Form.Item name={['notifications', 'email']} label="Email thông báo">
+              <Title level={4}>Notification Channels</Title>
+              <Form.Item name={['notifications', 'email']} label="Email notifications">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['notifications', 'push']} label="Thông báo đẩy">
+              <Form.Item name={['notifications', 'push']} label="Push notifications">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['notifications', 'sms']} label="SMS thông báo">
+              <Form.Item name={['notifications', 'sms']} label="SMS notifications">
                 <Switch />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Title level={4}>Loại thông báo</Title>
-              <Form.Item name={['notifications', 'appointments']} label="Lịch hẹn">
+              <Title level={4}>Notification Types</Title>
+              <Form.Item name={['notifications', 'appointments']} label="Appointments">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['notifications', 'courses']} label="Khóa học">
+              <Form.Item name={['notifications', 'courses']} label="Courses">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['notifications', 'assessments']} label="Đánh giá">
+              <Form.Item name={['notifications', 'assessments']} label="Assessments">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['notifications', 'blogs']} label="Bài viết">
+              <Form.Item name={['notifications', 'blogs']} label="Blog posts">
                 <Switch />
               </Form.Item>
             </Col>
@@ -128,7 +128,7 @@ const SettingsPage = () => {
           title={
             <Space>
               <UserOutlined />
-              <span>Quyền Riêng Tư</span>
+              <span>Privacy</span>
             </Space>
           }
           style={{ marginBottom: '24px' }}
@@ -137,23 +137,23 @@ const SettingsPage = () => {
             <Col xs={24} md={12}>
               <Form.Item 
                 name={['privacy', 'profileVisibility']} 
-                label="Hiển thị hồ sơ"
+                label="Profile visibility"
               >
                 <Select>
-                  <Option value="public">Công khai</Option>
-                  <Option value="friends">Bạn bè</Option>
-                  <Option value="private">Riêng tư</Option>
+                  <Option value="public">Public</Option>
+                  <Option value="friends">Friends</Option>
+                  <Option value="private">Private</Option>
                 </Select>
               </Form.Item>
-              <Form.Item name={['privacy', 'showEmail']} label="Hiển thị email">
+              <Form.Item name={['privacy', 'showEmail']} label="Show email">
                 <Switch />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item name={['privacy', 'showPhone']} label="Hiển thị số điện thoại">
+              <Form.Item name={['privacy', 'showPhone']} label="Show phone number">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['privacy', 'allowMessages']} label="Cho phép nhận tin nhắn">
+              <Form.Item name={['privacy', 'allowMessages']} label="Allow messages">
                 <Switch />
               </Form.Item>
             </Col>
@@ -165,28 +165,28 @@ const SettingsPage = () => {
           title={
             <Space>
               <SecurityScanOutlined />
-              <span>Bảo Mật</span>
+              <span>Security</span>
             </Space>
           }
           style={{ marginBottom: '24px' }}
         >
           <Row gutter={[24, 16]}>
             <Col xs={24} md={12}>
-              <Form.Item name={['security', 'twoFactorAuth']} label="Xác thực 2 yếu tố">
+              <Form.Item name={['security', 'twoFactorAuth']} label="Two-factor authentication">
                 <Switch />
               </Form.Item>
-              <Form.Item name={['security', 'loginNotifications']} label="Thông báo đăng nhập">
+              <Form.Item name={['security', 'loginNotifications']} label="Login notifications">
                 <Switch />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
               <Form.Item 
                 name={['security', 'sessionTimeout']} 
-                label="Thời gian phiên làm việc (phút)"
+                label="Session timeout (minutes)"
               >
                 <InputNumber min={5} max={480} />
               </Form.Item>
-              <Form.Item name={['security', 'deviceManagement']} label="Quản lý thiết bị">
+              <Form.Item name={['security', 'deviceManagement']} label="Device management">
                 <Switch />
               </Form.Item>
             </Col>
@@ -198,59 +198,59 @@ const SettingsPage = () => {
           title={
             <Space>
               <GlobalOutlined />
-              <span>Hiển Thị</span>
+              <span>Display</span>
             </Space>
           }
           style={{ marginBottom: '24px' }}
         >
           <Row gutter={[24, 16]}>
             <Col xs={24} md={8}>
-              <Form.Item name={['display', 'theme']} label="Giao diện">
+              <Form.Item name={['display', 'theme']} label="Theme">
                 <Select>
-                  <Option value="light">Sáng</Option>
-                  <Option value="dark">Tối</Option>
-                  <Option value="auto">Tự động</Option>
+                  <Option value="light">Light</Option>
+                  <Option value="dark">Dark</Option>
+                  <Option value="auto">Auto</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item name={['display', 'language']} label="Ngôn ngữ">
+              <Form.Item name={['display', 'language']} label="Language">
                 <Select>
-                  <Option value="vi">Tiếng Việt</Option>
                   <Option value="en">English</Option>
+                  <Option value="vi">Tiếng Việt</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item name={['display', 'fontSize']} label="Cỡ chữ">
+              <Form.Item name={['display', 'fontSize']} label="Font size">
                 <Select>
-                  <Option value="small">Nhỏ</Option>
-                  <Option value="medium">Trung bình</Option>
-                  <Option value="large">Lớn</Option>
+                  <Option value="small">Small</Option>
+                  <Option value="medium">Medium</Option>
+                  <Option value="large">Large</Option>
                 </Select>
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item name={['display', 'compactMode']} label="Chế độ thu gọn">
+          <Form.Item name={['display', 'compactMode']} label="Compact mode">
             <Switch />
           </Form.Item>
         </Card>
 
         {/* Data Management */}
-        <Card title="Quản Lý Dữ Liệu" style={{ marginBottom: '24px' }}>
+        <Card title="Data Management" style={{ marginBottom: '24px' }}>
           <Alert
-            message="Quản lý dữ liệu cá nhân"
-            description="Bạn có thể xuất hoặc xóa dữ liệu cá nhân của mình"
+            message="Personal data management"
+            description="You can export or delete your personal data"
             type="info"
             showIcon
             style={{ marginBottom: '16px' }}
           />
           <Space>
             <Button type="default" icon={<ReloadOutlined />}>
-              Xuất dữ liệu
+              Export data
             </Button>
             <Button type="default" danger>
-              Xóa tài khoản
+              Delete account
             </Button>
           </Space>
         </Card>
@@ -264,13 +264,13 @@ const SettingsPage = () => {
               loading={loading}
               icon={<SaveOutlined />}
             >
-              Lưu cài đặt
+              Save settings
             </Button>
             <Button 
               onClick={handleResetSettings}
               icon={<ReloadOutlined />}
             >
-              Khôi phục
+              Reset
             </Button>
           </Space>
         </Card>

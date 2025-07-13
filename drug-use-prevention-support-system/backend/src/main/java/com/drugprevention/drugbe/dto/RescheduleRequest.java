@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 public class RescheduleRequest {
     
-    @NotNull(message = "Thời gian mới không được để trống")
+    @NotNull(message = "New date time cannot be empty")
     private LocalDateTime newDateTime;
     
     private String reason;

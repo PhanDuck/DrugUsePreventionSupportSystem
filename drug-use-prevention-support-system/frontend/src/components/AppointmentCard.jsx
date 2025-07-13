@@ -29,11 +29,11 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
 
   const getStatusText = (status) => {
     const texts = {
-      'PENDING': 'Chờ xác nhận',
-      'CONFIRMED': 'Đã xác nhận',
-      'COMPLETED': 'Hoàn thành',
-      'CANCELLED': 'Đã hủy',
-      'RESCHEDULED': 'Đã đổi lịch'
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'COMPLETED': 'Completed',
+      'CANCELLED': 'Cancelled',
+      'RESCHEDULED': 'Rescheduled'
     };
     return texts[status] || status;
   };
@@ -43,7 +43,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
   };
 
   const getAppointmentTypeText = (type) => {
-    return type === 'ONLINE' ? 'Tư vấn online' : 'Tư vấn trực tiếp';
+    return type === 'ONLINE' ? 'Online consultation' : 'In-person consultation';
   };
 
   const getTimeUntilAppointment = (appointmentDate) => {
@@ -52,12 +52,12 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
     const diff = appointment.diff(now, 'hour');
     
     if (diff < 0) {
-      return 'Đã qua';
+      return 'Past';
     } else if (diff < 24) {
-      return `${diff} giờ nữa`;
+      return `${diff} hours from now`;
     } else {
       const days = Math.floor(diff / 24);
-      return `${days} ngày nữa`;
+      return `${days} days from now`;
     }
   };
 
@@ -109,7 +109,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
           icon={<EyeOutlined />}
           onClick={() => navigate(`/appointments/${appointment.id}`)}
         >
-          Xem chi tiết
+          View Details
         </Button>
       ] : undefined}
     >
@@ -124,7 +124,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
             {appointment.consultant?.firstName} {appointment.consultant?.lastName}
           </Title>
           <Space size="small" style={{ marginBottom: '8px' }}>
-            <Tag color="blue">{appointment.consultant?.expertise || 'Tư vấn chung'}</Tag>
+            <Tag color="blue">{appointment.consultant?.expertise || 'General Consultation'}</Tag>
             <Tag color={getStatusColor(appointment.status)}>
               {getStatusText(appointment.status)}
             </Tag>
@@ -151,7 +151,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
         
         {appointment.clientNotes && (
           <div>
-            <Text type="secondary">Ghi chú: {appointment.clientNotes}</Text>
+            <Text type="secondary">Notes: {appointment.clientNotes}</Text>
           </div>
         )}
       </Space>
@@ -165,7 +165,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
           border: '1px solid #b7eb8f'
         }}>
           <Text type="success" style={{ fontSize: '12px' }}>
-            ⏰ Buổi tư vấn sẽ bắt đầu trong {getTimeUntilAppointment(appointment.appointmentDate)}
+            ⏰ Consultation will start in {getTimeUntilAppointment(appointment.appointmentDate)}
           </Text>
         </div>
       )}
@@ -179,7 +179,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
           border: '1px solid #ffd591'
         }}>
           <Text type="warning" style={{ fontSize: '12px' }}>
-            ⏳ Đang chờ tư vấn viên xác nhận lịch hẹn
+            ⏳ Waiting for consultant to confirm appointment
           </Text>
         </div>
       )}
@@ -193,7 +193,7 @@ const AppointmentCard = ({ appointment, showActions = true, compact = false }) =
           border: '1px solid #b7eb8f'
         }}>
           <Text type="success" style={{ fontSize: '12px' }}>
-            ✅ Buổi tư vấn đã hoàn thành
+            ✅ Consultation completed
           </Text>
         </div>
       )}

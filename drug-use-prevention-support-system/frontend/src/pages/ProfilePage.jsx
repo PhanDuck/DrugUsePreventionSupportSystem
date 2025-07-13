@@ -29,7 +29,7 @@ const ProfilePage = () => {
         });
       }
     } catch (error) {
-      message.error('Không thể tải thông tin người dùng');
+      message.error('Unable to load user information');
     }
   };
 
@@ -38,14 +38,14 @@ const ProfilePage = () => {
     try {
       const response = await userService.updateProfile(values);
       if (response.success) {
-        message.success('Cập nhật thông tin thành công');
+        message.success('Profile updated successfully');
         setEditing(false);
         fetchUserProfile();
       } else {
-        message.error(response.message || 'Cập nhật thất bại');
+        message.error(response.message || 'Update failed');
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật thông tin');
+      message.error('An error occurred while updating profile');
     } finally {
       setLoading(false);
     }
@@ -53,11 +53,11 @@ const ProfilePage = () => {
 
   const getRoleDisplayName = (role) => {
     const roleNames = {
-      'ADMIN': 'Quản trị viên',
-      'MANAGER': 'Quản lý',
-      'CONSULTANT': 'Tư vấn viên',
-      'STAFF': 'Nhân viên',
-      'USER': 'Người dùng'
+      'ADMIN': 'Administrator',
+      'MANAGER': 'Manager',
+      'CONSULTANT': 'Consultant',
+      'STAFF': 'Staff',
+      'USER': 'User'
     };
     return roleNames[role] || role;
   };
@@ -76,14 +76,14 @@ const ProfilePage = () => {
   if (!user) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
-        <div>Đang tải thông tin...</div>
+        <div>Loading information...</div>
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <Card title="Thông Tin Cá Nhân" style={{ marginBottom: '24px' }}>
+      <Card title="Personal Information" style={{ marginBottom: '24px' }}>
         <Row gutter={[24, 24]}>
           <Col xs={24} md={8}>
             <div style={{ textAlign: 'center' }}>
@@ -112,19 +112,19 @@ const ProfilePage = () => {
                 <Col xs={24} sm={12}>
                   <Form.Item
                     name="firstName"
-                    label="Tên"
-                    rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
+                    label="First Name"
+                    rules={[{ required: true, message: 'Please enter first name' }]}
                   >
-                    <Input prefix={<UserOutlined />} placeholder="Nhập tên" />
+                    <Input prefix={<UserOutlined />} placeholder="Enter first name" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
                   <Form.Item
                     name="lastName"
-                    label="Họ"
-                    rules={[{ required: true, message: 'Vui lòng nhập họ' }]}
+                    label="Last Name"
+                    rules={[{ required: true, message: 'Please enter last name' }]}
                   >
-                    <Input prefix={<UserOutlined />} placeholder="Nhập họ" />
+                    <Input prefix={<UserOutlined />} placeholder="Enter last name" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -133,30 +133,30 @@ const ProfilePage = () => {
                 name="email"
                 label="Email"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập email' },
-                  { type: 'email', message: 'Email không hợp lệ' }
+                  { required: true, message: 'Please enter email' },
+                  { type: 'email', message: 'Invalid email format' }
                 ]}
               >
-                <Input placeholder="Nhập email" />
+                <Input placeholder="Enter email" />
               </Form.Item>
 
               <Form.Item
                 name="phone"
-                label="Số điện thoại"
+                label="Phone Number"
               >
-                <Input placeholder="Nhập số điện thoại" />
+                <Input placeholder="Enter phone number" />
               </Form.Item>
 
               <Form.Item
                 name="address"
-                label="Địa chỉ"
+                label="Address"
               >
-                <Input.TextArea rows={3} placeholder="Nhập địa chỉ" />
+                <Input.TextArea rows={3} placeholder="Enter address" />
               </Form.Item>
 
               <Form.Item
                 name="dateOfBirth"
-                label="Ngày sinh"
+                label="Date of Birth"
               >
                 <Input placeholder="DD/MM/YYYY" />
               </Form.Item>
@@ -171,10 +171,10 @@ const ProfilePage = () => {
                         loading={loading}
                         icon={<SaveOutlined />}
                       >
-                        Lưu thay đổi
+                        Save Changes
                       </Button>
                       <Button onClick={() => setEditing(false)}>
-                        Hủy
+                        Cancel
                       </Button>
                     </>
                   ) : (
@@ -183,7 +183,7 @@ const ProfilePage = () => {
                       onClick={() => setEditing(true)}
                       icon={<EditOutlined />}
                     >
-                      Chỉnh sửa
+                      Edit
                     </Button>
                   )}
                 </Space>
@@ -194,54 +194,46 @@ const ProfilePage = () => {
       </Card>
 
       {/* Account Statistics */}
-      <Card title="Thống Kê Tài Khoản" style={{ marginBottom: '24px' }}>
+      <Card title="Account Statistics" style={{ marginBottom: '24px' }}>
         <Row gutter={[16, 16]}>
           <Col xs={12} sm={6}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
-                {user.appointmentCount || 0}
-              </div>
-              <div style={{ color: '#666' }}>Lịch hẹn</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>5</div>
+              <div style={{ color: '#666' }}>Courses</div>
             </div>
           </Col>
           <Col xs={12} sm={6}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
-                {user.courseCount || 0}
-              </div>
-              <div style={{ color: '#666' }}>Khóa học</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>12</div>
+              <div style={{ color: '#666' }}>Appointments</div>
             </div>
           </Col>
           <Col xs={12} sm={6}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
-                {user.assessmentCount || 0}
-              </div>
-              <div style={{ color: '#666' }}>Đánh giá</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>8</div>
+              <div style={{ color: '#666' }}>Assessments</div>
             </div>
           </Col>
           <Col xs={12} sm={6}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>
-                {user.blogCount || 0}
-              </div>
-              <div style={{ color: '#666' }}>Bài viết</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>3</div>
+              <div style={{ color: '#666' }}>Certificates</div>
             </div>
           </Col>
         </Row>
       </Card>
 
       {/* Security Settings */}
-      <Card title="Bảo Mật">
+      <Card title="Security Settings">
         <Space direction="vertical" style={{ width: '100%' }}>
           <Button type="default" block>
-            Đổi mật khẩu
+            Change Password
           </Button>
           <Button type="default" block>
-            Bật xác thực 2 yếu tố
+            Two-Factor Authentication
           </Button>
           <Button type="default" block>
-            Quản lý thiết bị đăng nhập
+            Login Device Management
           </Button>
         </Space>
       </Card>

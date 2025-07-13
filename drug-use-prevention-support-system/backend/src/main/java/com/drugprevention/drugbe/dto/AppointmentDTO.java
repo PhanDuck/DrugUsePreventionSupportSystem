@@ -275,27 +275,27 @@ public class AppointmentDTO {
     // Helper methods for status display
     public String getStatusDisplayText() {
         switch (status) {
-            case "PENDING": return "Chờ xác nhận";
-            case "CONFIRMED": return "Đã xác nhận";
-            case "CANCELLED": return "Đã hủy";
-            case "COMPLETED": return "Hoàn thành";
+            case "PENDING": return "Pending";
+            case "CONFIRMED": return "Confirmed";
+            case "CANCELLED": return "Cancelled";
+            case "COMPLETED": return "Completed";
             default: return status;
         }
     }
 
     public String getPaymentStatusDisplayText() {
         switch (paymentStatus) {
-            case "UNPAID": return "Chưa thanh toán";
-            case "PAID": return "Đã thanh toán";
-            case "REFUNDED": return "Đã hoàn tiền";
+            case "UNPAID": return "Unpaid";
+            case "PAID": return "Paid";
+            case "REFUNDED": return "Refunded";
             default: return paymentStatus;
         }
     }
 
     public String getAppointmentTypeDisplayText() {
         switch (appointmentType) {
-            case "ONLINE": return "Trực tuyến";
-            case "IN_PERSON": return "Trực tiếp";
+            case "ONLINE": return "Online";
+            case "IN_PERSON": return "In Person";
             default: return appointmentType;
         }
     }
