@@ -107,3 +107,10 @@ backend/.mvn/wrapper/maven-wrapper.properties
 
 # React specific
 *.log
+
+# Bỏ qua tất cả file .sql
+*.sql
+
+# Bỏ qua tất cả file .md, trừ README.md
+*.md
+!README.md
