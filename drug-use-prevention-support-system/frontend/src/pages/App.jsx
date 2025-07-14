@@ -5,6 +5,7 @@ import RegisterPage from './RegisterPage';
 import ForgotPasswordPage from './ForgotPasswordPage';
 import HomePage from './HomePage';
 import CoursesPage from './CoursesPage';
+import CourseManagementPage from './CourseManagementPage';
 import AppointmentPage from './AppointmentPage';
 import SurveyPage from './SurveyPage';
 import BlogPage from './BlogPage';
@@ -21,6 +22,7 @@ import UserDashboard from './dashboards/UserDashboard';
 
 import authService from '../services/authService';
 import '../App.css';
+import CoursePage from './CoursePage';
 
 function App() {
   // Initialize axios interceptor
@@ -74,6 +76,16 @@ function App() {
 
         {/* Courses - public viewing, login required for registration */}
         <Route path="/courses" element={<CoursesPage />} />
+        
+        {/* Course detail - public */}
+        <Route path="/courses/:courseId" element={<CoursePage />} />
+        
+        {/* Course Management - Staff only */}
+        <Route path="/staff/courses" element={
+          <ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}>
+            <CourseManagementPage />
+          </ProtectedRoute>
+        } />
         
         <Route path="/appointments" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>

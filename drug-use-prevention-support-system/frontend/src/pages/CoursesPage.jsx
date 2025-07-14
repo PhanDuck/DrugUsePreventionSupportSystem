@@ -26,6 +26,8 @@ import {
   StarOutlined
 } from '@ant-design/icons';
 import authService from '../services/authService';
+import courseService from '../services/courseService';
+import { Link } from 'react-router-dom';
 
 const { Title, Paragraph, Text } = Typography;
 const { Search } = Input;
@@ -105,7 +107,8 @@ const courses = [
 ];
 
 export default function CoursesPage() {
-  const [filteredCourses, setFilteredCourses] = useState(courses);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
@@ -113,27 +116,32 @@ export default function CoursesPage() {
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
+    // Lấy danh sách khóa học từ service (mock data dùng chung với staff)
+    courseService.getCourses().then(res => {
+      setAllCourses(res.data || []);
+      setFilteredCourses(res.data || []);
+    });
+  }, []);
+
+  useEffect(() => {
     filterCourses();
-  }, [searchTerm, selectedCategory, selectedLevel]);
+    // eslint-disable-next-line
+  }, [searchTerm, selectedCategory, selectedLevel, allCourses]);
 
   const filterCourses = () => {
-    let filtered = courses;
-
+    let filtered = allCourses;
     if (searchTerm) {
       filtered = filtered.filter(course =>
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(course => course.category === selectedCategory);
     }
-
     if (selectedLevel !== 'all') {
       filtered = filtered.filter(course => course.level === selectedLevel);
     }
-
     setFilteredCourses(filtered);
   };
 
@@ -251,152 +259,30 @@ export default function CoursesPage() {
         </Card>
       )}
 
-      {/* Courses Grid */}
+      {/* Danh sách khóa học */}
       <Row gutter={[24, 24]}>
-        {filteredCourses.map((course) => (
-          <Col xs={24} sm={12} lg={8} key={course.id}>
+        {filteredCourses.map(course => (
+          <Col xs={24} md={12} lg={8} key={course.id}>
             <Card
               hoverable
-              style={{
-                height: '100%',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                position: 'relative'
-              }}
-              cover={
-                <div style={{ position: 'relative' }}>
-                  <img 
-                    alt={course.title} 
-                    src={course.image} 
-                    style={{ 
-                      height: '200px', 
-                      width: '100%',
-                      objectFit: 'cover' 
-                    }} 
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}>
-                    <Tag color={getLevelColor(course.level)}>
-                      {course.level}
-                    </Tag>
-                    {course.price === 0 && (
-                      <Tag color="volcano">MIỄN PHÍ</Tag>
-                    )}
-                    {course.isEnrolled && (
-                      <Badge status="processing" text="Đã đăng ký" />
-                    )}
-                  </div>
-                  {course.isEnrolled && course.progress > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: 'rgba(0,0,0,0.7)',
-                      padding: '8px 12px'
-                    }}>
-                      <Progress 
-                        percent={course.progress} 
-                        showInfo={false} 
-                        size="small"
-                        strokeColor="#52c41a"
-                      />
-                    </div>
-                  )}
-                </div>
-              }
+              cover={<img alt={course.title} src={course.imageUrl || course.image} style={{ height: 180, objectFit: 'cover' }} />}
+              style={{ borderRadius: '12px', marginBottom: 16 }}
             >
-              <Space direction="vertical" style={{ width: '100%' }} size="small">
-                <Title level={4} style={{ margin: 0, lineHeight: '1.3' }}>
-                  {course.title}
-                </Title>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Avatar size="small" icon={<UserOutlined />} />
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {course.instructor}
-                  </Text>
-                </div>
-
-                <Paragraph 
-                  style={{ 
-                    color: '#666', 
-                    fontSize: '14px',
-                    margin: '8px 0',
-                    lineHeight: '1.4'
-                  }}
-                  ellipsis={{ rows: 2 }}
-                >
-                  {course.description}
-                </Paragraph>
-
-                <Space size="small" wrap>
-                  {course.tags.map(tag => (
-                    <Tag key={tag} size="small">{tag}</Tag>
-                  ))}
-                </Space>
-
-                <Divider style={{ margin: '12px 0' }} />
-
-                <Row gutter={[8, 8]} style={{ fontSize: '12px' }}>
-                  <Col span={12}>
-                    <Space size="small">
-                      <ClockCircleOutlined style={{ color: '#666' }} />
-                      <Text type="secondary">{course.duration}</Text>
-                    </Space>
-                  </Col>
-                  <Col span={12}>
-                    <Space size="small">
-                      <BookOutlined style={{ color: '#666' }} />
-                      <Text type="secondary">{course.lessons} bài</Text>
-                    </Space>
-                  </Col>
-                  <Col span={12}>
-                    <Space size="small">
-                      <StarOutlined style={{ color: '#faad14' }} />
-                      <Text type="secondary">{course.rating}</Text>
-                    </Space>
-                  </Col>
-                  <Col span={12}>
-                    <Space size="small">
-                      <UserOutlined style={{ color: '#666' }} />
-                      <Text type="secondary">{course.students}</Text>
-                    </Space>
-                  </Col>
-                </Row>
-
-                {course.price > 0 && (
-                  <div style={{ textAlign: 'center', margin: '8px 0' }}>
-                    <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
-                      {course.price.toLocaleString()} VNĐ
-                    </Text>
-                  </div>
-                )}
-
-                <Button 
-                  type={course.isEnrolled ? "default" : "primary"}
-                  block 
-                  size="large"
-                  icon={course.isEnrolled ? <PlayCircleOutlined /> : <BookOutlined />}
-                  onClick={() => course.isEnrolled ? null : handleEnroll(course.id)}
-                  style={{
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    marginTop: '8px'
-                  }}
-                >
-                  {course.isEnrolled 
-                    ? (course.progress === 100 ? '🏆 Đã Hoàn Thành' : '📖 Tiếp Tục Học')
-                    : '🚀 Đăng Ký Ngay'
-                  }
-                </Button>
-              </Space>
+              <Title level={4} style={{ marginBottom: 8 }}>
+                <Link to={`/courses/${course.id}`} target="_blank" rel="noopener noreferrer">{course.title}</Link>
+              </Title>
+              <Paragraph ellipsis={{ rows: 2 }}>{course.description}</Paragraph>
+              <div style={{ marginBottom: 8 }}>
+                <Tag color="blue">{course.category}</Tag>
+                <Tag color="purple">{course.level || course.status}</Tag>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text type="secondary">Instructor: {course.instructor}</Text>
+                <Text type="secondary">{course.price ? `${course.price.toLocaleString()} VNĐ` : 'Free'}</Text>
+              </div>
+              <Button type="primary" block style={{ marginTop: 12 }}>
+                <Link to={`/courses/${course.id}`} target="_blank" rel="noopener noreferrer">View Course</Link>
+              </Button>
             </Card>
           </Col>
         ))}

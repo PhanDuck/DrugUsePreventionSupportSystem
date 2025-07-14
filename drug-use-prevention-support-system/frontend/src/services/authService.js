@@ -4,67 +4,35 @@ class AuthService {
   
   // ===== LOGIN =====
   async login(username, password) {
-    try {
-      console.log('🔍 Login attempt:', { username, password: '***' });
-      console.log('🔍 API base URL:', api.defaults.baseURL);
-      
-      const payload = {
-        userName: username,
-        password: password
-      };
-      console.log('🔍 Login payload:', payload);
-      
-      const response = await api.post('/auth/login', payload);
-      console.log('🔍 Login response:', response);
-
-      if (response.data && response.data.token) {
-        console.log('✅ Login successful:', response.data);
-        // Save token and user info to localStorage
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        localStorage.setItem('role', response.data.role);
-        
-        return {
-          success: true,
-          data: response.data
-        };
-      } else {
-        console.error('❌ Invalid response structure:', response.data);
-        return {
-          success: false,
-          message: 'Invalid response from server'
-        };
-      }
-    } catch (error) {
-      console.error('❌ Login error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error request:', error.request);
-      console.error('❌ Error message:', error.message);
-      
-      if (error.response) {
-        console.error('❌ Error status:', error.response.status);
-        console.error('❌ Error data:', error.response.data);
-        console.error('❌ Error headers:', error.response.headers);
-        // Server responded with error
-        return {
-          success: false,
-          message: error.response.data?.message || error.response.data || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.'
-        };
-      } else if (error.request) {
-        console.error('❌ Network error - no response received');
-        // Network error
-        return {
-          success: false,
-          message: 'Không thể kết nối tới server. Vui lòng thử lại.'
-        };
-      } else {
-        console.error('❌ Request setup error');
-        return {
-          success: false,
-          message: 'Đã có lỗi xảy ra. Vui lòng thử lại.'
-        };
-      }
+    // MOCK LOGIN cho dev FE
+    const validStaffAccounts = [
+      'staff.course',
+      'staff.content',
+      'staff.tech',
+      'staff.student',
+      'staff.finance',
+      'staff.assessment',
+      'staff.blog',
+      'staff.appointment'
+    ];
+    if (validStaffAccounts.includes(username) && password === '123456') {
+      // Lưu token và role vào localStorage
+      const user = { username, role: 'STAFF', firstName: username.split('.')[1] || 'Staff', lastName: '' };
+      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', 'STAFF');
+      return { success: true, data: { token: 'mock-token', user, role: 'STAFF' } };
     }
+    // Mock guest account
+    if (username === 'guest.demo' && password === '123456') {
+      const user = { username, role: 'GUEST', firstName: 'Guest', lastName: 'Demo' };
+      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', 'GUEST');
+      return { success: true, data: { token: 'mock-token', user, role: 'GUEST' } };
+    }
+    // Nếu không đúng, trả về lỗi
+    return { success: false, message: 'Sai tài khoản hoặc mật khẩu' };
   }
 
   // ===== REGISTER =====

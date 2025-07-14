@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, Space, message, Tag, List, Spin } from 'antd';
-import { CustomerServiceOutlined, MessageOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { CustomerServiceOutlined, MessageOutlined, CheckCircleOutlined, ClockCircleOutlined, BookOutlined } from '@ant-design/icons';
 import userService from '../../services/userService';
 import assessmentService from '../../services/assessmentService';
 
@@ -99,17 +99,17 @@ const StaffDashboard = () => {
 
   const ticketColumns = [
     {
-      title: 'Người dùng',
+      title: 'User',
       dataIndex: 'user',
       key: 'user',
     },
     {
-      title: 'Vấn đề',
+      title: 'Issue',
       dataIndex: 'issue',
       key: 'issue',
     },
     {
-      title: 'Ưu tiên',
+      title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
       render: (priority) => (
@@ -117,13 +117,13 @@ const StaffDashboard = () => {
           priority === 'high' ? 'red' : 
           priority === 'medium' ? 'orange' : 'green'
         }>
-          {priority === 'high' ? 'Cao' : 
-           priority === 'medium' ? 'Trung bình' : 'Thấp'}
+          {priority === 'high' ? 'High' : 
+           priority === 'medium' ? 'Medium' : 'Low'}
         </Tag>
       ),
     },
     {
-      title: 'Trạng thái',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
@@ -131,18 +131,18 @@ const StaffDashboard = () => {
           status === 'open' ? 'blue' : 
           status === 'in_progress' ? 'orange' : 'green'
         }>
-          {status === 'open' ? 'Mở' : 
-           status === 'in_progress' ? 'Đang xử lý' : 'Hoàn thành'}
+          {status === 'open' ? 'Open' : 
+           status === 'in_progress' ? 'In Progress' : 'Completed'}
         </Tag>
       ),
     },
     {
-      title: 'Thời gian',
+      title: 'Time',
       dataIndex: 'created',
       key: 'created',
     },
     {
-      title: 'Hành động',
+      title: 'Action',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
@@ -157,21 +157,21 @@ const StaffDashboard = () => {
     return (
       <div style={{ padding: '24px', textAlign: 'center' }}>
         <Spin size="large" />
-        <p style={{ marginTop: '16px' }}>Đang tải dữ liệu nhân viên...</p>
+        <p style={{ marginTop: '16px' }}>Loading staff data...</p>
       </div>
     );
   }
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Bảng điều khiển Nhân viên</h1>
+      <h1>Staff Dashboard</h1>
       
       {/* Workload Statistics */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Ticket chờ xử lý"
+              title="Pending Tickets"
               value={workloadStats.pendingTickets}
               prefix={<CustomerServiceOutlined />}
             />
@@ -180,7 +180,7 @@ const StaffDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Đã giải quyết hôm nay"
+              title="Resolved Today"
               value={workloadStats.resolvedToday}
               prefix={<CheckCircleOutlined />}
             />
@@ -189,9 +189,9 @@ const StaffDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Thời gian phản hồi TB"
+              title="Avg. Response Time"
               value={workloadStats.averageResponseTime}
-              suffix="phút"
+              suffix="minutes"
               prefix={<ClockCircleOutlined />}
             />
           </Card>
@@ -199,7 +199,7 @@ const StaffDashboard = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Điểm hài lòng KH"
+              title="Customer Satisfaction"
               value={workloadStats.customerSatisfaction}
               suffix="/5.0"
               prefix={<MessageOutlined />}
@@ -211,7 +211,7 @@ const StaffDashboard = () => {
       <Row gutter={16}>
         {/* Support Tickets */}
         <Col span={16}>
-          <Card title="Tickets hỗ trợ" style={{ marginBottom: '24px' }}>
+          <Card title="Support Tickets" style={{ marginBottom: '24px' }}>
             <Table
               columns={ticketColumns}
               dataSource={supportTickets}
@@ -225,7 +225,7 @@ const StaffDashboard = () => {
 
         {/* Today's Tasks */}
         <Col span={8}>
-          <Card title="Nhiệm vụ hôm nay" style={{ marginBottom: '24px' }}>
+          <Card title="Today's Tasks" style={{ marginBottom: '24px' }}>
             <List
               dataSource={todayTasks}
               renderItem={(item) => (
@@ -238,8 +238,8 @@ const StaffDashboard = () => {
                           item.status === 'completed' ? 'green' : 
                           item.status === 'in_progress' ? 'orange' : 'blue'
                         }>
-                          {item.status === 'completed' ? 'Hoàn thành' : 
-                           item.status === 'in_progress' ? 'Đang làm' : 'Chờ làm'}
+                          {item.status === 'completed' ? 'Completed' : 
+                           item.status === 'in_progress' ? 'In Progress' : 'Pending'}
                         </Tag>
                       </Space>
                     }
@@ -254,15 +254,15 @@ const StaffDashboard = () => {
       </Row>
 
       {/* User Requests */}
-      <Card title="Yêu cầu từ người dùng" style={{ marginBottom: '24px' }}>
+      <Card title="User Requests" style={{ marginBottom: '24px' }}>
         <List
           dataSource={userRequests}
           renderItem={(item) => (
             <List.Item
               actions={[
-                <Button key="approve" size="small" type="primary">Duyệt</Button>,
-                <Button key="reject" size="small" danger>Từ chối</Button>,
-                <Button key="detail" size="small">Chi tiết</Button>
+                <Button key="approve" size="small" type="primary">Approve</Button>,
+                <Button key="reject" size="small" danger>Reject</Button>,
+                <Button key="detail" size="small">Details</Button>
               ]}
             >
               <List.Item.Meta
@@ -275,19 +275,26 @@ const StaffDashboard = () => {
       </Card>
 
       {/* Quick Actions */}
-      <Card title="Hành động nhanh">
+      <Card title="Quick Actions">
         <Space size="middle">
           <Button type="primary" icon={<CustomerServiceOutlined />} onClick={fetchStaffData}>
-            Làm mới dữ liệu
+            Refresh Data
           </Button>
-          <Button icon={<MessageOutlined />} onClick={() => message.info('Tính năng đang phát triển')}>
-            Gửi thông báo
+          <Button 
+            type="primary" 
+            icon={<BookOutlined />} 
+            onClick={() => window.location.href = '/staff/courses'}
+          >
+            Manage Courses
           </Button>
-          <Button icon={<CheckCircleOutlined />} onClick={() => message.info('Tính năng đang phát triển')}>
-            Cập nhật trạng thái
+          <Button icon={<MessageOutlined />} onClick={() => message.info('Feature under development')}>
+            Send Notification
           </Button>
-          <Button onClick={() => message.info('Tính năng đang phát triển')}>
-            Báo cáo công việc
+          <Button icon={<CheckCircleOutlined />} onClick={() => message.info('Feature under development')}>
+            Update Status
+          </Button>
+          <Button onClick={() => message.info('Feature under development')}>
+            Work Report
           </Button>
         </Space>
       </Card>

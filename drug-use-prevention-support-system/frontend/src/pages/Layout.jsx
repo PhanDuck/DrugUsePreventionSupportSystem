@@ -356,6 +356,34 @@ const LayoutComponent = () => {
                     >
                       ⚙️ Cài đặt
                     </button>
+                    {(authService.getUserRole() === 'STAFF' || authService.getUserRole() === 'ADMIN') && (
+                      <button
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '12px 16px',
+                          textDecoration: 'none',
+                          color: '#262626',
+                          background: '#fff',
+                          border: 'none',
+                          borderBottom: '1px solid #f0f0f0',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          transition: 'background 0.2s ease'
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowUserMenu(false);
+                          navigate('/staff/courses');
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.background = '#fff'}
+                      >
+                        📚 Quản lý khóa học
+                      </button>
+                    )}
                     <button
                       style={{
                         display: 'block',

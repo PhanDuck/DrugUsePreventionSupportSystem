@@ -279,7 +279,7 @@ const SurveyPage = () => {
         </div>
 
         {/* Debug Buttons - Only show in development */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <div style={{
             background: '#f0f9ff',
             border: '1px solid #0ea5e9',
@@ -907,11 +907,9 @@ const SurveyPage = () => {
       </div>
     </div>
   );
-<<<<<<< HEAD
+
 };
 
 export default SurveyPage; 
-=======
-} 
-/////////
->>>>>>> d0312a6f1a251b6896536773db01fdd8949e8c02
+
+
