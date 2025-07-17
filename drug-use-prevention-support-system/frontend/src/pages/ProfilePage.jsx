@@ -94,8 +94,8 @@ const ProfilePage = () => {
               />
               <div>
                 <h3>{user.firstName} {user.lastName}</h3>
-                <Tag color={getRoleColor(user.role)} style={{ fontSize: '14px' }}>
-                  {getRoleDisplayName(user.role)}
+                <Tag color={getRoleColor(authService.getUserRole())} style={{ fontSize: '14px' }}>
+                  {getRoleDisplayName(authService.getUserRole())}
                 </Tag>
               </div>
             </div>

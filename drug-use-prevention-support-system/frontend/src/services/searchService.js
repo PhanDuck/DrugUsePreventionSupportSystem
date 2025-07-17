@@ -1,6 +1,6 @@
 import axios from '../config/axios';
 
-const API_BASE_URL = '/api/search';
+const API_BASE_URL = '/search';
 
 const searchService = {
   // Tìm kiếm tổng hợp

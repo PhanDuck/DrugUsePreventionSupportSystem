@@ -287,15 +287,52 @@ const AppointmentDetailPage = () => {
                 </>
               )}
               
-              {appointment.status === 'CONFIRMED' && (
-                <Button 
-                  type="primary" 
-                  block 
-                  icon={<VideoCameraOutlined />}
-                  onClick={() => window.open(appointment.meetingLink, '_blank')}
-                >
-                  Join Meeting
-                </Button>
+              {appointment.status === 'CONFIRMED' && appointment.appointmentType === 'ONLINE' && (
+                <div>
+                  {appointment.meetingLink ? (
+                    <Button 
+                      type="primary" 
+                      block 
+                      size="large"
+                      icon={<VideoCameraOutlined />}
+                      onClick={() => window.open(appointment.meetingLink, '_blank')}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        height: '48px',
+                        fontSize: '16px',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                        marginBottom: '8px'
+                      }}
+                    >
+                      🎥 Join Google Meet
+                    </Button>
+                  ) : (
+                    <Alert
+                      message="Meeting Link Pending"
+                      description="Your consultant will add the meeting link before the appointment time."
+                      type="info"
+                      showIcon
+                      style={{ marginBottom: '8px' }}
+                    />
+                  )}
+                </div>
+              )}
+              
+              {appointment.status === 'CONFIRMED' && appointment.appointmentType === 'IN_PERSON' && (
+                <Alert
+                  message="In-Person Meeting"
+                  description={
+                    appointment.meetingLink ? 
+                    `Location: ${appointment.meetingLink}` : 
+                    "Location details will be provided by your consultant."
+                  }
+                  type="info"
+                  icon={<EnvironmentOutlined />}
+                  style={{ marginBottom: '8px' }}
+                />
               )}
               
               {appointment.status === 'COMPLETED' && !appointment.review && (

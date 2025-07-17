@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, Space, message, Tag, List, Spin } from 'antd';
-import { CustomerServiceOutlined, MessageOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { 
+  CustomerServiceOutlined, 
+  MessageOutlined, 
+  CheckCircleOutlined, 
+  ClockCircleOutlined,
+  BookOutlined,
+  FileTextOutlined,
+  VideoCameraOutlined,
+  TeamOutlined
+} from '@ant-design/icons';
 import userService from '../../services/userService';
 import assessmentService from '../../services/assessmentService';
 
@@ -290,6 +299,57 @@ const StaffDashboard = () => {
             Work Report
           </Button>
         </Space>
+      </Card>
+
+      {/* Course Management Section */}
+      <Card title="Course Management" style={{ marginTop: '24px' }}>
+        <Row gutter={16}>
+          <Col span={6}>
+            <Card>
+              <Statistic
+                title="Total Courses"
+                value={12}
+                prefix={<BookOutlined style={{ color: '#1890ff' }} />}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic
+                title="Published"
+                value={8}
+                prefix={<FileTextOutlined style={{ color: '#52c41a' }} />}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic
+                title="Total Lessons"
+                value={45}
+                prefix={<VideoCameraOutlined style={{ color: '#fa8c16' }} />}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic
+                title="Students"
+                value={156}
+                prefix={<TeamOutlined style={{ color: '#722ed1' }} />}
+              />
+            </Card>
+          </Col>
+        </Row>
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <Button 
+            type="primary" 
+            size="large"
+            onClick={() => window.location.href = '/staff/courses'}
+          >
+            <BookOutlined /> Manage Courses
+          </Button>
+        </div>
       </Card>
     </div>
   );

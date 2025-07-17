@@ -7,6 +7,8 @@ import com.drugprevention.drugbe.repository.RoleRepository;
 import com.drugprevention.drugbe.repository.UserRepository;
 import com.drugprevention.drugbe.util.NameConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -103,5 +105,24 @@ public class AuthService {
 
     public String encodePassword(String password) {
         return passwordEncoder.encode(password);
+    }
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        
+        String username = authentication.getName();
+        if (username == null) {
+            return null;
+        }
+        
+        try {
+            User user = findByUsername(username);
+            return user.getId();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 } 

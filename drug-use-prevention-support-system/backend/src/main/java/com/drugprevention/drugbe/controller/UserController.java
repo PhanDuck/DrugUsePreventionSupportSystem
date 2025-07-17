@@ -1,116 +1,247 @@
 package com.drugprevention.drugbe.controller;
 
+import com.drugprevention.drugbe.dto.UserDTO;
 import com.drugprevention.drugbe.entity.User;
-import com.drugprevention.drugbe.repository.UserRepository;
+import com.drugprevention.drugbe.service.UserService;
+import com.drugprevention.drugbe.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')") // Class-level security
 public class UserController {
     
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Autowired 
+    private AuthService authService;
+
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("👤 User Service is running!");
+    }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            List<UserDTO> users = userService.getAllUsersDTO();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", users,
+                "message", "Users retrieved successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve users",
+                "details", e.getMessage()
+            ));
+        }
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or authentication.name == userRepository.findById(#id).orElse(null)?.username")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @authService.getCurrentUserId() == #id")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        try {
+            Optional<UserDTO> userDTO = userService.getUserByIdDTO(id);
+            if (userDTO.isPresent()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", userDTO.get(),
+                    "message", "User retrieved successfully"
+                ));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve user",
+                "details", e.getMessage()
+            ));
+        }
     }
 
     @GetMapping("/role/{roleId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<User>> getUsersByRole(@PathVariable Long roleId) {
-        return ResponseEntity.ok(userRepository.findByRoleId(roleId));
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<?> getUsersByRole(@PathVariable Long roleId) {
+        try {
+            List<UserDTO> users = userService.getUsersByRoleDTO(roleId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", users,
+                "message", "Users by role retrieved successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve users by role",
+                "details", e.getMessage()
+            ));
+        }
     }
 
     @GetMapping("/consultants")
-    public ResponseEntity<List<User>> getAllConsultants() {
-        return ResponseEntity.ok(userRepository.findConsultants());
+    public ResponseEntity<?> getAllConsultants() {
+        try {
+            List<UserDTO> consultants = userService.getConsultantsDTO();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", consultants,
+                "message", "Consultants retrieved successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve consultants",
+                "details", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/current")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User user = authService.findByUsername(username);
+            UserDTO userDTO = userService.convertToDTO(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", userDTO,
+                "message", "Current user retrieved successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve current user",
+                "details", e.getMessage()
+            ));
+        }
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or authentication.name == userRepository.findById(#id).orElse(null)?.username")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (!userOptional.isPresent()) {
-            return ResponseEntity.notFound().build();
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @authService.getCurrentUserId() == #id")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        try {
+            Optional<User> userOpt = userService.getUserById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            User user = userOpt.get();
+            // Update only allowed fields (not password, role, etc. unless admin)
+            user.setFirstName(userDetails.getFirstName());
+            user.setLastName(userDetails.getLastName());
+            user.setEmail(userDetails.getEmail());
+            user.setPhone(userDetails.getPhone());
+            user.setAddress(userDetails.getAddress());
+            user.setBio(userDetails.getBio());
+            
+            User updatedUser = userService.saveUser(user);
+            UserDTO userDTO = userService.convertToDTO(updatedUser);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", userDTO,
+                "message", "User updated successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to update user",
+                "details", e.getMessage()
+            ));
         }
-
-        User user = userOptional.get();
-        user.setFirstName(userDetails.getFirstName());
-        user.setLastName(userDetails.getLastName());
-        user.setEmail(userDetails.getEmail());
-        user.setPhone(userDetails.getPhone());
-        user.setDateOfBirth(userDetails.getDateOfBirth());
-        user.setGender(userDetails.getGender());
-        user.setAddress(userDetails.getAddress());
-        user.setBio(userDetails.getBio());
-        user.setDegree(userDetails.getDegree());
-        user.setExpertise(userDetails.getExpertise());
-
-        return ResponseEntity.ok(userRepository.save(user));
-    }
-
-    @PutMapping("/{id}/password")
-    @PreAuthorize("hasRole('ADMIN') or authentication.name == userRepository.findById(#id).orElse(null)?.username")
-    public ResponseEntity<String> changePassword(@PathVariable Long id, @RequestParam String newPassword) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (!userOptional.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User user = userOptional.get();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-        
-        return ResponseEntity.ok("Password updated successfully");
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (!userRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            Optional<User> userOpt = userService.getUserById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Soft delete by setting isActive to false
+            User user = userOpt.get();
+            user.setIsActive(false);
+            userService.saveUser(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "User deactivated successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to delete user",
+                "details", e.getMessage()
+            ));
         }
-        
-        userRepository.deleteById(id);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('STAFF')")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String keyword) {
-        return ResponseEntity.ok(userRepository.findByNameContainingOrEmailContaining(keyword));
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    public ResponseEntity<?> searchUsers(@RequestParam String keyword) {
+        try {
+            // This method needs to be implemented in UserService
+            List<UserDTO> users = userService.getAllUsersDTO().stream()
+                .filter(user -> 
+                    user.getFullName().toLowerCase().contains(keyword.toLowerCase()) ||
+                    user.getEmail().toLowerCase().contains(keyword.toLowerCase())
+                )
+                .toList();
+                
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", users,
+                "message", "Search completed successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Search failed",
+                "details", e.getMessage()
+            ));
+        }
     }
 
     @GetMapping("/statistics/count")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Long> getTotalUserCount() {
-        return ResponseEntity.ok(userRepository.count());
-    }
-
-    @GetMapping("/statistics/by-role")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<Object[]>> getUserCountByRole() {
-        return ResponseEntity.ok(userRepository.countUsersByRole());
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<?> getTotalUserCount() {
+        try {
+            List<UserDTO> users = userService.getAllUsersDTO();
+            long totalCount = users.size();
+            long activeCount = users.stream().mapToLong(user -> 1).sum();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "totalUsers", totalCount,
+                    "activeUsers", activeCount
+                ),
+                "message", "User statistics retrieved successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve user statistics",
+                "details", e.getMessage()
+            ));
+        }
     }
 } 

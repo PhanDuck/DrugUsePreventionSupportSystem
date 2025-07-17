@@ -59,14 +59,27 @@ const LayoutComponent = () => {
   };
 
   // Navigation items
-  const navigationItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/search', label: 'Search', icon: '🔍' },
-    { path: '/blogs', label: 'Blog', icon: '📝' },
-    { path: '/courses', label: 'Courses', icon: '📚' },
-    { path: '/surveys', label: 'Assessments', icon: '📋' },
-    { path: '/appointments', label: 'Consultation', icon: '💬' },
-  ];
+  const getNavigationItems = () => {
+    const baseItems = [
+      { path: '/', label: 'Home', icon: '🏠' },
+      { path: '/search', label: 'Search', icon: '🔍' },
+      { path: '/blogs', label: 'Blog', icon: '📝' },
+      { path: '/courses', label: 'Courses', icon: '📚' },
+      { path: '/consultants', label: 'Consultants', icon: '👨‍⚕️' },
+      { path: '/surveys', label: 'Assessments', icon: '📋' },
+      { path: '/appointments', label: 'Appointments', icon: '💬' },
+    ];
+
+    // Add staff-specific items
+    const userRole = authService.getUserRole();
+    if (['STAFF', 'ADMIN', 'MANAGER'].includes(userRole)) {
+      baseItems.push({ path: '/course-management', label: 'Manage Courses', icon: '⚙️' });
+    }
+
+    return baseItems;
+  };
+
+  const navigationItems = getNavigationItems();
 
   // Get user display name
   const getUserDisplayName = () => {
@@ -358,6 +371,34 @@ const LayoutComponent = () => {
                       onMouseLeave={(e) => e.target.style.background = '#fff'}
                     >
                       🔔 Notifications
+                    </button>
+                    <button
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '12px 16px',
+                        textDecoration: 'none',
+                        color: '#262626',
+                        background: '#fff',
+                        border: 'none',
+                        borderBottom: '1px solid #f0f0f0',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        transition: 'background 0.2s ease'
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowUserMenu(false);
+                        // Navigate to user's role-specific dashboard
+                        const dashboardPath = authService.getDashboardPath();
+                        navigate(dashboardPath);
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
+                      onMouseLeave={(e) => e.target.style.background = '#fff'}
+                    >
+                      📊 Dashboard
                     </button>
                     <button
                       style={{

@@ -33,9 +33,23 @@ public class CourseService {
     // 3. Create new course
     @Transactional
     public Course createCourse(Course course) {
+        // Set default values for new course
         course.setIsActive(true);
+        course.setCurrentParticipants(0); // Initialize to 0
         course.setCreatedAt(LocalDateTime.now());
         course.setUpdatedAt(LocalDateTime.now());
+        
+        // Set other default values if not provided
+        if (course.getStatus() == null) {
+            course.setStatus("open");
+        }
+        if (course.getIsFeatured() == null) {
+            course.setIsFeatured(false);
+        }
+        if (course.getTotalReviews() == null) {
+            course.setTotalReviews(0);
+        }
+        
         return courseRepository.save(course);
     }
 

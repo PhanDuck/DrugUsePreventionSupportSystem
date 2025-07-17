@@ -192,7 +192,7 @@ class UserService {
   // ===== GET ALL CONSULTANTS =====
   async getConsultants() {
     try {
-      const response = await api.get('/users/consultants');
+      const response = await api.get('/consultants/public/list');
       return {
         success: true,
         data: response.data

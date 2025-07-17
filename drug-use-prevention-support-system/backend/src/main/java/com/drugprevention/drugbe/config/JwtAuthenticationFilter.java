@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +23,8 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -38,15 +42,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
+        
+        String requestPath = request.getRequestURI();
+        logger.debug("Processing request: {} {}", request.getMethod(), requestPath);
+        
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.debug("No valid Authorization header found for request: {}", requestPath);
             filterChain.doFilter(request, response);
             return;
         }
+        
         jwt = authHeader.substring(7);
+        logger.debug("JWT token found, extracting username...");
+        
         try {
             username = jwtService.extractUsername(jwt);
+            logger.debug("Username extracted from token: {}", username);
+            
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                logger.debug("User details loaded: username={}, authorities={}", 
+                    userDetails.getUsername(), userDetails.getAuthorities());
+                
                 if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -57,11 +74,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.debug("Authentication set successfully for user: {} with authorities: {}", 
+                        username, userDetails.getAuthorities());
+                } else {
+                    logger.warn("Token validation failed for user: {}", username);
                 }
             }
         } catch (Exception e) {
-            // Token is invalid, continue without authentication
+            logger.error("JWT authentication error for request: {} - {}", requestPath, e.getMessage());
         }
+        
         filterChain.doFilter(request, response);
     }
 } 

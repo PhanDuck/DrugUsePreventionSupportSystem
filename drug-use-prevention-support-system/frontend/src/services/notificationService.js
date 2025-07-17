@@ -1,6 +1,6 @@
 import axios from '../config/axios';
 
-const API_BASE_URL = '/api/notifications';
+const API_BASE_URL = '/notifications';
 
 const notificationService = {
   // Lấy danh sách thông báo

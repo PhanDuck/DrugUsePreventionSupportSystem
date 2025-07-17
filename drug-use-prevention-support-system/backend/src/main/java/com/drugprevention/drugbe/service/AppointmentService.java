@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -49,8 +52,11 @@ public class AppointmentService {
             throw new RuntimeException("Appointment date cannot be null");
         }
         
-        if (request.getDurationMinutes() == null || request.getDurationMinutes() <= 0) {
-            throw new RuntimeException("Duration must be greater than 0");
+        // Validate and enforce 60-minute duration
+        if (request.getDurationMinutes() == null) {
+            request.setDurationMinutes(60); // Default to 60 minutes
+        } else if (!request.getDurationMinutes().equals(60)) {
+            throw new RuntimeException("All appointments must be exactly 60 minutes (1 hour)");
         }
         
         // Validate appointment date/time
@@ -123,10 +129,10 @@ public class AppointmentService {
             throw new RuntimeException("Working hours are from 8:00 AM to 6:00 PM");
         }
         
-        // Check if time is at 15-minute intervals
+        // Check if time is exactly on the hour (for 1-hour slots)
         int minute = appointmentDate.getMinute();
-        if (minute % 15 != 0) {
-            throw new RuntimeException("Time must be in 15-minute intervals (00, 15, 30, 45)");
+        if (minute != 0) {
+            throw new RuntimeException("Appointments must start exactly on the hour (e.g., 08:00, 09:00, 10:00)");
         }
     }
 
@@ -155,6 +161,13 @@ public class AppointmentService {
 
     public List<AppointmentDTO> getUpcomingAppointmentsByConsultant(Long consultantId) {
         List<Appointment> appointments = appointmentRepository.findUpcomingAppointmentsByConsultant(consultantId, LocalDateTime.now());
+        return appointments.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<AppointmentDTO> getConsultantAppointmentsByDate(Long consultantId, LocalDateTime date) {
+        List<Appointment> appointments = appointmentRepository.findConsultantAppointmentsByDate(consultantId, date);
         return appointments.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -447,32 +460,24 @@ public class AppointmentService {
         // Get all appointments for this consultant on this date
         List<Appointment> appointments = appointmentRepository.findConsultantAppointmentsByDate(consultantId, date);
         
-        // Generate all possible time slots from 8:00 to 17:00 (last appointment at 5PM)
+        // Generate all possible 1-hour time slots from 8:00 to 17:00 (skip lunch 12:00-13:00)
         List<String> allSlots = new ArrayList<>();
-        for (int hour = 8; hour < 18; hour++) {
-            for (int minute = 0; minute < 60; minute += 15) {
-                if (hour == 17 && minute > 0) {
-                    break; // Last appointment can start at 5:00 PM
-                }
-                allSlots.add(String.format("%02d:%02d", hour, minute));
-            }
+        int[] workingHours = {8, 9, 10, 11, 13, 14, 15, 16, 17}; // Skip 12:00-13:00 lunch break
+        
+        for (int hour : workingHours) {
+            allSlots.add(String.format("%02d:00", hour));
         }
         
-        // Remove booked slots
+        // Remove booked slots (1-hour appointments)
         for (Appointment appointment : appointments) {
             if (appointment.getStatus().equals("CANCELLED")) {
                 continue; // Skip cancelled appointments
             }
             
             LocalDateTime appointmentTime = appointment.getAppointmentDate();
-            int durationMinutes = appointment.getDurationMinutes();
-            
-            // Remove all slots that overlap with this appointment
-            for (int i = 0; i < durationMinutes; i += 15) {
-                LocalDateTime slotTime = appointmentTime.plusMinutes(i);
-                String slotString = String.format("%02d:%02d", slotTime.getHour(), slotTime.getMinute());
-                allSlots.remove(slotString);
-            }
+            // For 1-hour appointments, just remove the exact hour slot
+            String bookedSlot = String.format("%02d:00", appointmentTime.getHour());
+            allSlots.remove(bookedSlot);
         }
         
         // For today, remove past time slots
@@ -487,6 +492,123 @@ public class AppointmentService {
         }
         
         return allSlots;
+    }
+
+    // ===== NEW METHODS FOR CONSULTANT BOOKING =====
+    
+    public List<Map<String, Object>> getAvailableTimeSlotsForDate(Long consultantId, LocalDate date) {
+        // Validate consultant exists
+        User consultant = userRepository.findById(consultantId)
+                .orElseThrow(() -> new RuntimeException("Consultant not found"));
+                
+        if (!"CONSULTANT".equals(consultant.getRole().getName())) {
+            throw new RuntimeException("Selected person is not a consultant");
+        }
+        
+        // Validate date
+        if (date.isBefore(LocalDate.now())) {
+            throw new RuntimeException("Cannot view appointments in the past");
+        }
+        
+        // Check if it's weekend
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            return List.of(); // Return empty list for weekends
+        }
+        
+        // Get all appointments for this consultant on this date
+        LocalDateTime startOfDay = date.atStartOfDay();
+        List<Appointment> appointments = appointmentRepository.findConsultantAppointmentsByDate(consultantId, startOfDay);
+        
+        // Generate all possible 1-hour time slots from 8:00 to 17:00 (skip lunch)
+        List<Map<String, Object>> availableSlots = new ArrayList<>();
+        int[] workingHours = {8, 9, 10, 11, 13, 14, 15, 16, 17}; // Skip 12:00-13:00 lunch break
+        
+        for (int hour : workingHours) {
+            LocalDateTime slotTime = date.atTime(hour, 0);
+            
+            // Check if slot is available (not booked)
+            boolean isAvailable = true;
+            for (Appointment appointment : appointments) {
+                if (appointment.getStatus().equals("CANCELLED")) {
+                    continue; // Skip cancelled appointments
+                }
+                
+                LocalDateTime appointmentTime = appointment.getAppointmentDate();
+                
+                // For 1-hour appointments, check if exact hour matches
+                if (appointmentTime.getHour() == hour) {
+                    isAvailable = false;
+                    break;
+                }
+            }
+            
+            // For today, check if slot is in the past
+            if (date.equals(LocalDate.now()) && slotTime.isBefore(LocalDateTime.now())) {
+                isAvailable = false;
+            }
+            
+            if (isAvailable) {
+                Map<String, Object> slot = new HashMap<>();
+                slot.put("time", String.format("%02d:00", hour));
+                slot.put("available", true);
+                slot.put("duration", 60); // Fixed 60 minutes
+                slot.put("fee", 100.0); // Default fee
+                availableSlots.add(slot);
+            }
+        }
+        
+        return availableSlots;
+    }
+    
+    public List<Map<String, Object>> getConsultantScheduleForDateRange(Long consultantId, LocalDate startDate, LocalDate endDate) {
+        // Validate consultant exists
+        User consultant = userRepository.findById(consultantId)
+                .orElseThrow(() -> new RuntimeException("Consultant not found"));
+                
+        if (!"CONSULTANT".equals(consultant.getRole().getName())) {
+            throw new RuntimeException("Selected person is not a consultant");
+        }
+        
+        // Validate date range
+        if (startDate.isAfter(endDate)) {
+            throw new RuntimeException("Start date cannot be after end date");
+        }
+        
+        // Get appointments for the date range
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        
+        List<Appointment> appointments = appointmentRepository.findByConsultantIdAndDateRange(
+                consultantId, startDateTime, endDateTime);
+        
+        List<Map<String, Object>> schedule = new ArrayList<>();
+        for (Appointment appointment : appointments) {
+            Map<String, Object> appointmentInfo = new HashMap<>();
+            appointmentInfo.put("appointmentId", appointment.getId());
+            appointmentInfo.put("date", appointment.getAppointmentDate().toLocalDate().toString());
+            appointmentInfo.put("time", appointment.getAppointmentDate().toLocalTime().toString());
+            appointmentInfo.put("duration", appointment.getDurationMinutes());
+            appointmentInfo.put("status", appointment.getStatus());
+            appointmentInfo.put("appointmentType", appointment.getAppointmentType());
+            appointmentInfo.put("fee", appointment.getFee());
+            appointmentInfo.put("clientId", appointment.getClientId());
+            
+            // Get client name
+            Optional<User> client = userRepository.findById(appointment.getClientId());
+            if (client.isPresent()) {
+                User clientUser = client.get();
+                String firstName = clientUser.getFirstName() != null ? clientUser.getFirstName() : "";
+                String lastName = clientUser.getLastName() != null ? clientUser.getLastName() : "";
+                appointmentInfo.put("clientName", firstName + " " + lastName);
+            } else {
+                appointmentInfo.put("clientName", "Unknown Client");
+            }
+            
+            schedule.add(appointmentInfo);
+        }
+        
+        return schedule;
     }
 
     // ===== RESCHEDULE APPOINTMENT =====

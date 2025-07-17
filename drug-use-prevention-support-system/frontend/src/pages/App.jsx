@@ -1,39 +1,44 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './HomePage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
-import ForgotPasswordPage from './ForgotPasswordPage';
-import HomePage from './HomePage';
+import Layout from './Layout';
 import CoursesPage from './CoursesPage';
+import CoursePage from './CoursePage';
+import CourseManagementPage from './CourseManagementPage';
+import StaffCourseManagementPage from './StaffCourseManagementPage';
+import ConsultantsPage from './ConsultantsPage';
+import ProfilePage from './ProfilePage';
+import LogoutPage from './LogoutPage';
 import AppointmentPage from './AppointmentPage';
-import AppointmentDetailPage from './AppointmentDetailPage';
 import AppointmentListPage from './AppointmentListPage';
+import AppointmentCalendarPage from './AppointmentCalendarPage';
+import AppointmentDetailPage from './AppointmentDetailPage';
+import AppointmentDashboard from './AppointmentDashboard';
+import ApiTestPage from './ApiTestPage';
 import SurveyPage from './SurveyPage';
 import BlogPage from './BlogPage';
-import ProfilePage from './ProfilePage';
 import NotificationsPage from './NotificationsPage';
 import SearchPage from './SearchPage';
 import SettingsPage from './SettingsPage';
 import UnauthorizedPage from './UnauthorizedPage';
-import LayoutComponent from './Layout';
-import ProtectedRoute from '../components/ProtectedRoute';
+import ForgotPasswordPage from './ForgotPasswordPage';
 
-// Dashboard imports
+// Import dashboard components
 import AdminDashboard from './dashboards/AdminDashboard';
 import ManagerDashboard from './dashboards/ManagerDashboard';
 import ConsultantDashboard from './dashboards/ConsultantDashboard';
 import StaffDashboard from './dashboards/StaffDashboard';
 import UserDashboard from './dashboards/UserDashboard';
 
-import authService from '../services/authService';
-import '../App.css';
+// Import components
+import ProtectedRoute from '../components/ProtectedRoute';
+import StaffCourseManager from '../components/staff/StaffCourseManager';
+
+const LayoutComponent = Layout;
 
 function App() {
-  // Initialize axios interceptor
-  React.useEffect(() => {
-    authService.setupAxiosInterceptor();
-  }, []);
-
   return (
     <Routes>
       {/* Public routes - without layout */}
@@ -66,9 +71,21 @@ function App() {
           </ProtectedRoute>
         } />
         
+        <Route path="/consultant/appointments" element={
+          <ProtectedRoute allowedRoles={['CONSULTANT']}>
+            <ConsultantDashboard />
+          </ProtectedRoute>
+        } />
+        
         <Route path="/staff/dashboard" element={
           <ProtectedRoute allowedRoles={['STAFF']}>
             <StaffDashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/staff/courses" element={
+          <ProtectedRoute allowedRoles={['STAFF', 'ADMIN', 'MANAGER']}>
+            <StaffCourseManager />
           </ProtectedRoute>
         } />
         
@@ -80,8 +97,25 @@ function App() {
 
         {/* Courses - public viewing, login required for registration */}
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/courses/:courseId" element={<CoursePage />} />
+        
+        {/* Course Management - staff only */}
+        <Route path="/course-management" element={
+          <ProtectedRoute allowedRoles={['STAFF', 'ADMIN', 'MANAGER']}>
+            <StaffCourseManagementPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Consultants - public viewing */}
+        <Route path="/consultants" element={<ConsultantsPage />} />
         
         <Route path="/appointments" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <AppointmentPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/appointments-old" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
             <AppointmentPage />
           </ProtectedRoute>
@@ -90,6 +124,18 @@ function App() {
         <Route path="/appointments/list" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
             <AppointmentListPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/appointments/calendar" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <AppointmentCalendarPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/appointments/dashboard" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <AppointmentDashboard />
           </ProtectedRoute>
         } />
         
@@ -104,49 +150,43 @@ function App() {
         
         {/* Blog - accessible to all users (public) */}
         <Route path="/blogs" element={<BlogPage />} />
-
-        {/* Profile - accessible to authenticated users */}
-        <Route path="/profile" element={
-          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
-            <ProfilePage />
-          </ProtectedRoute>
-        } />
-
-        {/* Notifications - accessible to authenticated users */}
+        
+        {/* Search - accessible to all users (public) */}
+        <Route path="/search" element={<SearchPage />} />
+        
+        {/* Notifications - login required */}
         <Route path="/notifications" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
             <NotificationsPage />
           </ProtectedRoute>
         } />
-
-        {/* Search - accessible to all users (public) */}
-        <Route path="/search" element={<SearchPage />} />
-
-        {/* Settings - accessible to authenticated users */}
+        
+        {/* Profile - login required */}
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Settings - login required */}
         <Route path="/settings" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER', 'CONSULTANT', 'STAFF']}>
             <SettingsPage />
           </ProtectedRoute>
         } />
-
-        {/* Dashboard redirect based on role */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <DashboardRedirect />
+        
+        {/* API Test - admin only */}
+        <Route path="/api-test" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ApiTestPage />
           </ProtectedRoute>
         } />
+        
+        {/* Logout */}
+        <Route path="/logout" element={<LogoutPage />} />
       </Route>
-
-      {/* Redirect to appropriate dashboard or login */}
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
-// Component to redirect to appropriate dashboard based on user role
-const DashboardRedirect = () => {
-  const dashboardPath = authService.getDashboardPath();
-  return <Navigate to={dashboardPath} replace />;
-};
 
 export default App;

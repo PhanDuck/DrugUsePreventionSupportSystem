@@ -1,5 +1,6 @@
 package com.drugprevention.drugbe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    @JsonIgnore  // Don't serialize password in JSON response
     private String password;
 
     @Column(nullable = false, unique = true)

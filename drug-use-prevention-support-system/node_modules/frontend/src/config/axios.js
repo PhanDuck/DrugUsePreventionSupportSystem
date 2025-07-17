@@ -5,16 +5,16 @@ const axiosInstance = axios.create({
   baseURL: 'http://localhost:8080/api',
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8',
-    'Accept': 'application/json;charset=UTF-8',
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Ensure UTF-8 encoding
-    config.headers['Accept-Charset'] = 'utf-8';
+    // Remove unsafe header that causes CORS issues
+    // config.headers['Accept-Charset'] = 'utf-8'; // Commented out - causes CORS error
     
     const token = localStorage.getItem('token');
     if (token) {

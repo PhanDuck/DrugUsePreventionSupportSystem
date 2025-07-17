@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import com.drugprevention.drugbe.entity.User;
 import com.drugprevention.drugbe.service.AuthService;
@@ -123,10 +125,19 @@ public class AppointmentController {
     @GetMapping("/consultant/{consultantId}")
     @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN', 'STAFF')")
     @Operation(summary = "Get appointments by consultant", description = "Get all appointments for a specific consultant")
-    public ResponseEntity<?> getAppointmentsByConsultant(@PathVariable Long consultantId) {
+    public ResponseEntity<?> getAppointmentsByConsultant(@PathVariable Long consultantId,
+                                                        @RequestParam(required = false) String date) {
         try {
-            List<AppointmentDTO> appointments = appointmentService.getAppointmentsByConsultant(consultantId);
-            return ResponseEntity.ok(appointments);
+            if (date != null && !date.trim().isEmpty()) {
+                // Get appointments for specific date
+                LocalDateTime appointmentDate = LocalDateTime.parse(date + "T00:00:00");
+                List<AppointmentDTO> appointments = appointmentService.getConsultantAppointmentsByDate(consultantId, appointmentDate);
+                return ResponseEntity.ok(appointments);
+            } else {
+                // Get all appointments for consultant
+                List<AppointmentDTO> appointments = appointmentService.getAppointmentsByConsultant(consultantId);
+                return ResponseEntity.ok(appointments);
+            }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error getting appointment list: " + e.getMessage()));
         }
@@ -344,6 +355,40 @@ public class AppointmentController {
     
     // ===== AVAILABLE TIME SLOTS =====
     
+    // ===== PUBLIC ENDPOINT FOR CHECKING CONSULTANT APPOINTMENTS =====
+    
+    @GetMapping("/consultant/{consultantId}/booked-slots")
+    @Operation(summary = "Get booked time slots (Public)", description = "Get booked appointments for slot availability checking - accessible by all users")
+    public ResponseEntity<?> getBookedTimeSlots(@PathVariable Long consultantId,
+                                              @RequestParam String date) {
+        try {
+            // Parse date
+            LocalDateTime appointmentDate = LocalDateTime.parse(date + "T00:00:00");
+            
+            // Get only basic info needed for slot checking (no sensitive data)
+            List<AppointmentDTO> appointments = appointmentService.getConsultantAppointmentsByDate(consultantId, appointmentDate);
+            
+            // Return only essential info for time slot checking
+            List<Map<String, Object>> bookedSlots = appointments.stream()
+                .filter(apt -> "PENDING".equals(apt.getStatus()) || "CONFIRMED".equals(apt.getStatus()))
+                .map(apt -> {
+                    Map<String, Object> slot = new HashMap<>();
+                    slot.put("time", apt.getAppointmentDate().toLocalTime().toString());
+                    slot.put("duration", apt.getDurationMinutes());
+                    return slot;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of(
+                "consultantId", consultantId,
+                "date", date,
+                "bookedSlots", bookedSlots
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Error getting booked slots: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/consultant/{consultantId}/available-slots")
     @Operation(summary = "Get available time slots", description = "Get available time slots for a consultant on a specific date")
     public ResponseEntity<?> getAvailableTimeSlots(@PathVariable Long consultantId,

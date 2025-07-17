@@ -16,7 +16,12 @@ import {
   Badge,
   Tooltip,
   Popconfirm,
-  Statistic
+  Statistic,
+  Alert,
+  Progress,
+  Tabs,
+  Empty,
+  notification
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -29,7 +34,13 @@ import {
   UserOutlined,
   FilterOutlined,
   DownloadOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  BookOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  TeamOutlined,
+  TrophyOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import appointmentService from '../services/appointmentService';
@@ -39,11 +50,13 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { TabPane } = Tabs;
 
 const AppointmentListPage = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     status: 'all',
     dateRange: null,

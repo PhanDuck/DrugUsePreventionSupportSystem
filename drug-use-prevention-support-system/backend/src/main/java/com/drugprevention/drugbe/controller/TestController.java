@@ -7,7 +7,9 @@ import com.drugprevention.drugbe.repository.UserRepository;
 import com.drugprevention.drugbe.repository.RoleRepository;
 import com.drugprevention.drugbe.service.AssessmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -15,10 +17,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/test")
 @CrossOrigin(origins = "*")
+@Profile({"dev", "test"}) // Only available in development and test profiles
+@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')") // Only admin/manager can access test endpoints
 public class TestController {
 
     @Autowired
@@ -31,11 +37,17 @@ public class TestController {
     private RoleRepository roleRepository;
 
     @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("🔧 Test Controller is running!");
+    public ResponseEntity<?> healthCheck() {
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "🔧 Test Controller is running!",
+            "warning", "This is a development/test endpoint. Should not be available in production.",
+            "profile", "development"
+        ));
     }
 
     @GetMapping("/crafft-debug")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> testCRAFFTScoring() {
         try {
             // Create sample answers for CRAFFT (assessment ID 1)
@@ -46,11 +58,14 @@ public class TestController {
             List<AssessmentQuestion> questions = assessmentService.getQuestionsByAssessmentId(1L);
             
             Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
             response.put("message", "CRAFFT Debug Test");
             response.put("questionsFound", questions.size());
+            response.put("warning", "This is a debug endpoint for development only");
             
             if (questions.isEmpty()) {
                 response.put("error", "No CRAFFT questions found in database");
+                response.put("success", false);
                 return ResponseEntity.ok(response);
             }
             
@@ -74,23 +89,25 @@ public class TestController {
             try {
                 var result = assessmentService.calculateAssessmentResult(submission);
                 response.put("calculationResult", result);
-                response.put("success", true);
+                response.put("testSuccess", true);
             } catch (Exception e) {
                 response.put("calculationError", e.getMessage());
-                response.put("success", false);
+                response.put("testSuccess", false);
             }
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Debug test failed: " + e.getMessage());
             errorResponse.put("success", false);
+            errorResponse.put("error", "Debug test failed: " + e.getMessage());
+            errorResponse.put("warning", "This is a debug endpoint for development only");
             return ResponseEntity.ok(errorResponse);
         }
     }
 
     @GetMapping("/assist-debug")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> testASSISTScoring() {
         try {
             // Create sample answers for ASSIST (assessment ID 2)
@@ -100,32 +117,25 @@ public class TestController {
             List<AssessmentQuestion> questions = assessmentService.getQuestionsByAssessmentId(2L);
             
             Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
             response.put("message", "ASSIST Debug Test");
             response.put("questionsFound", questions.size());
+            response.put("warning", "This is a debug endpoint for development only");
             
             if (questions.isEmpty()) {
                 response.put("error", "No ASSIST questions found in database");
+                response.put("success", false);
                 return ResponseEntity.ok(response);
             }
             
-            // Create mixed answers to test scoring
+            // Create moderate risk answers for ASSIST
             for (int i = 0; i < questions.size(); i++) {
                 AssessmentQuestion question = questions.get(i);
                 AssessmentSubmissionDTO.AnswerDTO answer = new AssessmentSubmissionDTO.AnswerDTO();
                 answer.setQuestionId(question.getId());
-                
-                // Mixed answers: some 0, some 2, some 3 to test different scenarios
-                if (i % 3 == 0) {
-                    answer.setAnswerValue(3); // Recent use
-                    answer.setAnswerText("Yes, in the past 3 months");
-                } else if (i % 3 == 1) {
-                    answer.setAnswerValue(2); // Past use
-                    answer.setAnswerText("Yes, but not in the past 3 months");
-                } else {
-                    answer.setAnswerValue(0); // Never
-                    answer.setAnswerText("Never");
-                }
-                
+                // Vary answers to create moderate risk scenario
+                answer.setAnswerValue(i < 3 ? 2 : 1); // Mix of moderate answers
+                answer.setAnswerText("Sometimes");
                 sampleAnswers.add(answer);
             }
             
@@ -140,18 +150,19 @@ public class TestController {
             try {
                 var result = assessmentService.calculateAssessmentResult(submission);
                 response.put("calculationResult", result);
-                response.put("success", true);
+                response.put("testSuccess", true);
             } catch (Exception e) {
                 response.put("calculationError", e.getMessage());
-                response.put("success", false);
+                response.put("testSuccess", false);
             }
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Debug test failed: " + e.getMessage());
             errorResponse.put("success", false);
+            errorResponse.put("error", "ASSIST debug test failed: " + e.getMessage());
+            errorResponse.put("warning", "This is a debug endpoint for development only");
             return ResponseEntity.ok(errorResponse);
         }
     }
@@ -201,48 +212,55 @@ public class TestController {
         return createGenericDebugTest(4L, "DAST-10");
     }
 
-    @GetMapping("/database-debug")
-    public ResponseEntity<?> testDatabaseConnection() {
+    @GetMapping("/database-info")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getDatabaseInfo() {
         try {
-            Map<String, Object> response = new HashMap<>();
+            Map<String, Object> info = new HashMap<>();
+            info.put("success", true);
+            info.put("message", "Database information for development debugging");
+            info.put("warning", "This endpoint exposes system information - development only");
             
-            // Test basic database queries
-            long userCount = userRepository.count();
-            long roleCount = roleRepository.count();
+            // Safe database info (no sensitive data)
+            info.put("totalUsers", userRepository.count());
+            info.put("totalRoles", roleRepository.count());
+            info.put("availableAssessments", assessmentService.getAllAssessments().size());
+            info.put("timestamp", LocalDateTime.now());
             
-            response.put("databaseConnected", true);
-            response.put("userCount", userCount);
-            response.put("roleCount", roleCount);
-            
-            // Get first few users (without passwords)
-            List<User> users = userRepository.findAll();
-            List<Map<String, Object>> userInfo = new ArrayList<>();
-            
-            for (User user : users) {
-                Map<String, Object> info = new HashMap<>();
-                info.put("id", user.getId());
-                info.put("username", user.getUsername() != null ? user.getUsername() : "");
-                info.put("email", user.getEmail() != null ? user.getEmail() : "");
-                info.put("firstName", user.getFirstName() != null ? user.getFirstName() : "");
-                info.put("lastName", user.getLastName() != null ? user.getLastName() : "");
-                info.put("roleId", user.getRoleId());
-                info.put("roleName", user.getRole() != null ? user.getRole().getName() : "No Role");
-                info.put("isActive", user.getIsActive());
-                userInfo.add(info);
-            }
-            
-            response.put("users", userInfo);
-            response.put("success", true);
-            
-            return ResponseEntity.ok(response);
-            
+            return ResponseEntity.ok(info);
         } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("databaseConnected", false);
-            errorResponse.put("error", e.getMessage());
-            errorResponse.put("success", false);
-            return ResponseEntity.ok(errorResponse);
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "error", "Failed to get database info: " + e.getMessage(),
+                "warning", "This is a debug endpoint for development only"
+            ));
         }
+    }
+
+    @GetMapping("/available-endpoints")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAvailableEndpoints() {
+        Map<String, Object> endpoints = new HashMap<>();
+        endpoints.put("success", true);
+        endpoints.put("message", "Available test endpoints");
+        endpoints.put("warning", "These endpoints are for development debugging only");
+        
+        endpoints.put("endpoints", List.of(
+            "/api/test/health - Health check",
+            "/api/test/crafft-debug - Test CRAFFT scoring algorithm",
+            "/api/test/assist-debug - Test ASSIST scoring algorithm", 
+            "/api/test/database-info - Get safe database statistics",
+            "/api/test/available-endpoints - This endpoint"
+        ));
+        
+        endpoints.put("notes", List.of(
+            "All endpoints require ADMIN role",
+            "Only available in dev/test profiles",
+            "Should be disabled in production",
+            "No sensitive data is exposed"
+        ));
+        
+        return ResponseEntity.ok(endpoints);
     }
 
     private ResponseEntity<?> createGenericDebugTest(Long assessmentId, String assessmentName) {
@@ -356,5 +374,146 @@ public class TestController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Database English test failed: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/auth-debug")
+    public ResponseEntity<?> debugAuthentication(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        if (authentication == null) {
+            response.put("authenticated", false);
+            response.put("message", "No authentication found");
+            return ResponseEntity.ok(response);
+        }
+        
+        response.put("authenticated", true);
+        response.put("username", authentication.getName());
+        response.put("authorities", authentication.getAuthorities());
+        response.put("principal", authentication.getPrincipal().getClass().getSimpleName());
+        
+        // Get user from database
+        try {
+            Optional<User> userOpt = userRepository.findByUsername(authentication.getName());
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                response.put("userId", user.getId());
+                response.put("roleId", user.getRole().getId());
+                response.put("roleName", user.getRole().getName());
+                response.put("userActive", user.getIsActive());
+            } else {
+                response.put("userInDatabase", false);
+            }
+        } catch (Exception e) {
+            response.put("databaseError", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user-info/{username}")
+    public ResponseEntity<?> getUserInfo(@PathVariable String username) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                response.put("found", true);
+                response.put("userId", user.getId());
+                response.put("username", user.getUsername());
+                response.put("roleId", user.getRole().getId());
+                response.put("roleName", user.getRole().getName());
+                response.put("isActive", user.getIsActive());
+                response.put("email", user.getEmail());
+            } else {
+                response.put("found", false);
+                response.put("message", "User not found");
+            }
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/full-debug/{username}")
+    public ResponseEntity<?> fullDebugUser(@PathVariable String username) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 1. Check user existence
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (!userOpt.isPresent()) {
+                response.put("error", "User not found in database");
+                return ResponseEntity.ok(response);
+            }
+            
+            User user = userOpt.get();
+            response.put("userFound", true);
+            response.put("userId", user.getId());
+            response.put("username", user.getUsername());
+            response.put("email", user.getEmail());
+            response.put("isActive", user.getIsActive());
+            response.put("roleId", user.getRoleId());
+            
+            // 2. Check role mapping
+            if (user.getRole() != null) {
+                response.put("roleName", user.getRole().getName());
+                response.put("roleObject", "Found");
+            } else {
+                response.put("roleObject", "NULL - This is the problem!");
+                
+                // Try to manually find role
+                Optional<com.drugprevention.drugbe.entity.Role> roleOpt = roleRepository.findById(user.getRoleId());
+                if (roleOpt.isPresent()) {
+                    response.put("manualRoleCheck", roleOpt.get().getName());
+                } else {
+                    response.put("manualRoleCheck", "Role ID " + user.getRoleId() + " not found");
+                }
+            }
+            
+            // 3. Check all roles in system
+            List<com.drugprevention.drugbe.entity.Role> allRoles = roleRepository.findAll();
+            Map<Long, String> roleMap = new HashMap<>();
+            for (com.drugprevention.drugbe.entity.Role role : allRoles) {
+                roleMap.put(role.getId(), role.getName());
+            }
+            response.put("allRolesInSystem", roleMap);
+            
+            // 4. Check password (don't show actual password)
+            response.put("passwordExists", user.getPassword() != null && !user.getPassword().isEmpty());
+            response.put("passwordLength", user.getPassword() != null ? user.getPassword().length() : 0);
+            
+        } catch (Exception e) {
+            response.put("error", "Exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/staff-test")
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> testStaffAccess(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "SUCCESS! You have STAFF access");
+        response.put("username", authentication.getName());
+        response.put("authorities", authentication.getAuthorities());
+        response.put("timestamp", java.time.LocalDateTime.now());
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/any-auth-test")
+    public ResponseEntity<?> testAnyAuth(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        if (authentication != null) {
+            response.put("authenticated", true);
+            response.put("username", authentication.getName());
+            response.put("authorities", authentication.getAuthorities());
+        } else {
+            response.put("authenticated", false);
+        }
+        response.put("timestamp", java.time.LocalDateTime.now());
+        return ResponseEntity.ok(response);
     }
 } 

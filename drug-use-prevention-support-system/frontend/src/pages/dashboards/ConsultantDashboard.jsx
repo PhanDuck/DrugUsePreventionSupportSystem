@@ -1,338 +1,662 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Button, Space, message, Tag, Spin } from 'antd';
-import { CalendarOutlined, FileTextOutlined, UserOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import appointmentService from '../../services/appointmentService';
-import assessmentService from '../../services/assessmentService';
+import { 
+  Card, 
+  Table, 
+  Tag, 
+  Button, 
+  Space, 
+  Typography, 
+  message, 
+  Modal,
+  Form,
+  Input,
+  Row,
+  Col,
+  Statistic,
+  Badge,
+  Tooltip,
+  Popconfirm,
+  Avatar,
+  Divider,
+  Alert,
+  Timeline,
+  Descriptions
+} from 'antd';
+import { 
+  CalendarOutlined, 
+  ClockCircleOutlined, 
+  UserOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  VideoCameraOutlined,
+  EnvironmentOutlined,
+  DollarOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  ExclamationCircleOutlined,
+  EditOutlined,
+  EyeOutlined,
+  LinkOutlined
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
+import api from '../../config/axios';
 import authService from '../../services/authService';
+import appointmentService from '../../services/appointmentService';
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const ConsultantDashboard = () => {
-  const [stats, setStats] = useState({
-    todayAppointments: 0,
-    pendingAssessments: 0,
-    totalClients: 0,
-    completedSessions: 0
-  });
-  
-  const [appointments, setAppointments] = useState([]);
-  const [assessmentResults, setAssessmentResults] = useState([]);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const currentUser = authService.getCurrentUser();
+  const [appointments, setAppointments] = useState([]);
+  const [pendingAppointments, setPendingAppointments] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [showMeetingLinkModal, setShowMeetingLinkModal] = useState(false);
+  const [notesForm] = Form.useForm();
+  const [meetingLinkForm] = Form.useForm();
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    todayAppointments: 0
+  });
 
   useEffect(() => {
-    if (currentUser?.id) {
-      fetchDashboardData();
+    checkAuthentication();
+    loadDashboardData();
+  }, []);
+
+  const checkAuthentication = () => {
+    const user = authService.getCurrentUser();
+    const userRole = authService.getUserRole(); // Use authService method instead
+    if (!user || userRole !== 'CONSULTANT') {
+      message.error('Access denied. Consultant role required.');
+      navigate('/unauthorized');
+      return;
     }
-  }, [currentUser]);
+    setCurrentUser(user);
+  };
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const loadDashboardData = async () => {
     try {
-      if (!currentUser?.id) {
-        message.error('User information not found');
-        return;
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      // Load pending appointments
+      const pendingResponse = await api.get(`/appointments/pending?consultantId=${user.id}`);
+      if (pendingResponse.data) {
+        setPendingAppointments(pendingResponse.data);
       }
 
-      // Fetch consultant's appointments
-      const appointmentsResponse = await appointmentService.getAppointmentsByConsultant(currentUser.id);
-      if (appointmentsResponse.success) {
-        const appointmentData = appointmentsResponse.data || [];
-        setAppointments(appointmentData);
-        
-        // Calculate today's appointments
-        const today = new Date().toISOString().split('T')[0];
-        const todayAppts = appointmentData.filter(apt => 
-          apt.appointmentDate?.startsWith(today)
-        );
-        
-        setStats(prev => ({
-          ...prev,
-          todayAppointments: todayAppts.length,
-          completedSessions: appointmentData.filter(apt => apt.status === 'COMPLETED').length,
-          totalClients: new Set(appointmentData.map(apt => apt.clientId)).size
-        }));
-        
-        // Load assessment results for recent clients
-        const recentClients = [...new Set(appointmentData
-          .filter(apt => apt.status === 'COMPLETED' || apt.status === 'CONFIRMED')
-          .map(apt => apt.clientId)
-          .slice(0, 5))]; // Get 5 recent clients
-          
-        const assessmentPromises = recentClients.map(async (clientId) => {
-          const result = await assessmentService.getLatestClientAssessmentForConsultant(clientId);
-          if (result.success && result.data && result.data.id) {
-            // Find client name from appointments
-            const clientAppointment = appointmentData.find(apt => apt.clientId === clientId);
-            return {
-              ...result.data,
-              clientName: clientAppointment?.clientName || `Client #${clientId}`,
-              clientId: clientId
-            };
-          }
-          return null;
-        });
-        
-        const assessmentResults = await Promise.all(assessmentPromises);
-        setAssessmentResults(assessmentResults.filter(result => result !== null));
-        setStats(prev => ({ ...prev, pendingAssessments: assessmentResults.filter(r => r !== null).length }));
-        
-      } else {
-        console.log('No appointments found:', appointmentsResponse.message);
+      // Load all consultant appointments
+      const appointmentsResponse = await api.get(`/appointments/consultant/${user.id}`);
+      if (appointmentsResponse.data) {
+        setAppointments(appointmentsResponse.data);
+        calculateStats(appointmentsResponse.data);
       }
-      
+
     } catch (error) {
-      console.error('Error fetching consultant dashboard data:', error);
-      message.error('Unable to load dashboard data');
+      console.error('Error loading dashboard data:', error);
+      message.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
+  const calculateStats = (appointmentsList) => {
+    const today = dayjs().format('YYYY-MM-DD');
+    const stats = {
+      total: appointmentsList.length,
+      pending: appointmentsList.filter(apt => apt.status === 'PENDING').length,
+      confirmed: appointmentsList.filter(apt => apt.status === 'CONFIRMED').length,
+      completed: appointmentsList.filter(apt => apt.status === 'COMPLETED').length,
+      todayAppointments: appointmentsList.filter(apt => 
+        dayjs(apt.appointmentDate).format('YYYY-MM-DD') === today
+      ).length
+    };
+    setStats(stats);
+  };
+
   const handleConfirmAppointment = async (appointmentId) => {
     try {
-      const result = await appointmentService.confirmAppointment(appointmentId, currentUser.id);
-      if (result.success) {
-        message.success('Appointment confirmed successfully');
-        fetchDashboardData(); // Refresh data
-      } else {
-        message.error(result.message);
-      }
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      await api.put(`/appointments/${appointmentId}/confirm`, null, {
+        params: { consultantId: user.id }
+      });
+      
+      message.success('Appointment confirmed successfully');
+      loadDashboardData(); // Reload data
     } catch (error) {
-      message.error('Unable to confirm appointment');
+      console.error('Error confirming appointment:', error);
+      message.error(error.response?.data?.error || 'Failed to confirm appointment');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCompleteAppointment = async (appointmentId) => {
+  const handleCancelAppointment = async (appointmentId, reason) => {
     try {
-      const result = await appointmentService.completeAppointment(appointmentId, currentUser.id, 'Completed consultation session');
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      await api.put(`/appointments/${appointmentId}/cancel`, null, {
+        params: { 
+          userId: user.id,
+          reason: reason || 'Cancelled by consultant'
+        }
+      });
+      
+      message.success('Appointment cancelled successfully');
+      loadDashboardData(); // Reload data
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      message.error(error.response?.data?.error || 'Failed to cancel appointment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteAppointment = async (values) => {
+    try {
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      await api.put(`/appointments/${selectedAppointment.id}/complete`, null, {
+        params: { 
+          consultantId: user.id,
+          notes: values.consultantNotes
+        }
+      });
+      
+      message.success('Appointment completed successfully');
+      setShowNotesModal(false);
+      loadDashboardData(); // Reload data
+    } catch (error) {
+      console.error('Error completing appointment:', error);
+      message.error(error.response?.data?.error || 'Failed to complete appointment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMeetingLinkSubmit = async (values) => {
+    try {
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      const { meetingLink } = values;
+      
+      let result;
+      if (selectedAppointment.meetingLink) {
+        // Update existing link
+        result = await appointmentService.updateMeetingLink(
+          selectedAppointment.id, 
+          user.id, 
+          meetingLink
+        );
+      } else {
+        // Add new link
+        result = await appointmentService.addMeetingLink(
+          selectedAppointment.id, 
+          user.id, 
+          meetingLink
+        );
+      }
+      
       if (result.success) {
-        message.success('Appointment completed successfully');
-        fetchDashboardData(); // Refresh data
+        message.success(result.message);
+        setShowMeetingLinkModal(false);
+        meetingLinkForm.resetFields();
+        loadDashboardData(); // Reload data
       } else {
         message.error(result.message);
       }
     } catch (error) {
-      message.error('Unable to complete appointment');
+      console.error('Error managing meeting link:', error);
+      message.error('Failed to save meeting link');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleRemoveMeetingLink = async () => {
+    try {
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      const result = await appointmentService.removeMeetingLink(
+        selectedAppointment.id, 
+        user.id
+      );
+      
+      if (result.success) {
+        message.success(result.message);
+        setShowMeetingLinkModal(false);
+        loadDashboardData(); // Reload data
+      } else {
+        message.error(result.message);
+      }
+    } catch (error) {
+      console.error('Error removing meeting link:', error);
+      message.error('Failed to remove meeting link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'PENDING': 'orange',
+      'CONFIRMED': 'blue',
+      'COMPLETED': 'green',
+      'CANCELLED': 'red'
+    };
+    return colors[status] || 'default';
+  };
+
+  const getStatusIcon = (status) => {
+    const icons = {
+      'PENDING': <ClockCircleOutlined />,
+      'CONFIRMED': <CheckCircleOutlined />,
+      'COMPLETED': <CheckCircleOutlined />,
+      'CANCELLED': <CloseCircleOutlined />
+    };
+    return icons[status] || <ClockCircleOutlined />;
   };
 
   const appointmentColumns = [
     {
       title: 'Client',
-      dataIndex: 'clientName',
-      key: 'clientName',
-      render: (_, record) => record.clientName || `Client ID: ${record.clientId}`,
+      key: 'client',
+      render: (_, record) => (
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} />
+          <div>
+            <Text strong>{record.clientName || 'Unknown Client'}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {record.clientEmail}
+            </Text>
+          </div>
+        </Space>
+      )
     },
     {
-      title: 'Date',
-      dataIndex: 'appointmentDate',
-      key: 'appointmentDate',
-      render: (date) => date ? new Date(date).toLocaleDateString('en-US') : 'N/A',
+      title: 'Date & Time',
+      key: 'datetime',
+      render: (_, record) => (
+        <div>
+          <Text strong>{dayjs(record.appointmentDate).format('MMM DD, YYYY')}</Text>
+          <br />
+          <Text type="secondary">{dayjs(record.appointmentDate).format('HH:mm')}</Text>
+        </div>
+      )
     },
     {
-      title: 'Time',
-      dataIndex: 'appointmentTime',
-      key: 'appointmentTime',
+      title: 'Type',
+      key: 'type',
+      render: (_, record) => (
+        <Tag icon={record.appointmentType === 'ONLINE' ? <VideoCameraOutlined /> : <EnvironmentOutlined />}>
+          {record.appointmentType}
+        </Tag>
+      )
+    },
+    {
+      title: 'Duration',
+      dataIndex: 'durationMinutes',
+      key: 'duration',
+      render: (duration) => `${duration} min`
     },
     {
       title: 'Status',
-      dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={
-          status === 'CONFIRMED' ? 'green' : 
-          status === 'PENDING' ? 'orange' :
-          status === 'COMPLETED' ? 'blue' : 'red'
-        }>
-          {status === 'CONFIRMED' ? 'Confirmed' : 
-           status === 'PENDING' ? 'Pending' :
-           status === 'COMPLETED' ? 'Completed' : status}
+      render: (_, record) => (
+        <Tag color={getStatusColor(record.status)} icon={getStatusIcon(record.status)}>
+          {record.status}
         </Tag>
-      ),
+      )
+    },
+    {
+      title: 'Fee',
+      key: 'fee',
+      render: (_, record) => (
+        <div>
+          <Text strong>${record.fee}</Text>
+          <br />
+          <Tag color={record.paymentStatus === 'PAID' ? 'green' : 'orange'} size="small">
+            {record.paymentStatus}
+          </Tag>
+        </div>
+      )
     },
     {
       title: 'Actions',
-      key: 'action',
+      key: 'actions',
       render: (_, record) => (
-        <Space size="middle">
-          {record.status === 'PENDING' && (
+        <Space>
+          <Tooltip title="View Details">
             <Button 
               size="small" 
-              type="primary"
-              onClick={() => handleConfirmAppointment(record.id)}
-            >
-              Confirm
-            </Button>
+              icon={<EyeOutlined />}
+              onClick={() => {
+                setSelectedAppointment(record);
+                setShowDetailsModal(true);
+              }}
+            />
+          </Tooltip>
+          
+          {record.status === 'PENDING' && (
+            <>
+              <Tooltip title="Confirm">
+                <Button 
+                  type="primary" 
+                  size="small" 
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleConfirmAppointment(record.id)}
+                  loading={loading}
+                />
+              </Tooltip>
+              <Popconfirm
+                title="Cancel Appointment"
+                description="Are you sure you want to cancel this appointment?"
+                onConfirm={() => handleCancelAppointment(record.id)}
+                okText="Yes, Cancel"
+                cancelText="No"
+              >
+                <Button 
+                  danger 
+                  size="small" 
+                  icon={<CloseCircleOutlined />}
+                />
+              </Popconfirm>
+            </>
           )}
+          
+          {(record.status === 'CONFIRMED' || record.status === 'PENDING') && record.appointmentType === 'ONLINE' && (
+            <Tooltip title={record.meetingLink ? "Edit Meeting Link" : "Add Meeting Link"}>
+              <Button 
+                size="small" 
+                icon={<LinkOutlined />}
+                onClick={() => {
+                  setSelectedAppointment(record);
+                  meetingLinkForm.setFieldsValue({ 
+                    meetingLink: record.meetingLink || '' 
+                  });
+                  setShowMeetingLinkModal(true);
+                }}
+                style={{ 
+                  color: record.meetingLink ? '#52c41a' : '#1890ff',
+                  borderColor: record.meetingLink ? '#52c41a' : '#1890ff'
+                }}
+              />
+            </Tooltip>
+          )}
+          
           {record.status === 'CONFIRMED' && (
-            <Button 
-              size="small"
-              onClick={() => handleCompleteAppointment(record.id)}
-            >
-              Complete
-            </Button>
+            <Tooltip title="Mark Complete">
+              <Button 
+                type="primary" 
+                size="small" 
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setSelectedAppointment(record);
+                  setShowNotesModal(true);
+                }}
+              />
+            </Tooltip>
           )}
-          <Button size="small">Details</Button>
         </Space>
-      ),
-    },
+      )
+    }
   ];
-
-  const assessmentColumns = [
-    {
-      title: 'Client',
-      dataIndex: 'clientName',
-      key: 'clientName',
-    },
-    {
-      title: 'Assessment Type',
-      dataIndex: 'assessmentType',
-      key: 'assessmentType',
-    },
-    {
-      title: 'Score',
-      dataIndex: 'totalScore',
-      key: 'totalScore',
-    },
-    {
-      title: 'Risk Level',
-      dataIndex: 'riskLevel',
-      key: 'riskLevel',
-      render: (riskLevel) => (
-        <Tag color={
-          riskLevel === 'HIGH' ? 'red' : 
-          riskLevel === 'MODERATE' ? 'orange' : 'green'
-        }>
-          {riskLevel}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Date',
-      dataIndex: 'completedAt',
-      key: 'completedAt',
-      render: (date) => date ? new Date(date).toLocaleDateString('en-US') : 'N/A',
-    },
-    {
-      title: 'Actions',
-      key: 'action',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            size="small" 
-            type="primary"
-            onClick={() => {
-              message.info(`View detailed assessment results for ${record.clientName}`);
-              // TODO: Navigate to detailed view
-            }}
-          >
-            View Results
-          </Button>
-          <Button 
-            size="small"
-            onClick={() => {
-              message.info('Consultation feature under development');
-              // TODO: Create consultation notes
-            }}
-          >
-            Consult
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
-  if (loading) {
-    return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
-        <Spin size="large" />
-        <p style={{ marginTop: '16px' }}>Loading consultant data...</p>
-      </div>
-    );
-  }
 
   return (
-    <div style={{ padding: '24px' }}>
-      <h1>Consultant Dashboard</h1>
-      
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '32px' }}>
+        <Title level={2}>
+          <CalendarOutlined /> Consultant Dashboard
+        </Title>
+        <Text type="secondary">
+          Manage your appointments and client consultations
+        </Text>
+      </div>
+
       {/* Statistics Cards */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Today's Appointments"
-              value={stats.todayAppointments}
-              prefix={<CalendarOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Pending Assessments"
-              value={stats.pendingAssessments}
-              prefix={<FileTextOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Clients"
-              value={stats.totalClients}
-              prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Completed Sessions"
-              value={stats.completedSessions}
-              prefix={<ClockCircleOutlined />}
-            />
-          </Card>
-        </Col>
+      <Row gutter={[16, 16]} style={{ marginBottom: '32px' }}>
+        {[
+          { title: "Total Appointments", value: stats.total, icon: <CalendarOutlined />, color: "#1890ff" },
+          { title: "Pending", value: stats.pending, icon: <ClockCircleOutlined />, color: "#faad14" },
+          { title: "Confirmed", value: stats.confirmed, icon: <CheckCircleOutlined />, color: "#52c41a" },
+          { title: "Today's Sessions", value: stats.todayAppointments, icon: <CalendarOutlined />, color: "#722ed1" }
+        ].map((stat, index) => (
+          <Col xs={12} sm={6} key={index}>
+            <Card>
+              <Statistic
+                title={stat.title}
+                value={stat.value}
+                prefix={React.cloneElement(stat.icon, { style: { color: stat.color } })}
+                valueStyle={{ color: stat.color }}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      {/* Today's Appointments */}
-      <Card title="My Appointments" style={{ marginBottom: '24px' }}>
+      {/* Pending Appointments Alert */}
+      {pendingAppointments.length > 0 && (
+        <Alert
+          message="Pending Appointments Require Action"
+          description={`You have ${pendingAppointments.length} appointment(s) waiting for confirmation.`}
+          type="warning"
+          showIcon
+          style={{ marginBottom: '24px' }}
+          action={
+            <Button size="small" type="primary">
+              Review Now
+            </Button>
+          }
+        />
+      )}
+
+      {/* Appointments Table */}
+      <Card title="All Appointments" style={{ marginBottom: '24px' }}>
         <Table
           columns={appointmentColumns}
           dataSource={appointments}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 5 }}
-          size="small"
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} appointments`
+          }}
+          scroll={{ x: 800 }}
         />
       </Card>
 
-      {/* Recent Assessment Results */}
-      <Card title="Recent Assessment Results">
-        <Table
-          columns={assessmentColumns}
-          dataSource={assessmentResults}
-          rowKey="id"
-          loading={loading}
-          pagination={{ pageSize: 5 }}
-          size="small"
-          locale={{ emptyText: 'No assessment data available' }}
-        />
-      </Card>
+      {/* Appointment Details Modal */}
+      <Modal
+        title="Appointment Details"
+        open={showDetailsModal}
+        onCancel={() => setShowDetailsModal(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedAppointment && (
+          <div>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card size="small" title="Client Information">
+                  <Space direction="vertical" size="small">
+                    <Text><UserOutlined /> {selectedAppointment.clientName}</Text>
+                    <Text><MailOutlined /> {selectedAppointment.clientEmail}</Text>
+                    <Text><PhoneOutlined /> {selectedAppointment.clientPhone || 'N/A'}</Text>
+                  </Space>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" title="Appointment Info">
+                  <Space direction="vertical" size="small">
+                    <Text><CalendarOutlined /> {dayjs(selectedAppointment.appointmentDate).format('MMMM DD, YYYY HH:mm')}</Text>
+                    <Text><ClockCircleOutlined /> {selectedAppointment.durationMinutes} minutes</Text>
+                    <Tag color={getStatusColor(selectedAppointment.status)}>
+                      {selectedAppointment.status}
+                    </Tag>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+            
+            {selectedAppointment.clientNotes && (
+              <Card size="small" title="Client Notes" style={{ marginTop: '16px' }}>
+                <Text>{selectedAppointment.clientNotes}</Text>
+              </Card>
+            )}
+            
+            {selectedAppointment.consultantNotes && (
+              <Card size="small" title="Consultant Notes" style={{ marginTop: '16px' }}>
+                <Text>{selectedAppointment.consultantNotes}</Text>
+              </Card>
+            )}
+          </div>
+        )}
+      </Modal>
 
-      {/* Quick Actions */}
-      <Card title="Quick Actions" style={{ marginTop: '24px' }}>
-        <Space size="middle">
-          <Button type="primary" onClick={fetchDashboardData}>
-            Refresh Data
+      {/* Complete Appointment Modal */}
+      <Modal
+        title="Complete Appointment"
+        open={showNotesModal}
+        onCancel={() => setShowNotesModal(false)}
+        onOk={() => notesForm.submit()}
+        confirmLoading={loading}
+      >
+        <Form
+          form={notesForm}
+          layout="vertical"
+          onFinish={handleCompleteAppointment}
+        >
+          <Form.Item
+            label="Session Notes"
+            name="consultantNotes"
+            rules={[{ required: true, message: 'Please add session notes' }]}
+          >
+            <TextArea
+              rows={4}
+              placeholder="Add notes about the session, recommendations, follow-up actions..."
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Meeting Link Management Modal */}
+      <Modal
+        title={
+          <Space>
+            <LinkOutlined />
+            {selectedAppointment?.meetingLink ? 'Edit Meeting Link' : 'Add Meeting Link'}
+          </Space>
+        }
+        open={showMeetingLinkModal}
+        onCancel={() => {
+          setShowMeetingLinkModal(false);
+          meetingLinkForm.resetFields();
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => setShowMeetingLinkModal(false)}>
+            Cancel
+          </Button>,
+          selectedAppointment?.meetingLink && (
+            <Popconfirm
+              key="remove"
+              title="Remove Meeting Link"
+              description="Are you sure you want to remove the meeting link?"
+              onConfirm={handleRemoveMeetingLink}
+              okText="Remove"
+              okType="danger"
+              cancelText="Cancel"
+            >
+              <Button danger loading={loading}>
+                Remove Link
+              </Button>
+            </Popconfirm>
+          ),
+          <Button 
+            key="submit" 
+            type="primary" 
+            onClick={() => meetingLinkForm.submit()}
+            loading={loading}
+          >
+            {selectedAppointment?.meetingLink ? 'Update Link' : 'Add Link'}
           </Button>
-          <Button onClick={() => message.info('Feature under development')}>
-            View All Appointments
-          </Button>
-          <Button onClick={() => message.info('Feature under development')}>
-            Weekly Report
-          </Button>
-        </Space>
-      </Card>
+        ]}
+        width={600}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <Alert
+            message="Meeting Link Information"
+            description="Add or edit the Google Meet link for this online consultation. Clients will be able to join the meeting using this link."
+            type="info"
+            showIcon
+            style={{ marginBottom: '16px' }}
+          />
+          
+          {selectedAppointment && (
+            <Descriptions size="small" column={1} bordered style={{ marginBottom: '16px' }}>
+              <Descriptions.Item label="Client">
+                {selectedAppointment.clientName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Date & Time">
+                {dayjs(selectedAppointment.appointmentDate).format('MMMM DD, YYYY HH:mm')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Status">
+                <Tag color={getStatusColor(selectedAppointment.status)}>
+                  {selectedAppointment.status}
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+          )}
+        </div>
+
+        <Form
+          form={meetingLinkForm}
+          layout="vertical"
+          onFinish={handleMeetingLinkSubmit}
+        >
+          <Form.Item
+            name="meetingLink"
+            label="Google Meet Link"
+            rules={[
+              { required: true, message: 'Please enter the meeting link' },
+              { type: 'url', message: 'Please enter a valid URL' },
+              {
+                pattern: /^https:\/\/meet\.google\.com\/.+/,
+                message: 'Please enter a valid Google Meet link (https://meet.google.com/...)'
+              }
+            ]}
+          >
+            <Input.TextArea
+              rows={3}
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              prefix={<LinkOutlined />}
+            />
+          </Form.Item>
+          
+          <Form.Item>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              💡 Tip: Create a new Google Meet link in your calendar or directly at meet.google.com/new
+            </Text>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

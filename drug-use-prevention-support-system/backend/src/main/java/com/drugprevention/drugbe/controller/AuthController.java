@@ -50,21 +50,34 @@ public class AuthController {
             }
             String password = loginRequest.get("password");
             
+            logger.debug("Login attempt for username: {}", username);
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
             );
             
-            User user = authService.findByUsername(username);
-            String token = jwtService.generateToken(username, user.getRole().getName());
+            logger.debug("Authentication successful for user: {}", username);
             
-                    Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
-        response.put("user", user);
-        response.put("role", user.getRole().getName());
+            User user = authService.findByUsername(username);
+            logger.debug("User found: id={}, username={}, roleId={}", user.getId(), user.getUsername(), user.getRoleId());
+            
+            if (user.getRole() != null) {
+                logger.debug("User role: id={}, name={}", user.getRole().getId(), user.getRole().getName());
+            } else {
+                logger.error("User role is NULL for user: {}", username);
+            }
+            
+            String token = jwtService.generateToken(username, user.getRole().getName());
+            logger.debug("JWT token generated successfully for user: {}", username);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", user);
+            response.put("role", user.getRole().getName());
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("Login failed for user: {}", loginRequest.get("userName"), e);
+            logger.error("Login failed for user: {} - Error: {}", loginRequest.get("username"), e.getMessage(), e);
             return ResponseEntity.badRequest().body("Invalid username or password");
         }
     }

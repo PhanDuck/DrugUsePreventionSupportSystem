@@ -81,7 +81,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     // Find available time slots for a consultant on a specific date
     @Query("SELECT a FROM Appointment a WHERE a.consultantId = :consultantId " +
-           "AND DATE(a.appointmentDate) = DATE(:date) " +
+           "AND CAST(a.appointmentDate AS DATE) = CAST(:date AS DATE) " +
            "AND a.status IN ('PENDING', 'CONFIRMED') " +
            "ORDER BY a.appointmentDate ASC")
     List<Appointment> findConsultantAppointmentsByDate(
