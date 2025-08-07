@@ -78,6 +78,48 @@ public class AppointmentController {
         }
     }
 
+    // ===== CREATE APPOINTMENT WITH PAYMENT =====
+
+    @PostMapping("/with-payment")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Create appointment with payment", description = "Book appointment and create payment in one step")
+    public ResponseEntity<?> createAppointmentWithPayment(@Valid @RequestBody CreateAppointmentRequest request) {
+        try {
+            // Validate request
+            if (request == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Request cannot be null"));
+            }
+            
+            if (request.getClientId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Client ID cannot be null"));
+            }
+            
+            if (request.getConsultantId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Consultant ID cannot be null"));
+            }
+            
+            if (request.getAppointmentDate() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Appointment date cannot be null"));
+            }
+            
+            if (request.getDurationMinutes() == null || request.getDurationMinutes() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Duration must be greater than 0"));
+            }
+            
+            Map<String, Object> result = appointmentService.createAppointmentWithPayment(request);
+            
+            if ((Boolean) result.get("success")) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error", result.get("error")));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error creating appointment with payment: " + e.getMessage()));
+        }
+    }
+
     // ===== GET APPOINTMENTS =====
 
     @GetMapping("/user")
@@ -226,6 +268,20 @@ public class AppointmentController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error completing appointment: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{appointmentId}/mark-paid")
+    @PreAuthorize("hasAnyRole('CONSULTANT', 'ADMIN')")
+    @Operation(summary = "Mark appointment as paid", description = "Consultant marks appointment payment as received")
+    public ResponseEntity<?> markAppointmentAsPaid(@PathVariable Long appointmentId, @RequestParam Long consultantId) {
+        try {
+            AppointmentDTO appointment = appointmentService.markAppointmentAsPaid(appointmentId, consultantId);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error marking appointment as paid: " + e.getMessage()));
         }
     }
 
@@ -517,6 +573,28 @@ public class AppointmentController {
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error getting pending appointments: " + e.getMessage()));
+        }
+    }
+
+    // ===== UPDATE APPOINTMENT STATUS =====
+    
+    @PutMapping("/{appointmentId}/status")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'ADMIN', 'STAFF')")
+    @Operation(summary = "Update appointment status", description = "Update the status of an appointment")
+    public ResponseEntity<?> updateAppointmentStatus(@PathVariable Long appointmentId, 
+                                                   @RequestBody Map<String, String> request) {
+        try {
+            String newStatus = request.get("status");
+            if (newStatus == null || newStatus.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Status is required"));
+            }
+            
+            AppointmentDTO updatedAppointment = appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+            return ResponseEntity.ok(updatedAppointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error updating appointment status: " + e.getMessage()));
         }
     }
 } 

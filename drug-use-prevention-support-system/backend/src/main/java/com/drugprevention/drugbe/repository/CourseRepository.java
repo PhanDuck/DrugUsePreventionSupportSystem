@@ -43,8 +43,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<Course> findByStartDateAfter(LocalDateTime startDate);
     
-    // Find courses with available spots
-    @Query("SELECT c FROM Course c WHERE c.currentParticipants < c.maxParticipants AND c.status = 'open'")
+    // Find courses with available spots - UPDATED: No participant limits
+    @Query("SELECT c FROM Course c WHERE c.status = 'open'")
     List<Course> findAvailableCourses();
     
     // Get latest courses

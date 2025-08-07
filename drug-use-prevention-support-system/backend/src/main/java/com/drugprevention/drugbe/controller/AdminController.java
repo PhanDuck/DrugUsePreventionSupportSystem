@@ -251,11 +251,16 @@ public class AdminController {
                 .mapToInt(com.drugprevention.drugbe.entity.Course::getCurrentParticipants)
                 .max()
                 .orElse(0));
-            performanceStats.put("coursesWithFullCapacity", courses.stream()
-                .filter(course -> course.getCurrentParticipants() != null && 
-                                course.getMaxParticipants() != null &&
-                                course.getCurrentParticipants().equals(course.getMaxParticipants()))
-                .count());
+            // Full courses count - UPDATED: Always 0 since unlimited enrollment
+            int fullCoursesCount = 0; // No longer tracking full courses
+            /* OLD LOGIC:
+            int fullCoursesCount = (int) courses.stream()
+                .filter(course -> course.getCurrentParticipants() != null &&
+                        course.getMaxParticipants() != null &&
+                        course.getCurrentParticipants().equals(course.getMaxParticipants()))
+                .count();
+            */
+            performanceStats.put("coursesWithFullCapacity", fullCoursesCount);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,

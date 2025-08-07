@@ -259,15 +259,18 @@ const CourseEditor = ({ visible, course, onCancel, onSuccess }) => {
             </Form.Item>
           </Col>
 
-          <Col span={8}>
+          {/* HIDDEN: Max Participants field - no longer using participant limits
+          <Col span={12}>
             <Form.Item
               name="maxParticipants"
-              label="Số Học Viên Tối Da"
+              label="Max Participants"
+              rules={[{ required: true, message: 'Please enter maximum participants!' }]}
             >
               <InputNumber min={1} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
-
+          */}
+          
           <Col span={8}>
             <Form.Item
               name="language"

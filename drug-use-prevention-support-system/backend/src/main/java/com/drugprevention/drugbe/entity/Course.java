@@ -255,17 +255,22 @@ public class Course {
     }
 
     public boolean isEnrollmentOpen() {
-        return "open".equals(status) && !hasEnrollmentDeadlinePassed() && 
-               currentParticipants < maxParticipants;
+        // UPDATED: Removed participant limit check - allowing unlimited enrollments
+        return "open".equals(status) && !hasEnrollmentDeadlinePassed();
+        // OLD: return "open".equals(status) && !hasEnrollmentDeadlinePassed() && currentParticipants < maxParticipants;
     }
 
     public int getAvailableSlots() {
-        return maxParticipants - currentParticipants;
+        // UPDATED: Always return -1 to indicate unlimited slots
+        return -1; // -1 indicates unlimited enrollment
+        // OLD: return maxParticipants - currentParticipants;
     }
 
     public double getEnrollmentRate() {
-        if (maxParticipants == 0) return 0.0;
-        return (double) currentParticipants / maxParticipants * 100;
+        // UPDATED: Return 0 since we don't track enrollment rate with unlimited slots
+        return 0.0;
+        // OLD: if (maxParticipants == 0) return 0.0;
+        // OLD: return (double) currentParticipants / maxParticipants * 100;
     }
 
     public String getFormattedDuration() {

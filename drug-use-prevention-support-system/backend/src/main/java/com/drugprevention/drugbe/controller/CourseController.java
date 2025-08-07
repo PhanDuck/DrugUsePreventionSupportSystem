@@ -6,6 +6,8 @@ import com.drugprevention.drugbe.entity.CourseRegistration;
 import com.drugprevention.drugbe.service.CourseService;
 import com.drugprevention.drugbe.service.CourseRegistrationService;
 import com.drugprevention.drugbe.service.AuthService;
+import com.drugprevention.drugbe.entity.CourseContent;
+import com.drugprevention.drugbe.service.CourseContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
+import com.drugprevention.drugbe.entity.CourseLesson;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -32,6 +38,9 @@ public class CourseController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private CourseContentService courseContentService;
 
     // ===== HEALTH CHECK =====
 
@@ -80,6 +89,82 @@ public class CourseController {
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "error", "Failed to retrieve course",
+                "details", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/{courseId}/lessons")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Get course lessons", description = "Get lessons for a specific course (enrolled users only)")
+    public ResponseEntity<?> getCourseLessons(@PathVariable Long courseId, Authentication authentication) {
+        try {
+            System.out.println("=== GET COURSE LESSONS DEBUG ===");
+            System.out.println("Course ID: " + courseId);
+            
+            if (authentication == null) {
+                System.out.println("ERROR: Authentication is null");
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+
+            String username = authentication.getName();
+            System.out.println("Username: " + username);
+            
+            User user = authService.findByUsername(username);
+            System.out.println("User found: " + (user != null ? "YES, ID: " + user.getId() : "NO"));
+            
+            if (user == null) {
+                System.out.println("ERROR: User not found");
+                return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+            }
+            
+            // Check if user is enrolled in the course
+            System.out.println("Checking enrollment for user " + user.getId() + " in course " + courseId);
+            boolean isEnrolled = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+            System.out.println("Is enrolled: " + isEnrolled);
+            
+            if (!isEnrolled) {
+                System.out.println("ERROR: User not enrolled");
+                return ResponseEntity.badRequest().body(Map.of("error", "You must be enrolled in this course to view lessons"));
+            }
+
+            // Get course lessons
+            System.out.println("Getting lessons for course " + courseId);
+            List<CourseLesson> lessons = courseService.getCourseLessons(courseId);
+            System.out.println("Lessons found: " + (lessons != null ? lessons.size() : "NULL"));
+            
+            // Convert to DTO to avoid serialization issues
+            List<Map<String, Object>> lessonDTOs = lessons.stream().map(lesson -> {
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("id", lesson.getId());
+                dto.put("courseId", lesson.getCourseId());
+                dto.put("title", lesson.getTitle());
+                dto.put("description", lesson.getDescription());
+                dto.put("lessonOrder", lesson.getLessonOrder());
+                dto.put("estimatedDuration", lesson.getEstimatedDuration());
+                dto.put("isPublished", lesson.getIsPublished());
+                dto.put("isFree", lesson.getIsFree());
+                dto.put("requiredCompletion", lesson.getRequiredCompletion());
+                dto.put("thumbnailUrl", lesson.getThumbnailUrl());
+                dto.put("learningObjectives", lesson.getLearningObjectives());
+                dto.put("prerequisites", lesson.getPrerequisites());
+                dto.put("createdAt", lesson.getCreatedAt());
+                dto.put("updatedAt", lesson.getUpdatedAt());
+                dto.put("createdBy", lesson.getCreatedBy());
+                return dto;
+            }).toList();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", lessonDTOs,
+                "message", "Course lessons retrieved successfully"
+            ));
+        } catch (Exception e) {
+            System.out.println("EXCEPTION in getCourseLessons: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to retrieve course lessons",
                 "details", e.getMessage()
             ));
         }
@@ -225,4 +310,217 @@ public class CourseController {
             return ResponseEntity.internalServerError().body(Map.of("error", "Error deleting course: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/{courseId}/complete")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Complete course", description = "Mark a course as completed for the current user")
+    public ResponseEntity<?> completeCourse(@PathVariable Long courseId, Authentication authentication) {
+        try {
+            System.out.println("=== COMPLETE COURSE DEBUG ===");
+            System.out.println("Course ID: " + courseId);
+            
+            if (authentication == null) {
+                System.out.println("ERROR: Authentication is null");
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+
+            String username = authentication.getName();
+            System.out.println("Username: " + username);
+            
+            User user = authService.findByUsername(username);
+            System.out.println("User found: " + (user != null ? "YES, ID: " + user.getId() : "NO"));
+            
+            if (user == null) {
+                System.out.println("ERROR: User not found");
+                return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+            }
+            
+            // Check if user is enrolled in the course
+            System.out.println("Checking enrollment for user " + user.getId() + " in course " + courseId);
+            boolean isEnrolled = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+            System.out.println("Is enrolled: " + isEnrolled);
+            
+            if (!isEnrolled) {
+                System.out.println("ERROR: User not enrolled");
+                return ResponseEntity.badRequest().body(Map.of("error", "You must be enrolled in this course to complete it"));
+            }
+
+            // Check if course is already completed
+            boolean isCompleted = courseService.isCourseCompletedByUser(user.getId(), courseId);
+            System.out.println("Is already completed: " + isCompleted);
+            
+            if (isCompleted) {
+                System.out.println("ERROR: Course already completed");
+                return ResponseEntity.badRequest().body(Map.of("error", "Course is already completed"));
+            }
+
+            // Complete the course
+            System.out.println("Completing course for user " + user.getId());
+            courseService.completeCourseForUser(user.getId(), courseId);
+            System.out.println("Course completed successfully");
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Course completed successfully"
+            ));
+        } catch (Exception e) {
+            System.out.println("EXCEPTION in completeCourse: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to complete course",
+                "details", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/{courseId}/status")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Get course status", description = "Get course status for the current user (enrolled/completed)")
+    public ResponseEntity<?> getCourseStatus(@PathVariable Long courseId, Authentication authentication) {
+        try {
+            if (authentication == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+
+            String username = authentication.getName();
+            User user = authService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+            }
+            
+            // Check if user is enrolled
+            boolean isEnrolled = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+            
+            if (!isEnrolled) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "NOT_ENROLLED",
+                    "message", "User is not enrolled in this course"
+                ));
+            }
+            
+            // Check if course is completed
+            boolean isCompleted = courseService.isCourseCompletedByUser(user.getId(), courseId);
+            
+            if (isCompleted) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "COMPLETED",
+                    "message", "Course is completed"
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "ENROLLED",
+                    "message", "User is enrolled but course not completed"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to get course status",
+                "details", e.getMessage()
+            ));
+        }
+    }
+
+    // ========== LESSON CONTENT ENDPOINTS FOR USERS ==========
+    
+    // Get published content for a lesson (enrolled users only)
+    @GetMapping("/{courseId}/lessons/{lessonId}/content")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Get published content for a lesson", description = "Get published content for enrolled users")
+    public ResponseEntity<?> getLessonContent(@PathVariable Long courseId, @PathVariable Long lessonId, Authentication authentication) {
+        System.out.println("🔍 ENDPOINT HIT: getLessonContent for courseId: " + courseId + ", lessonId: " + lessonId);
+        try {
+            if (authentication == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+
+            String username = authentication.getName();
+            User user = authService.findByUsername(username);
+            System.out.println("🔍 User found: " + (user != null ? user.getUsername() + " (ID: " + user.getId() + ")" : "null"));
+            System.out.println("🔍 User role: " + (user != null ? user.getRole().getName() : "null"));
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+            }
+            
+            // Check if user is enrolled in the course (except for staff/admin)
+            if (!user.getRole().getName().equals("STAFF") && !user.getRole().getName().equals("ADMIN")) {
+                System.out.println("🔍 Regular user - checking enrollment for user " + user.getId() + " in course " + courseId);
+                boolean isEnrolled = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+                System.out.println("🔍 Enrollment status: " + isEnrolled);
+                if (!isEnrolled) {
+                    System.out.println("❌ User not enrolled - returning 403");
+                    return ResponseEntity.status(403).body(Map.of(
+                        "success", false,
+                        "error", "You must be enrolled in this course to view content"
+                    ));
+                }
+                System.out.println("✅ User is enrolled - proceeding to load content");
+            } else {
+                System.out.println("✅ Staff/Admin user - skipping enrollment check");
+            }
+            
+            // Get published content only for regular users
+            List<CourseContent> contents = courseContentService.getPublishedContentByLesson(lessonId);
+            System.out.println("🔍 Found " + contents.size() + " published content items for lesson " + lessonId);
+            
+            // Convert to simple data
+            List<Map<String, Object>> simpleData = contents.stream().map(content -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", content.getId());
+                data.put("title", content.getTitle());
+                data.put("contentType", content.getContentType());
+                
+                // Get content value based on type
+                String contentValue = "";
+                if ("VIDEO".equals(content.getContentType())) {
+                    contentValue = content.getVideoUrl();
+                } else if ("TEXT".equals(content.getContentType())) {
+                    contentValue = content.getTextContent();
+                } else if ("MEET_LINK".equals(content.getContentType())) {
+                    contentValue = content.getMeetLink();
+                } else if ("DOCUMENT".equals(content.getContentType())) {
+                    contentValue = content.getDocumentUrl();
+                }
+                data.put("contentValue", contentValue);
+                
+                // Include specific fields
+                data.put("textContent", content.getTextContent());
+                data.put("videoUrl", content.getVideoUrl());
+                data.put("meetLink", content.getMeetLink());
+                data.put("documentUrl", content.getDocumentUrl());
+                
+                data.put("description", content.getDescription());
+                data.put("contentOrder", content.getContentOrder());
+                data.put("estimatedDuration", content.getEstimatedDuration());
+                data.put("isPublished", content.getIsPublished());
+                data.put("isFree", content.getIsFree());
+                data.put("lessonId", content.getLessonId());
+                return data;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", simpleData,
+                "count", simpleData.size(),
+                "message", "Published lesson content loaded successfully"
+            ));
+        } catch (Exception e) {
+            System.err.println("❌ EXCEPTION in getLessonContent:");
+            System.err.println("❌ Exception message: " + e.getMessage());
+            e.printStackTrace();
+            
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "error", e.getMessage(),
+                "data", new ArrayList<>()
+            ));
+        }
+    }
+
 } 

@@ -211,10 +211,18 @@ const CourseList = ({ courses, onEdit, onDelete, onSelect, loading }) => {
                   </Space>
                 </Col>
                 <Col span={12}>
+                  {/* HIDDEN: Participants count - no longer showing participant limits
                   <Space size="small">
                     <UserOutlined style={{ color: '#52c41a' }} />
                     <Text type="secondary" style={{ fontSize: '12px' }}>
                       {course.currentParticipants || 0}/{course.maxParticipants || 0}
+                    </Text>
+                  </Space>
+                  */}
+                  <Space size="small">
+                    <BookOutlined style={{ color: '#1890ff' }} />
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Open enrollment
                     </Text>
                   </Space>
                 </Col>
@@ -240,22 +248,27 @@ const CourseList = ({ courses, onEdit, onDelete, onSelect, loading }) => {
               </Row>
 
               {/* Enrollment Progress */}
-              {course.maxParticipants > 0 && (
-                <div style={{ marginTop: '8px' }}>
-                  <Text type="secondary" style={{ fontSize: '11px' }}>
-                    Tỷ lệ đăng ký
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <Text type="secondary">Enrollment</Text>
+                  {/* HIDDEN: Participants count - no longer showing participant limits
+                  <Text style={{ fontSize: '12px', color: '#666' }}>
+                    {course.currentParticipants || 0}/{course.maxParticipants || 0}
                   </Text>
-                  <Progress 
+                  */}
+                </div>
+                
+                {/* HIDDEN: Progress bar - no longer showing enrollment progress
+                {course.maxParticipants > 0 && (
+                  <Progress
                     percent={Math.round((course.currentParticipants || 0) / course.maxParticipants * 100)}
                     size="small"
-                    strokeColor={{
-                      '0%': '#108ee9',
-                      '100%': '#87d068',
-                    }}
-                    showInfo={false}
+                    status="active"
+                    strokeColor="#52c41a"
                   />
-                </div>
-              )}
+                )}
+                */}
+              </div>
 
               {/* Rating */}
               {course.averageRating > 0 && (

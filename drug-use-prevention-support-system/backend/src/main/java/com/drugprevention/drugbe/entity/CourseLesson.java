@@ -1,6 +1,7 @@
 package com.drugprevention.drugbe.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class CourseLesson {
 
     @ManyToOne
     @JoinColumn(name = "course_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Course course;
 
     @Column(nullable = false)
@@ -59,10 +61,12 @@ public class CourseLesson {
 
     @ManyToOne
     @JoinColumn(name = "created_by", insertable = false, updatable = false)
+    @JsonIgnore
     private User creator;
 
     // One lesson can have multiple content items
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<CourseContent> contents;
 
     // Constructors

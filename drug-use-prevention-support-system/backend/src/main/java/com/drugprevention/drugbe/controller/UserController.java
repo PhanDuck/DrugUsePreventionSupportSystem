@@ -93,6 +93,7 @@ public class UserController {
     }
 
     @GetMapping("/consultants")
+    @PreAuthorize("permitAll()") // Allow public access
     public ResponseEntity<?> getAllConsultants() {
         try {
             List<UserDTO> consultants = userService.getConsultantsDTO();
@@ -109,6 +110,8 @@ public class UserController {
             ));
         }
     }
+
+
 
     @GetMapping("/current")
     @PreAuthorize("isAuthenticated()")
@@ -240,6 +243,74 @@ public class UserController {
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "error", "Failed to retrieve user statistics",
+                "details", e.getMessage()
+            ));
+        }
+    }
+
+    @PutMapping("/profile")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF', 'USER', 'CONSULTANT')")
+    public ResponseEntity<?> updateUserProfile(@RequestBody Map<String, Object> updateData, Authentication authentication) {
+        try {
+            // Get current user from authentication
+            String username = authentication.getName();
+            Optional<User> userOptional = userService.getUserByUsername(username);
+            
+            if (!userOptional.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", "User not found"
+                ));
+            }
+            
+            User user = userOptional.get();
+            
+            // Update fields if provided
+            if (updateData.containsKey("firstName")) {
+                user.setFirstName((String) updateData.get("firstName"));
+            }
+            if (updateData.containsKey("lastName")) {
+                user.setLastName((String) updateData.get("lastName"));
+            }
+            if (updateData.containsKey("phone")) {
+                user.setPhone((String) updateData.get("phone"));
+            }
+            if (updateData.containsKey("address")) {
+                user.setAddress((String) updateData.get("address"));
+            }
+            if (updateData.containsKey("bio")) {
+                user.setBio((String) updateData.get("bio"));
+            }
+            if (updateData.containsKey("degree")) {
+                user.setDegree((String) updateData.get("degree"));
+            }
+            if (updateData.containsKey("expertise")) {
+                user.setExpertise((String) updateData.get("expertise"));
+            }
+            
+            // Update consultation fee (for consultants)
+            if (updateData.containsKey("consultationFee")) {
+                Object feeValue = updateData.get("consultationFee");
+                if (feeValue instanceof Number) {
+                    java.math.BigDecimal fee = java.math.BigDecimal.valueOf(((Number) feeValue).doubleValue());
+                    user.setConsultationFee(fee);
+                }
+            }
+            
+            // Save updated user
+            User updatedUser = userService.saveUser(user);
+            UserDTO updatedUserDTO = userService.convertToDTO(updatedUser);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", updatedUserDTO,
+                "message", "Profile updated successfully"
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Failed to update profile",
                 "details", e.getMessage()
             ));
         }

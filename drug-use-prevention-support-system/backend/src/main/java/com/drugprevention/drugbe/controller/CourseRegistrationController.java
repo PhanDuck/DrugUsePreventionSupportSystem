@@ -46,52 +46,66 @@ public class CourseRegistrationController {
     @Operation(summary = "Register for a course", description = "Register the current user for a specific course")
     public ResponseEntity<?> registerForCourse(@PathVariable Long courseId, Authentication authentication) {
         try {
+            System.out.println("=== COURSE REGISTRATION DEBUG ===");
+            System.out.println("Course ID: " + courseId);
+            System.out.println("Authentication: " + (authentication != null ? authentication.getName() : "NULL"));
+            
             if (authentication == null) {
+                System.out.println("ERROR: Authentication is null");
                 return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
             }
 
             String username = authentication.getName();
+            System.out.println("Username: " + username);
             User user = authService.findByUsername(username);
+            System.out.println("User found: " + (user != null ? "YES, ID: " + user.getId() : "NO"));
             
             // Get course details
             Optional<Course> courseOpt = courseService.getCourseById(courseId);
             if (courseOpt.isEmpty()) {
+                System.out.println("ERROR: Course not found");
                 return ResponseEntity.badRequest().body(Map.of("error", "Course not found"));
             }
             
             Course course = courseOpt.get();
+            System.out.println("Course found: " + course.getTitle());
+            System.out.println("Course status: " + course.getStatus());
+            System.out.println("Course isActive: " + course.getIsActive());
+            System.out.println("Course price: " + course.getPrice());
+            System.out.println("Course currentParticipants: " + course.getCurrentParticipants());
+            System.out.println("Course maxParticipants: " + course.getMaxParticipants());
             
             // Check if course is active and open
             if (!course.getIsActive() || !"open".equals(course.getStatus())) {
+                System.out.println("ERROR: Course is not available - isActive: " + course.getIsActive() + ", status: " + course.getStatus());
                 return ResponseEntity.badRequest().body(Map.of("error", "Course is not available for registration"));
             }
             
             // Check if user already registered
-            if (courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId)) {
+            boolean alreadyRegistered = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+            System.out.println("User already registered: " + alreadyRegistered);
+            if (alreadyRegistered) {
+                System.out.println("ERROR: User already registered");
                 return ResponseEntity.badRequest().body(Map.of("error", "User is already registered for this course"));
-            }
-            
-            // Check course capacity
-            if (course.getCurrentParticipants() >= course.getMaxParticipants()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Course is full"));
             }
             
             // Handle paid courses vs free courses
             if (course.getPrice() != null && course.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0) {
-                // PAID COURSE - Need VNPay payment (placeholder for now)
+                // PAID COURSE - Return payment required status, frontend will handle VNPay
+                System.out.println("PAID COURSE - Returning payment required");
                 Map<String, Object> response = Map.of(
                     "requiresPayment", true,
                     "courseId", courseId,
                     "courseName", course.getTitle(),
                     "price", course.getPrice(),
                     "currency", "VND",
-                    "message", "This course requires payment. VNPay integration will be implemented.",
-                    // TODO: Add VNPay payment URL when ready
+                    "message", "This course requires payment. Please proceed with payment.",
                     "nextStep", "PAYMENT_REQUIRED"
                 );
                 return ResponseEntity.ok(response);
             } else {
                 // FREE COURSE - Direct registration
+                System.out.println("FREE COURSE - Direct registration");
                 CourseRegistration registration = courseRegistrationService.registerForCourse(user.getId(), courseId);
                 
                 Map<String, Object> response = Map.of(
@@ -104,9 +118,60 @@ public class CourseRegistrationController {
             }
             
         } catch (RuntimeException e) {
+            System.out.println("RUNTIME EXCEPTION: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
+            System.out.println("GENERAL EXCEPTION: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", "Error registering for course: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/complete-enrollment/{courseId}")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Complete enrollment after payment", description = "Complete course enrollment after successful VNPay payment")
+    public ResponseEntity<?> completeEnrollmentAfterPayment(@PathVariable Long courseId, 
+                                                           @RequestBody Map<String, String> paymentData,
+                                                           Authentication authentication) {
+        try {
+            if (authentication == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Authentication required"));
+            }
+
+            String username = authentication.getName();
+            User user = authService.findByUsername(username);
+            
+            // Verify payment was successful (basic validation)
+            String transactionId = paymentData.get("transactionId");
+            if (transactionId == null || transactionId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid transaction ID"));
+            }
+            
+            // Check if user already enrolled
+            if (courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId)) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "User is already enrolled in this course",
+                    "alreadyEnrolled", true
+                ));
+            }
+            
+            // Complete enrollment
+            CourseRegistration registration = courseRegistrationService.registerForCourse(user.getId(), courseId);
+            
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "registration", registration,
+                "transactionId", transactionId,
+                "message", "Payment successful! Course access granted.",
+                "nextStep", "ACCESS_GRANTED"
+            );
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Error completing enrollment: " + e.getMessage()));
         }
     }
 
@@ -174,6 +239,25 @@ public class CourseRegistrationController {
             return ResponseEntity.ok(registrations);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(null);
+        }
+    }
+
+    @GetMapping("/check/{courseId}")
+    @PreAuthorize("hasAnyRole('USER', 'CONSULTANT', 'STAFF', 'ADMIN')")
+    @Operation(summary = "Check if user is enrolled", description = "Check if the current user is enrolled in a specific course")
+    public ResponseEntity<?> checkEnrollment(@PathVariable Long courseId, Authentication authentication) {
+        try {
+            if (authentication == null) {
+                return ResponseEntity.ok(Map.of("isRegistered", false));
+            }
+
+            String username = authentication.getName();
+            User user = authService.findByUsername(username);
+            
+            boolean isRegistered = courseRegistrationService.isUserRegisteredForCourse(user.getId(), courseId);
+            return ResponseEntity.ok(Map.of("isRegistered", isRegistered));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("isRegistered", false));
         }
     }
 

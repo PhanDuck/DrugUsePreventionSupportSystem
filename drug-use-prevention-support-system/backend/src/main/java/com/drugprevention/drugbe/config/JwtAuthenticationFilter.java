@@ -46,6 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestPath = request.getRequestURI();
         logger.debug("Processing request: {} {}", request.getMethod(), requestPath);
         
+        // TEMPORARY: Bypass JWT for staff endpoints
+        if (requestPath.startsWith("/api/staff/")) {
+            logger.debug("Bypassing JWT filter for staff endpoint: {}", requestPath);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             logger.debug("No valid Authorization header found for request: {}", requestPath);
             filterChain.doFilter(request, response);

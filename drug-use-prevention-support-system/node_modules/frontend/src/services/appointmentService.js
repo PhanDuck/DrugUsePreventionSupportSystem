@@ -22,8 +22,7 @@ class AppointmentService {
         durationMinutes: 60, // Fixed 1-hour duration
         appointmentType: appointmentData.appointmentType || 'ONLINE',
         clientNotes: appointmentData.clientNotes || '',
-        fee: appointmentData.fee || 100.0,
-        paymentMethod: appointmentData.paymentMethod || 'CASH'
+        fee: appointmentData.fee || 100.0
       };
 
       console.log('📤 Creating appointment:', requestData);
@@ -40,6 +39,87 @@ class AppointmentService {
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
                           'Unable to create appointment';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  }
+
+  // ===== CREATE APPOINTMENT WITH PAYMENT (INTEGRATED) =====
+  async createAppointmentWithPayment(appointmentData) {
+    try {
+      // Check authentication first
+      const currentUser = this.getCurrentUser();
+      if (!currentUser) {
+        return {
+          success: false,
+          message: 'Please log in to book an appointment'
+        };
+      }
+
+      // Prepare request data matching backend CreateAppointmentRequest DTO
+      const requestData = {
+        clientId: currentUser.id,
+        consultantId: appointmentData.consultantId,
+        appointmentDate: appointmentData.appointmentDate, // ISO string format
+        durationMinutes: 60, // Fixed 1-hour duration
+        appointmentType: appointmentData.appointmentType || 'ONLINE',
+        clientNotes: appointmentData.clientNotes || '',
+        fee: appointmentData.fee || 100.0
+      };
+
+      console.log('📤 Creating appointment directly (no payment required):', requestData);
+      
+      // 🔄 SIMPLIFIED: Direct appointment creation without payment
+      const response = await api.post('/appointments', requestData);
+      
+      console.log('✅ Appointment created successfully:', response.data);
+      return {
+        success: true,
+        data: {
+          appointment: response.data
+        },
+        message: 'Appointment booked successfully!'
+      };
+    } catch (error) {
+      console.error('❌ Error creating appointment:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Unable to create appointment';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  }
+
+  // ===== APPOINTMENT PAYMENT =====
+  async createAppointmentPayment(appointmentId, amount, description) {
+    try {
+      console.log('💰 Creating appointment payment:', { appointmentId, amount, description });
+      
+      const requestData = {
+        appointmentId: appointmentId,
+        amount: amount,
+        description: description,
+        paymentMethod: 'VNPAY',
+        returnUrl: `${window.location.origin}/payment/return`
+      };
+
+      const response = await api.post('/payments/appointment/create', requestData);
+      
+      console.log('✅ Appointment payment created:', response.data);
+      return {
+        success: true,
+        data: response.data,
+        message: 'Payment URL generated successfully!'
+      };
+    } catch (error) {
+      console.error('❌ Error creating appointment payment:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Unable to create payment';
       return {
         success: false,
         message: errorMessage
@@ -638,28 +718,28 @@ class AppointmentService {
 
   getStatusDisplayText(status) {
     const statusMap = {
-      'PENDING': 'Chờ xác nhận',
-      'CONFIRMED': 'Đã xác nhận',
-      'COMPLETED': 'Hoàn thành',
-      'CANCELLED': 'Đã hủy',
-      'RESCHEDULED': 'Đã dời lịch'
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'COMPLETED': 'Completed',
+      'CANCELLED': 'Cancelled',
+      'RESCHEDULED': 'Rescheduled'
     };
     return statusMap[status] || status;
   }
 
   getPaymentStatusDisplayText(paymentStatus) {
     const statusMap = {
-      'UNPAID': 'Chưa thanh toán',
-      'PAID': 'Đã thanh toán',
-      'REFUNDED': 'Đã hoàn tiền'
+      'UNPAID': 'Unpaid',
+      'PAID': 'Paid',
+      'REFUNDED': 'Refunded'
     };
     return statusMap[paymentStatus] || paymentStatus;
   }
 
   getAppointmentTypeDisplayText(appointmentType) {
     const typeMap = {
-      'ONLINE': 'Trực tuyến',
-      'IN_PERSON': 'Trực tiếp'
+      'ONLINE': 'Online',
+      'IN_PERSON': 'In-person'
     };
     return typeMap[appointmentType] || appointmentType;
   }
@@ -731,6 +811,26 @@ class AppointmentService {
       return {
         success: false,
         message: 'Unable to fetch appointments'
+      };
+    }
+  }
+
+  // ===== UPDATE APPOINTMENT STATUS =====
+  async updateAppointmentStatus(appointmentId, newStatus) {
+    try {
+      const response = await api.put(`/appointments/${appointmentId}/status`, {
+        status: newStatus
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Appointment status updated successfully'
+      };
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Unable to update appointment status'
       };
     }
   }

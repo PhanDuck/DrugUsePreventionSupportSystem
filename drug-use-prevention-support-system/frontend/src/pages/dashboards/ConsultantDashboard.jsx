@@ -20,7 +20,8 @@ import {
   Divider,
   Alert,
   Timeline,
-  Descriptions
+  Descriptions,
+  InputNumber
 } from 'antd';
 import { 
   CalendarOutlined, 
@@ -36,13 +37,15 @@ import {
   ExclamationCircleOutlined,
   EditOutlined,
   EyeOutlined,
-  LinkOutlined
+  LinkOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import api from '../../config/axios';
 import authService from '../../services/authService';
 import appointmentService from '../../services/appointmentService';
+import userService from '../../services/userService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -57,8 +60,11 @@ const ConsultantDashboard = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [showMeetingLinkModal, setShowMeetingLinkModal] = useState(false);
+  const [showFeeModal, setShowFeeModal] = useState(false);
   const [notesForm] = Form.useForm();
   const [meetingLinkForm] = Form.useForm();
+  const [feeForm] = Form.useForm();
+  const [consultationFee, setConsultationFee] = useState(100000);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -70,6 +76,7 @@ const ConsultantDashboard = () => {
   useEffect(() => {
     checkAuthentication();
     loadDashboardData();
+    loadConsultationFee();
   }, []);
 
   const checkAuthentication = () => {
@@ -81,6 +88,45 @@ const ConsultantDashboard = () => {
       return;
     }
     setCurrentUser(user);
+  };
+
+  const loadConsultationFee = async () => {
+    try {
+      const user = authService.getCurrentUser();
+      const response = await userService.getUserProfile(user.id);
+      if (response.success && response.data.consultationFee) {
+        setConsultationFee(response.data.consultationFee);
+      }
+    } catch (error) {
+      console.error('Error loading consultation fee:', error);
+    }
+  };
+
+  const handleUpdateConsultationFee = async (values) => {
+    try {
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      const updateData = {
+        consultationFee: values.consultationFee
+      };
+      
+      const response = await userService.updateUserProfile(updateData);
+      
+      if (response.success) {
+        setConsultationFee(values.consultationFee);
+        setShowFeeModal(false);
+        message.success('Consultation fee updated successfully!');
+        feeForm.resetFields();
+      } else {
+        message.error(response.message || 'Failed to update consultation fee');
+      }
+    } catch (error) {
+      console.error('Error updating consultation fee:', error);
+      message.error('Unable to update consultation fee');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadDashboardData = async () => {
@@ -159,6 +205,25 @@ const ConsultantDashboard = () => {
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       message.error(error.response?.data?.error || 'Failed to cancel appointment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAsPaid = async (appointmentId) => {
+    try {
+      setLoading(true);
+      const user = authService.getCurrentUser();
+      
+      await api.put(`/appointments/${appointmentId}/mark-paid`, null, {
+        params: { consultantId: user.id }
+      });
+      
+      message.success('Payment status updated successfully');
+      loadDashboardData(); // Reload data
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      message.error(error.response?.data?.error || 'Failed to update payment status');
     } finally {
       setLoading(false);
     }
@@ -374,9 +439,23 @@ const ConsultantDashboard = () => {
                   danger 
                   size="small" 
                   icon={<CloseCircleOutlined />}
+                  loading={loading}
                 />
               </Popconfirm>
             </>
+          )}
+          
+          {record.paymentStatus === 'UNPAID' && (
+            <Tooltip title="Mark as Paid">
+              <Button 
+                type="primary"
+                size="small" 
+                icon={<DollarOutlined />}
+                onClick={() => handleMarkAsPaid(record.id)}
+                loading={loading}
+                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+              />
+            </Tooltip>
           )}
           
           {(record.status === 'CONFIRMED' || record.status === 'PENDING') && record.appointmentType === 'ONLINE' && (
@@ -448,6 +527,57 @@ const ConsultantDashboard = () => {
             </Card>
           </Col>
         ))}
+      </Row>
+
+      {/* Consultation Fee Management */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '32px' }}>
+        <Col span={24}>
+          <Card 
+            title={
+              <span>
+                <DollarOutlined style={{ marginRight: '8px', color: '#52c41a' }} />
+                Consultation Fee Management
+              </span>
+            }
+            extra={
+              <Button 
+                type="primary" 
+                icon={<SettingOutlined />}
+                onClick={() => {
+                  feeForm.setFieldsValue({ consultationFee: consultationFee });
+                  setShowFeeModal(true);
+                }}
+              >
+                Update Fee
+              </Button>
+            }
+          >
+            <Row gutter={[16, 16]} align="middle">
+              <Col xs={24} sm={12}>
+                <Statistic
+                  title="Current Consultation Fee"
+                  value={consultationFee}
+                  suffix="VNĐ"
+                  precision={0}
+                  prefix={<DollarOutlined style={{ color: '#52c41a' }} />}
+                  valueStyle={{ color: '#52c41a', fontSize: '28px' }}
+                />
+              </Col>
+              <Col xs={24} sm={12}>
+                <div style={{ textAlign: 'left' }}>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: '8px' }}>
+                    💡 <strong>Pricing Tips:</strong>
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    • Standard rate: 100,000 - 200,000 VNĐ/hour<br/>
+                    • Premium specialists: 200,000 - 500,000 VNĐ/hour<br/>
+                    • Update anytime to match your expertise
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
       </Row>
 
       {/* Pending Appointments Alert */}
@@ -654,6 +784,85 @@ const ConsultantDashboard = () => {
             <Text type="secondary" style={{ fontSize: '12px' }}>
               💡 Tip: Create a new Google Meet link in your calendar or directly at meet.google.com/new
             </Text>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Consultation Fee Update Modal */}
+      <Modal
+        title={
+          <span>
+            <DollarOutlined style={{ marginRight: '8px', color: '#52c41a' }} />
+            Update Consultation Fee
+          </span>
+        }
+        open={showFeeModal}
+        onCancel={() => {
+          setShowFeeModal(false);
+          feeForm.resetFields();
+        }}
+        footer={null}
+        width={500}
+      >
+        <Form
+          form={feeForm}
+          layout="vertical"
+          onFinish={handleUpdateConsultationFee}
+          initialValues={{ consultationFee: consultationFee }}
+        >
+          <Alert
+            message="Set Your Consultation Fee"
+            description="This will be the hourly rate displayed to clients when they book appointments with you."
+            type="info"
+            showIcon
+            style={{ marginBottom: '24px' }}
+          />
+
+          <Form.Item
+            label="Consultation Fee (per hour)"
+            name="consultationFee"
+            rules={[
+              { required: true, message: 'Please enter your consultation fee' },
+              { type: 'number', min: 10000, max: 1000000, message: 'Fee must be between 10,000 and 1,000,000 VNĐ' }
+            ]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              placeholder="Enter fee amount"
+              suffix="VNĐ"
+              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={value => value.replace(/\$\s?|(,*)/g, '')}
+              size="large"
+              min={10000}
+              max={1000000}
+              step={10000}
+            />
+          </Form.Item>
+
+          <div style={{ marginBottom: '16px' }}>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              <strong>Pricing Guidelines:</strong><br/>
+              • 🥉 Basic: 50,000 - 100,000 VNĐ/hour<br/>
+              • 🥈 Standard: 100,000 - 200,000 VNĐ/hour<br/>
+              • 🥇 Premium: 200,000 - 500,000 VNĐ/hour<br/>
+              • 💎 Expert: 500,000+ VNĐ/hour
+            </Text>
+          </div>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button 
+                onClick={() => {
+                  setShowFeeModal(false);
+                  feeForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Update Fee
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

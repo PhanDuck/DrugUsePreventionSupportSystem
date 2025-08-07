@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.time.LocalDate;
+import com.drugprevention.drugbe.service.VnPayService;
+import com.drugprevention.drugbe.service.PaymentService;
+import com.drugprevention.drugbe.entity.Payment;
 
 @Service
 @Transactional
@@ -31,6 +34,79 @@ public class AppointmentService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private VnPayService vnPayService;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    // ===== CREATE APPOINTMENT WITH PAYMENT =====
+    
+    public Map<String, Object> createAppointmentWithPayment(CreateAppointmentRequest request) {
+        try {
+            // First create the appointment
+            AppointmentDTO appointment = createAppointment(request);
+            
+            // Then create payment for the appointment
+            Map<String, Object> paymentResult = createPaymentForAppointment(appointment);
+            
+            // Return combined result
+            Map<String, Object> result = new HashMap<>();
+            result.put("appointment", appointment);
+            result.put("payment", paymentResult);
+            result.put("success", true);
+            
+            return result;
+        } catch (Exception e) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return result;
+        }
+    }
+    
+    private Map<String, Object> createPaymentForAppointment(AppointmentDTO appointment) {
+        try {
+            // Create payment entity
+            Payment payment = new Payment();
+            payment.setAppointment(new Appointment());
+            payment.getAppointment().setId(appointment.getId());
+            payment.setUser(new User());
+            payment.getUser().setId(appointment.getClientId());
+            payment.setAmount(appointment.getFee());
+            payment.setCurrency("VND");
+            payment.setPaymentMethod("VNPAY");
+            payment.setStatus("PENDING");
+            payment.setDescription("Payment for appointment with " + appointment.getConsultantName() + 
+                                 " on " + appointment.getAppointmentDate().toLocalDate());
+            payment.setCreatedAt(LocalDateTime.now());
+            
+            payment = paymentService.createPayment(payment);
+
+            // Create VNPay parameters
+            Map<String, String> vnpParams = new HashMap<>();
+            vnpParams.put("vnp_Amount", String.valueOf((long)(appointment.getFee().doubleValue() * 100)));
+            vnpParams.put("vnp_OrderInfo", "Appointment payment - ID: " + appointment.getId());
+            vnpParams.put("vnp_OrderType", "appointment");
+            vnpParams.put("vnp_TxnRef", payment.getId().toString());
+
+            String paymentUrl = vnPayService.createPaymentUrl(vnpParams);
+            payment.setPaymentUrl(paymentUrl);
+            paymentService.createPayment(payment);
+
+            Map<String, Object> paymentResult = new HashMap<>();
+            paymentResult.put("paymentId", payment.getId());
+            paymentResult.put("paymentUrl", paymentUrl);
+            paymentResult.put("status", payment.getStatus());
+            
+            return paymentResult;
+        } catch (Exception e) {
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("error", "Failed to create payment: " + e.getMessage());
+            return errorResult;
+        }
+    }
 
     // ===== CREATE APPOINTMENT =====
     
@@ -96,7 +172,17 @@ public class AppointmentService {
         appointment.setDurationMinutes(request.getDurationMinutes());
         appointment.setAppointmentType(request.getAppointmentType() != null ? request.getAppointmentType() : "ONLINE");
         appointment.setClientNotes(request.getClientNotes());
-        appointment.setFee(request.getFee() != null ? request.getFee() : BigDecimal.valueOf(100.0));
+        
+        // Use consultant's consultation fee if not provided in request
+        BigDecimal fee = request.getFee();
+        if (fee == null) {
+            fee = consultant.getConsultationFee();
+            if (fee == null) {
+                fee = BigDecimal.valueOf(100000.0); // Default fallback (VND)
+            }
+        }
+        appointment.setFee(fee);
+        
         appointment.setPaymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod() : "VNPAY");
         appointment.setStatus("PENDING");
 
@@ -179,6 +265,10 @@ public class AppointmentService {
         return convertToDTO(appointment);
     }
 
+    public Optional<Appointment> getAppointmentEntityById(Long appointmentId) {
+        return appointmentRepository.findById(appointmentId);
+    }
+
     // ===== UPDATE APPOINTMENT =====
     
     public AppointmentDTO confirmAppointment(Long appointmentId, Long consultantId) {
@@ -232,6 +322,24 @@ public class AppointmentService {
 
         appointment.setStatus("COMPLETED");
         appointment.setConsultantNotes(notes);
+        appointment = appointmentRepository.save(appointment);
+
+        return convertToDTO(appointment);
+    }
+
+    public AppointmentDTO markAppointmentAsPaid(Long appointmentId, Long consultantId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appointment.getConsultantId().equals(consultantId)) {
+            throw new RuntimeException("You do not have permission to update payment status");
+        }
+
+        if ("PAID".equals(appointment.getPaymentStatus())) {
+            throw new RuntimeException("Appointment is already marked as paid");
+        }
+
+        appointment.setPaymentStatus("PAID");
         appointment = appointmentRepository.save(appointment);
 
         return convertToDTO(appointment);
@@ -710,6 +818,18 @@ public class AppointmentService {
         return appointments.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Update appointment status
+    public AppointmentDTO updateAppointmentStatus(Long appointmentId, String newStatus) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        appointment.setStatus(newStatus);
+        appointment.setUpdatedAt(LocalDateTime.now());
+        
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        return convertToDTO(savedAppointment);
     }
 
     // ===== INNER CLASSES =====

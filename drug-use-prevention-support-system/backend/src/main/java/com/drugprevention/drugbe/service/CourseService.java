@@ -2,6 +2,8 @@ package com.drugprevention.drugbe.service;
 
 import com.drugprevention.drugbe.entity.Course;
 import com.drugprevention.drugbe.repository.CourseRepository;
+import com.drugprevention.drugbe.entity.CourseLesson;
+import com.drugprevention.drugbe.repository.CourseLessonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,12 +15,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 import com.drugprevention.drugbe.entity.CourseRegistration;
+import com.drugprevention.drugbe.repository.CourseRegistrationRepository;
+import com.drugprevention.drugbe.entity.CourseProgress;
+import com.drugprevention.drugbe.repository.CourseProgressRepository;
 
 @Service
 public class CourseService {
     
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private CourseLessonRepository courseLessonRepository;
+
+    @Autowired
+    private CourseRegistrationRepository courseRegistrationRepository;
+
+    @Autowired
+    private CourseProgressRepository courseProgressRepository;
 
     // 1. Get all courses
     public List<Course> getAllCourses() {
@@ -50,6 +64,32 @@ public class CourseService {
             course.setTotalReviews(0);
         }
         
+        // Set default values for enhanced fields
+        if (course.getPrice() == null) {
+            course.setPrice(java.math.BigDecimal.ZERO); // Default to free course
+        }
+        if (course.getDifficultyLevel() == null) {
+            course.setDifficultyLevel("BEGINNER");
+        }
+        if (course.getLanguage() == null) {
+            course.setLanguage("vi"); // Default Vietnamese
+        }
+        if (course.getTotalLessons() == null) {
+            course.setTotalLessons(0);
+        }
+        if (course.getTotalDurationMinutes() == null) {
+            course.setTotalDurationMinutes(0);
+        }
+        if (course.getCertificateEnabled() == null) {
+            course.setCertificateEnabled(false);
+        }
+        if (course.getAverageRating() == null) {
+            course.setAverageRating(java.math.BigDecimal.ZERO);
+        }
+        
+        System.out.println("Creating course with price: " + course.getPrice());
+        System.out.println("Course details: " + course.getTitle() + " - " + course.getDescription());
+        
         return courseRepository.save(course);
     }
 
@@ -59,6 +99,7 @@ public class CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
         
+        // Update basic fields
         course.setTitle(courseDetails.getTitle());
         course.setDescription(courseDetails.getDescription());
         course.setInstructorId(courseDetails.getInstructorId());
@@ -67,6 +108,54 @@ public class CourseService {
         course.setMaxParticipants(courseDetails.getMaxParticipants());
         course.setStatus(courseDetails.getStatus());
         course.setIsActive(courseDetails.getIsActive());
+        course.setIsFeatured(courseDetails.getIsFeatured());
+        
+        // Update course dates if provided
+        if (courseDetails.getStartDate() != null) {
+            course.setStartDate(courseDetails.getStartDate());
+        }
+        if (courseDetails.getEndDate() != null) {
+            course.setEndDate(courseDetails.getEndDate());
+        }
+        
+        // Update enhanced fields (including price)
+        if (courseDetails.getPrice() != null) {
+            course.setPrice(courseDetails.getPrice());
+        }
+        if (courseDetails.getDifficultyLevel() != null) {
+            course.setDifficultyLevel(courseDetails.getDifficultyLevel());
+        }
+        if (courseDetails.getLanguage() != null) {
+            course.setLanguage(courseDetails.getLanguage());
+        }
+        if (courseDetails.getTotalLessons() != null) {
+            course.setTotalLessons(courseDetails.getTotalLessons());
+        }
+        if (courseDetails.getTotalDurationMinutes() != null) {
+            course.setTotalDurationMinutes(courseDetails.getTotalDurationMinutes());
+        }
+        if (courseDetails.getImageUrl() != null) {
+            course.setImageUrl(courseDetails.getImageUrl());
+        }
+        if (courseDetails.getThumbnailUrl() != null) {
+            course.setThumbnailUrl(courseDetails.getThumbnailUrl());
+        }
+        if (courseDetails.getPreviewVideoUrl() != null) {
+            course.setPreviewVideoUrl(courseDetails.getPreviewVideoUrl());
+        }
+        if (courseDetails.getCertificateEnabled() != null) {
+            course.setCertificateEnabled(courseDetails.getCertificateEnabled());
+        }
+        if (courseDetails.getPrerequisites() != null) {
+            course.setPrerequisites(courseDetails.getPrerequisites());
+        }
+        if (courseDetails.getLearningOutcomes() != null) {
+            course.setLearningOutcomes(courseDetails.getLearningOutcomes());
+        }
+        if (courseDetails.getTags() != null) {
+            course.setTags(courseDetails.getTags());
+        }
+        
         course.setUpdatedAt(LocalDateTime.now());
         
         return courseRepository.save(course);
@@ -121,24 +210,48 @@ public class CourseService {
         return courseRepository.findAll(pageable);
     }
 
-    // 14. Increment participants count
+    // 14. Increment participants count (for statistics only - no enrollment limits)
     @Transactional
     public void incrementParticipants(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
+        // Keep tracking for statistics, but no longer enforce limits
         course.setCurrentParticipants(course.getCurrentParticipants() + 1);
         courseRepository.save(course);
     }
 
-    // 15. Decrement participants count
+    // 15. Decrement participants count (for statistics only - no enrollment limits)
     @Transactional
     public void decrementParticipants(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
+        // Keep tracking for statistics, but no longer enforce limits
         if (course.getCurrentParticipants() > 0) {
             course.setCurrentParticipants(course.getCurrentParticipants() - 1);
             courseRepository.save(course);
         }
+    }
+
+    // Increment course participants (for statistics only - no enrollment limits)
+    @Transactional
+    public void incrementCourseParticipants(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+        // Keep tracking for statistics, but no longer enforce limits
+        course.setCurrentParticipants(course.getCurrentParticipants() + 1);
+        courseRepository.save(course);
+    }
+
+    // Decrement course participants (for statistics only - no enrollment limits)  
+    @Transactional
+    public void decrementCourseParticipants(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+        // Keep tracking for statistics, but no longer enforce limits
+        if (course.getCurrentParticipants() > 0) {
+            course.setCurrentParticipants(course.getCurrentParticipants() - 1);
+        }
+        courseRepository.save(course);
     }
 
     // 16. Get latest courses
@@ -165,8 +278,33 @@ public class CourseService {
     }
 
     public List<CourseRegistration> getCourseRegistrations(Long courseId) {
-        // This method should be implemented in CourseRegistrationService
-        // For now, return empty list to avoid compilation error
-        return new ArrayList<>();
+        return courseRegistrationRepository.findByCourseId(courseId);
+    }
+
+    // Get course lessons
+    public List<CourseLesson> getCourseLessons(Long courseId) {
+        return courseLessonRepository.findByCourseIdOrderByLessonOrder(courseId);
+    }
+
+    // Check if course is completed by user
+    public boolean isCourseCompletedByUser(Long userId, Long courseId) {
+        return courseProgressRepository.hasCompletedCourse(userId, courseId);
+    }
+
+    // Complete course for user
+    @Transactional
+    public void completeCourseForUser(Long userId, Long courseId) {
+        // Create course progress record for completion
+        CourseProgress progress = new CourseProgress();
+        progress.setUserId(userId);
+        progress.setCourseId(courseId);
+        progress.setIsCompleted(true);
+        progress.setCompletedAt(LocalDateTime.now());
+        progress.setCompletionPercentage(100);
+        progress.setProgressType("COURSE_COMPLETED");
+        progress.setLastAccessedAt(LocalDateTime.now());
+        progress.setFirstAccessedAt(LocalDateTime.now());
+        
+        courseProgressRepository.save(progress);
     }
 } 

@@ -35,7 +35,7 @@ public class CourseContentService {
 
         // Set default values
         if (content.getIsPublished() == null) {
-            content.setIsPublished(false);
+            content.setIsPublished(true); // Changed: Staff content should be published by default
         }
         if (content.getIsFree() == null) {
             content.setIsFree(true);

@@ -46,7 +46,7 @@ const AvailableConsultants = () => {
           specialty: consultant.expertise || 'General Counseling',
           experienceYears: consultant.bio ? parseInt(consultant.bio.match(/(\d+)\s+years?/)?.[1]) || 10 : 10,
           rating: 4.5 + Math.random() * 0.5, // Number not string
-          price: 100,
+          price: consultant.consultationFee || 100000, // Use consultant's fee or default (VND)
           // Fix Henry Le avatar - use index 2 for different image
           avatar: [
             'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
@@ -334,7 +334,7 @@ const AvailableConsultants = () => {
                         fontSize: '20px', 
                         fontWeight: '700'
                       }}>
-                        ${consultant.price}
+                        {consultant.price === 0 || consultant.price === null ? 'Free' : `${Number(consultant.price).toLocaleString()} VNĐ`}
                       </span>
                       <br />
                       <span style={{ color: '#6b7280', fontSize: '12px' }}>

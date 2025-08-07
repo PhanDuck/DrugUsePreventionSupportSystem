@@ -22,10 +22,15 @@ public class UserService {
         dto.setUserName(user.getUsername() != null ? user.getUsername() : "");
         dto.setEmail(user.getEmail() != null ? user.getEmail() : "");
         
-        // Safe null handling for name
-        String firstName = user.getFirstName() != null ? user.getFirstName() : "";
-        String lastName = user.getLastName() != null ? user.getLastName() : "";
-        dto.setFullName(firstName + " " + lastName);
+        // Safe null handling for name - trim to avoid extra spaces
+        String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
+        String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
+        String fullName = (firstName + " " + lastName).trim();
+        // If both names are empty, use username as fallback
+        if (fullName.isEmpty() && user.getUsername() != null) {
+            fullName = user.getUsername();
+        }
+        dto.setFullName(fullName);
         
         dto.setPhone(user.getPhone());
         dto.setDateOfBirth(user.getDateOfBirth());
@@ -34,6 +39,7 @@ public class UserService {
         dto.setDegree(user.getDegree());
         dto.setExpertise(user.getExpertise());
         dto.setBio(user.getBio());
+        dto.setConsultationFee(user.getConsultationFee());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setRole(user.getRole());
         return dto;

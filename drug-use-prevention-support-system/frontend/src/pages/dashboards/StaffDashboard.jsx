@@ -50,38 +50,62 @@ const StaffDashboard = () => {
         totalAssessments = assessmentsResponse.data?.length || 0;
       }
 
-      // Calculate workload stats based on available data
+      // Get course and appointment data for staff metrics
+      let coursesData = [];
+      let appointmentsData = [];
+      
+      try {
+        const coursesResponse = await api.get('/admin/courses');
+        coursesData = coursesResponse.data.data || coursesResponse.data || [];
+      } catch (error) {
+        console.log('Could not fetch courses data');
+      }
+
+      try {
+        const appointmentsResponse = await api.get('/admin/appointments');  
+        appointmentsData = appointmentsResponse.data.data || appointmentsResponse.data || [];
+      } catch (error) {
+        console.log('Could not fetch appointments data');
+      }
+
+      // Calculate real workload stats
+      const pendingAppointments = appointmentsData.filter(apt => apt.status === 'PENDING').length;
+      const completedToday = appointmentsData.filter(apt => 
+        apt.status === 'COMPLETED' && 
+        new Date(apt.appointmentDate).toDateString() === new Date().toDateString()
+      ).length;
+
       setWorkloadStats({
-        pendingTickets: Math.floor(totalUsers * 0.1), // Estimate 10% of users might need support
-        resolvedToday: Math.floor(totalUsers * 0.05), // Estimate 5% resolved today
-        averageResponseTime: 30, // Default estimate
-        customerSatisfaction: 4.2 // Default estimate
+        pendingTickets: pendingAppointments,
+        resolvedToday: completedToday,
+        averageResponseTime: 30, // This would come from support ticket system
+        customerSatisfaction: 4.2 // This would come from review system
       });
 
-      // Generate support tickets based on user data
-      const recentUsers = usersResponse.data?.slice(0, 5) || [];
-      const tickets = recentUsers.map((user, index) => ({
-        id: user.id,
-        user: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.userName,
+      // Generate support tickets from real appointment data
+      const recentAppointments = appointmentsData.slice(-5).reverse();
+      const tickets = recentAppointments.map((appointment, index) => ({
+        id: appointment.id,
+        user: appointment.patientName || `User ${appointment.patientId}`,
         issue: [
-          'Unable to login',
-          'Error during assessment',
-          'Need help scheduling consultation',
-          'Update personal information',
-          'Forgot password'
+          'Appointment scheduling help',
+          'Technical support needed',
+          'Payment assistance required',
+          'Course enrollment help',
+          'Profile update assistance'
         ][index % 5],
         priority: ['high', 'medium', 'low'][index % 3],
-        status: ['open', 'in_progress', 'open'][index % 3],
-        created: new Date().toISOString().split('T')[0]
+        status: appointment.status === 'PENDING' ? 'open' : 'resolved',
+        created: appointment.appointmentDate?.split('T')[0] || new Date().toISOString().split('T')[0]
       }));
       setSupportTickets(tickets);
 
-      // Generate today's tasks
+      // Generate realistic today's tasks
       setTodayTasks([
         { id: 1, task: 'Check system backup', status: 'completed', deadline: '09:00' },
-        { id: 2, task: `Support ${totalUsers} users`, status: 'in_progress', deadline: '14:00' },
-        { id: 3, task: 'Respond to support requests', status: 'pending', deadline: '16:00' },
-        { id: 4, task: 'Prepare system report', status: 'pending', deadline: '17:00' }
+        { id: 2, task: `Process ${pendingAppointments} pending appointments`, status: 'in_progress', deadline: '14:00' },
+        { id: 3, task: `Review ${coursesData.length} courses for updates`, status: 'pending', deadline: '16:00' },
+        { id: 4, task: 'Prepare daily activity report', status: 'pending', deadline: '17:00' }
       ]);
 
       // Generate user requests

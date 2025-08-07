@@ -17,6 +17,7 @@ public class UserDTO {
     private String degree;
     private String expertise;
     private String bio;
+    private java.math.BigDecimal consultationFee;
     private LocalDateTime createdAt;
     private Role role;
 
@@ -48,6 +49,8 @@ public class UserDTO {
     public void setExpertise(String expertise) { this.expertise = expertise; }
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
+    public java.math.BigDecimal getConsultationFee() { return consultationFee; }
+    public void setConsultationFee(java.math.BigDecimal consultationFee) { this.consultationFee = consultationFee; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public Role getRole() { return role; }

@@ -34,7 +34,8 @@ public class CreateAppointmentRequest {
     @DecimalMin(value = "0.0", message = "Consultation fee cannot be negative")
     private BigDecimal fee = BigDecimal.valueOf(100.0);
     
-    private String paymentMethod = "CASH"; // CASH, VNPAY, BANK_TRANSFER
+    @Pattern(regexp = "^VNPAY$", message = "Only VNPAY payment method is supported")
+    private String paymentMethod = "VNPAY"; // Only VNPAY is supported
 
     // Constructors
     public CreateAppointmentRequest() {}

@@ -42,6 +42,9 @@ public class User {
     @Column(name = "firebase_token")
     private String firebaseToken;
     
+    @Column(name = "consultation_fee", precision = 10, scale = 2)
+    private java.math.BigDecimal consultationFee = java.math.BigDecimal.valueOf(100000.0);
+    
     @Column(name = "is_active")
     private Boolean isActive;
     
@@ -114,6 +117,9 @@ public class User {
     
     public String getFirebaseToken() { return firebaseToken; }
     public void setFirebaseToken(String firebaseToken) { this.firebaseToken = firebaseToken; }
+    
+    public java.math.BigDecimal getConsultationFee() { return consultationFee; }
+    public void setConsultationFee(java.math.BigDecimal consultationFee) { this.consultationFee = consultationFee; }
     
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }

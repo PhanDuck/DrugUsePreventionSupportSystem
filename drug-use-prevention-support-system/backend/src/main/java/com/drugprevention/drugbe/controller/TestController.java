@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
 import java.util.Optional;
+import com.drugprevention.drugbe.service.VnPayService;
 
 @RestController
 @RequestMapping("/api/test")
@@ -35,6 +36,9 @@ public class TestController {
     
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private VnPayService vnPayService;
 
     @GetMapping("/health")
     public ResponseEntity<?> healthCheck() {
@@ -515,5 +519,29 @@ public class TestController {
         }
         response.put("timestamp", java.time.LocalDateTime.now());
         return ResponseEntity.ok(response);
+    }
+
+    // Test VNPay signature generation
+    @GetMapping("/test-vnpay")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> testVnPaySignature() {
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("vnp_Amount", "1000000"); // 10,000 VND
+            params.put("vnp_OrderInfo", "Test payment");
+            params.put("vnp_OrderType", "other");
+            params.put("vnp_TxnRef", "TEST_" + System.currentTimeMillis());
+            
+            String paymentUrl = vnPayService.createPaymentUrl(params);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("paymentUrl", paymentUrl);
+            response.put("params", params);
+            response.put("message", "VNPay test URL generated");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 } 

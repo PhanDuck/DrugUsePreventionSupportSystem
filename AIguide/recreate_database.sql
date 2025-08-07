@@ -211,7 +211,30 @@ CREATE TABLE appointments (
     FOREIGN KEY (cancelled_by) REFERENCES users(id)
 );
 
--- 12. BLOGS
+-- 12. PAYMENTS
+CREATE TABLE payments (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    appointment_id BIGINT,
+    user_id BIGINT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency NVARCHAR(3) DEFAULT 'VND',
+    payment_method NVARCHAR(50) NOT NULL DEFAULT 'VNPAY',
+    status NVARCHAR(20) DEFAULT 'PENDING',
+    transaction_id NVARCHAR(100),
+    payment_url NVARCHAR(1000),
+    description NVARCHAR(500),
+    gateway_response NVARCHAR(MAX),
+    error_message NVARCHAR(500),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE(),
+    paid_at DATETIME2,
+    refunded_at DATETIME2,
+    refund_reason NVARCHAR(500),
+    FOREIGN KEY (appointment_id) REFERENCES appointments(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 13. BLOGS
 CREATE TABLE blogs (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     title NVARCHAR(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
@@ -231,7 +254,7 @@ CREATE TABLE blogs (
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
--- 13. RECOMMENDATIONS
+-- 14. RECOMMENDATIONS
 CREATE TABLE recommendations (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id BIGINT NOT NULL,

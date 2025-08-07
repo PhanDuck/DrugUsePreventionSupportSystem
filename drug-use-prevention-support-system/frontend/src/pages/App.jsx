@@ -8,6 +8,8 @@ import CoursesPage from './CoursesPage';
 import CoursePage from './CoursePage';
 import CourseManagementPage from './CourseManagementPage';
 import StaffCourseManagementPage from './StaffCourseManagementPage';
+import LessonContentEditor from './LessonContentEditor';
+import StaffDebugPage from './StaffDebugPage';
 import ConsultantsPage from './ConsultantsPage';
 import ProfilePage from './ProfilePage';
 import LogoutPage from './LogoutPage';
@@ -24,6 +26,9 @@ import SearchPage from './SearchPage';
 import SettingsPage from './SettingsPage';
 import UnauthorizedPage from './UnauthorizedPage';
 import ForgotPasswordPage from './ForgotPasswordPage';
+import PaymentReturnPage from './PaymentReturnPage';
+import MockPaymentPage from './MockPaymentPage';
+import VnPayDemoPage from './VnPayDemoPage';
 
 // Import dashboard components
 import AdminDashboard from './dashboards/AdminDashboard';
@@ -46,6 +51,9 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/payment/return" element={<PaymentReturnPage />} />
+      <Route path="/mock-payment" element={<MockPaymentPage />} />
+      <Route path="/vnpay-demo" element={<VnPayDemoPage />} />
 
       {/* Protected routes - with layout */}
       <Route element={<LayoutComponent />}>
@@ -103,6 +111,13 @@ function App() {
         <Route path="/course-management" element={
           <ProtectedRoute allowedRoles={['STAFF', 'ADMIN', 'MANAGER']}>
             <StaffCourseManagementPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Lesson Content Editor - staff only */}
+        <Route path="/course-management/:courseId/lessons" element={
+          <ProtectedRoute allowedRoles={['STAFF', 'ADMIN', 'MANAGER']}>
+            <LessonContentEditor />
           </ProtectedRoute>
         } />
         
@@ -181,6 +196,9 @@ function App() {
             <ApiTestPage />
           </ProtectedRoute>
         } />
+        
+        {/* Staff Debug - for testing staff functionality */}
+        <Route path="/staff-debug" element={<StaffDebugPage />} />
         
         {/* Logout */}
         <Route path="/logout" element={<LogoutPage />} />

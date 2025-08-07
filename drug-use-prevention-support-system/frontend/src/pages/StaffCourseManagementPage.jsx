@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   Table, 
@@ -33,6 +34,8 @@ import {
 } from '@ant-design/icons';
 import staffCourseService from '../services/staffCourseService';
 import categoryService from '../services/categoryService';
+import authService from '../services/authService';
+import apiTestService from '../services/apiTestService';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -40,6 +43,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const StaffCourseManagementPage = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,6 +54,18 @@ const StaffCourseManagementPage = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // Check authentication and role
+    if (!authService.isAuthenticated()) {
+      message.error('Please login to access this page');
+      return;
+    }
+
+    const userRole = authService.getUserRole();
+    if (!['STAFF', 'ADMIN', 'MANAGER'].includes(userRole)) {
+      message.error('Access denied. Staff role required.');
+      return;
+    }
+
     fetchCourses();
     fetchCategories();
   }, []);
@@ -57,14 +73,18 @@ const StaffCourseManagementPage = () => {
   const fetchCourses = async () => {
     setLoading(true);
     try {
+      console.log('🔍 Fetching courses...');
       const response = await staffCourseService.getAllCourses();
+      console.log('✅ Courses response:', response);
       if (response.success) {
         setCourses(response.data || []);
+        console.log('✅ Courses loaded:', response.data);
       } else {
+        console.error('❌ Failed to fetch courses:', response.error);
         message.error('Failed to fetch courses');
       }
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      console.error('❌ Error fetching courses:', error);
       message.error('Failed to fetch courses');
     } finally {
       setLoading(false);
@@ -73,12 +93,17 @@ const StaffCourseManagementPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await categoryService.getAllCategories();
+      console.log('🔍 Fetching categories...');
+      const response = await categoryService.getCategories();
+      console.log('✅ Categories response:', response);
       if (response.success) {
         setCategories(response.data || []);
+        console.log('✅ Categories loaded:', response.data);
+      } else {
+        console.error('❌ Failed to load categories:', response.message);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('❌ Error fetching categories:', error);
     }
   };
 
@@ -86,6 +111,22 @@ const StaffCourseManagementPage = () => {
     setEditingCourse(null);
     setModalVisible(true);
     form.resetFields();
+  };
+
+  const handleTestAPI = async () => {
+    console.log('🧪 Testing APIs...');
+    try {
+      const results = await apiTestService.testApiConnectivity();
+      console.log('API Test Results:', results);
+      if (results.success) {
+        message.success(`API tests completed: ${results.summary.passed}/${results.summary.total} passed`);
+      } else {
+        message.error(`API tests failed: ${results.summary.failed}/${results.summary.total} failed`);
+      }
+    } catch (error) {
+      console.error('Error testing APIs:', error);
+      message.error('Failed to run API tests');
+    }
   };
 
   const handleEditCourse = (course) => {
@@ -187,8 +228,12 @@ const StaffCourseManagementPage = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      width: 100,
-      render: (price) => price ? `${price.toLocaleString()} VNĐ` : 'Free',
+      width: 120,
+      render: (price) => (
+        <Text strong style={{ color: price > 0 ? '#f50' : '#52c41a' }}>
+          {price === 0 || price === null || price === undefined ? 'Free' : `${Number(price).toLocaleString()} VND`}
+        </Text>
+      ),
     },
     {
       title: 'Duration',
@@ -196,14 +241,15 @@ const StaffCourseManagementPage = () => {
       key: 'duration',
       width: 100,
     },
-    {
-      title: 'Participants',
-      key: 'participants',
-      width: 100,
-      render: (_, record) => (
-        <Text>{record.currentParticipants || 0}/{record.maxParticipants || 0}</Text>
-      ),
-    },
+    // HIDDEN: Participants column - no longer showing participant limits
+    // {
+    //   title: 'Participants',
+    //   key: 'participants',
+    //   width: 100,
+    //   render: (_, record) => (
+    //     <Text>{record.currentParticipants || 0}/{record.maxParticipants || 0}</Text>
+    //   ),
+    // },
     {
       title: 'Status',
       dataIndex: 'status',
@@ -217,19 +263,30 @@ const StaffCourseManagementPage = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
           <Button 
             icon={<EyeOutlined />} 
             size="small" 
             onClick={() => showCourseDetail(record)}
+            title="View Details"
           />
+          <Button 
+            icon={<BookOutlined />} 
+            size="small" 
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            onClick={() => navigate(`/course-management/${record.id}/lessons`)}
+            title="Manage Lessons"
+          >
+            Lessons
+          </Button>
           <Button 
             icon={<EditOutlined />} 
             size="small" 
             type="primary"
             onClick={() => handleEditCourse(record)}
+            title="Edit Course"
           />
           <Popconfirm
             title="Are you sure to delete this course?"
@@ -241,6 +298,7 @@ const StaffCourseManagementPage = () => {
               icon={<DeleteOutlined />} 
               size="small" 
               danger
+              title="Delete Course"
             />
           </Popconfirm>
         </Space>
@@ -250,24 +308,48 @@ const StaffCourseManagementPage = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={24}>
-          <Card>
-            <Row gutter={16}>
-              <Col span={6}>
-                <Statistic
-                  title="Total Courses"
-                  value={courses.length}
-                  prefix={<BookOutlined />}
-                />
-              </Col>
-              <Col span={6}>
-                <Statistic
-                  title="Active Courses"
-                  value={courses.filter(c => c.status === 'open').length}
-                  prefix={<CalendarOutlined />}
-                />
-              </Col>
+      {/* Debug Info for Development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card style={{ marginBottom: '16px', backgroundColor: '#f0f9ff' }}>
+          <Space direction="vertical">
+            <Text strong>🔧 Staff Course Management Debug</Text>
+            <Text>Current User: {authService.getCurrentUser()?.userName}</Text>
+            <Text>User Role: {authService.getUserRole()}</Text>
+            <Text>Is Staff or Higher: {authService.isStaffOrHigher() ? 'YES' : 'NO'}</Text>
+            <Button size="small" onClick={() => navigate('/staff-debug')}>
+              Go to Debug Page
+            </Button>
+          </Space>
+        </Card>
+      )}
+      
+                  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+              <Col span={24}>
+                <Card>
+                  <Row gutter={16}>
+                    <Col span={6}>
+                      <Statistic
+                        title="Total Courses"
+                        value={courses.length}
+                        prefix={<BookOutlined />}
+                      />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic
+                        title="Active Courses"
+                        value={courses.filter(c => c.status === 'open').length}
+                        prefix={<CalendarOutlined />}
+                      />
+                    </Col>
+                    <Col span={6}>
+                      <Button 
+                        type="primary" 
+                        icon={<BookOutlined />}
+                        onClick={handleTestAPI}
+                      >
+                        Test API
+                      </Button>
+                    </Col>
               <Col span={6}>
                 <Statistic
                   title="Total Students"
@@ -389,6 +471,7 @@ const StaffCourseManagementPage = () => {
               </Form.Item>
             </Col>
             <Col span={8}>
+              {/* HIDDEN: Max Participants field - no longer using participant limits
               <Form.Item
                 name="maxParticipants"
                 label="Max Participants"
@@ -399,6 +482,7 @@ const StaffCourseManagementPage = () => {
                   min={1}
                 />
               </Form.Item>
+              */}
             </Col>
           </Row>
 
@@ -488,11 +572,13 @@ const StaffCourseManagementPage = () => {
             <p><strong>Description:</strong> {selectedCourse.description}</p>
             <p><strong>Instructor:</strong> {selectedCourse.instructor?.username || 'Not assigned'}</p>
             <p><strong>Price:</strong> {selectedCourse.price ? `${selectedCourse.price.toLocaleString()} VNĐ` : 'Free'}</p>
+            <p><strong>Start Date:</strong> {selectedCourse.startDate ? new Date(selectedCourse.startDate).toLocaleDateString() : 'Not set'}</p>
+            <p><strong>End Date:</strong> {selectedCourse.endDate ? new Date(selectedCourse.endDate).toLocaleDateString() : 'Not set'}</p>
             <p><strong>Duration:</strong> {selectedCourse.duration || 'Not specified'}</p>
+            {/* HIDDEN: Participants info - no longer showing participant limits
             <p><strong>Participants:</strong> {selectedCourse.currentParticipants || 0}/{selectedCourse.maxParticipants || 0}</p>
-            <p><strong>Status:</strong> <Tag color={selectedCourse.status === 'open' ? 'green' : 'red'}>{selectedCourse.status?.toUpperCase()}</Tag></p>
-            {selectedCourse.startDate && <p><strong>Start Date:</strong> {dayjs(selectedCourse.startDate).format('DD/MM/YYYY')}</p>}
-            {selectedCourse.endDate && <p><strong>End Date:</strong> {dayjs(selectedCourse.endDate).format('DD/MM/YYYY')}</p>}
+            */}
+            <p><strong>Status:</strong> <Tag color={selectedCourse.status === 'open' ? 'green' : 'red'}>{selectedCourse.status || 'Unknown'}</Tag></p>
           </div>
         )}
       </Modal>

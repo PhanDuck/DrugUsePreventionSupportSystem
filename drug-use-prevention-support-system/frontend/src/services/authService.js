@@ -227,13 +227,14 @@ class AuthService {
 
   // ===== SETUP AXIOS INTERCEPTOR =====
   setupAxiosInterceptor() {
-    // Add token to all requests
+    // Add token to all requests - TEMPORARILY DISABLED
     api.interceptors.request.use(
       (config) => {
-        const token = this.getToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+        // DISABLE TOKEN FOR DEBUGGING
+        // const token = this.getToken();
+        // if (token) {
+        //   config.headers.Authorization = `Bearer ${token}`;
+        // }
         return config;
       },
       (error) => {

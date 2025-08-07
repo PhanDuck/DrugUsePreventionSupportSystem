@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   Table, 
@@ -15,9 +16,10 @@ import {
   Row, 
   Col, 
   Statistic,
-  Image,
   Typography,
-  Switch
+  Switch,
+  Alert,
+  Spin
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -27,16 +29,19 @@ import {
   BookOutlined,
   UserOutlined,
   DollarOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  SettingOutlined,
+  ArrowRightOutlined
 } from '@ant-design/icons';
 import staffCourseService from '../services/staffCourseService';
-import { Link, useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
 const CourseManagementPage = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,11 +53,35 @@ const CourseManagementPage = () => {
     totalStudents: 0,
     totalRevenue: 0
   });
-  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+    checkUserPermissions();
     loadData();
   }, []);
+
+  const checkUserPermissions = () => {
+    const user = authService.getCurrentUser();
+    const userRole = authService.getUserRole();
+    
+    console.log('🔍 CourseManagement - Current user:', user);
+    console.log('🔍 CourseManagement - User role:', userRole);
+    console.log('🔍 CourseManagement - Is staff or higher:', authService.isStaffOrHigher());
+    
+    if (!authService.isAuthenticated()) {
+      message.error('Please login to access course management');
+      navigate('/login');
+      return;
+    }
+    
+    if (!authService.isStaffOrHigher()) {
+      message.error('Access denied. Staff privileges required.');
+      navigate('/unauthorized');
+      return;
+    }
+    
+    setCurrentUser(user);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -62,11 +91,11 @@ const CourseManagementPage = () => {
         setCourses(response.data || []);
         calculateStats(response.data || []);
       } else {
-        message.error('Không thể tải danh sách khóa học');
+        message.error('Unable to load course list');
       }
     } catch (error) {
       console.error('Error loading courses:', error);
-      message.error('Lỗi khi tải dữ liệu');
+      message.error('Error loading data');
     } finally {
       setLoading(false);
     }
@@ -103,7 +132,7 @@ const CourseManagementPage = () => {
         price: values.price || 0,
         maxParticipants: values.maxParticipants || 50,
         difficultyLevel: values.difficultyLevel || 'BEGINNER',
-        language: values.language || 'vi',
+        language: values.language || 'en',
         isActive: values.isActive !== false,
         certificateEnabled: values.certificateEnabled === true
       };
@@ -116,17 +145,17 @@ const CourseManagementPage = () => {
       }
 
       if (response.success) {
-        message.success(editingCourse ? 'Cập nhật khóa học thành công!' : 'Tạo khóa học thành công!');
+        message.success(editingCourse ? 'Course updated successfully!' : 'Course created successfully!');
         setModalVisible(false);
         setEditingCourse(null);
         form.resetFields();
         await loadData();
       } else {
-        message.error(response.error || 'Không thể lưu khóa học');
+        message.error(response.error || 'Failed to save course');
       }
     } catch (error) {
       console.error('Error saving course:', error);
-      message.error('Lỗi khi lưu khóa học');
+      message.error('Error saving course');
     }
   };
 
@@ -134,14 +163,14 @@ const CourseManagementPage = () => {
     try {
       const response = await staffCourseService.deleteCourse(courseId);
       if (response.success) {
-        message.success('Xóa khóa học thành công!');
+        message.success('Course deleted successfully!');
         await loadData();
       } else {
-        message.error(response.error || 'Không thể xóa khóa học');
+        message.error(response.error || 'Failed to delete course');
       }
     } catch (error) {
       console.error('Error deleting course:', error);
-      message.error('Lỗi khi xóa khóa học');
+      message.error('Error deleting course');
     }
   };
 
@@ -166,7 +195,14 @@ const CourseManagementPage = () => {
 
   const columns = [
     {
-      title: 'Tên khóa học',
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 60,
+      render: (id) => <Text type="secondary">#{id}</Text>
+    },
+    {
+      title: 'Course Title',
       dataIndex: 'title',
       key: 'title',
       render: (text, record) => (
@@ -177,78 +213,94 @@ const CourseManagementPage = () => {
       ),
     },
     {
-      title: 'Trạng thái',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 100,
       render: (status) => (
         <Tag color={getStatusColor(status)}>
-          {status === 'open' ? 'Đang mở' : 
-           status === 'closed' ? 'Đã đóng' :
-           status === 'completed' ? 'Hoàn thành' : 
-           status === 'cancelled' ? 'Đã hủy' : status}
+          {status === 'open' ? 'Open' : 
+           status === 'closed' ? 'Closed' :
+           status === 'completed' ? 'Completed' : 
+           status === 'cancelled' ? 'Cancelled' : status}
         </Tag>
       ),
     },
     {
-      title: 'Độ khó',
+      title: 'Difficulty',
       dataIndex: 'difficultyLevel',
       key: 'difficultyLevel',
+      width: 120,
       render: (level) => (
         <Tag color={getDifficultyColor(level)}>
-          {level === 'BEGINNER' ? 'Cơ bản' :
-           level === 'INTERMEDIATE' ? 'Trung bình' :
-           level === 'ADVANCED' ? 'Nâng cao' : level}
+          {level === 'BEGINNER' ? 'Beginner' :
+           level === 'INTERMEDIATE' ? 'Intermediate' :
+           level === 'ADVANCED' ? 'Advanced' : level}
         </Tag>
       ),
     },
+    // HIDDEN: Participants column - no longer showing participant limits
+    // {
+    //   title: 'Participants',
+    //   dataIndex: 'currentParticipants',
+    //   key: 'participants',
+    //   width: 120,
+    //   render: (current, record) => (
+    //     <Text>{current || 0}/{record.maxParticipants || 'N/A'}</Text>
+    //   ),
+    // },
     {
-      title: 'Học viên',
-      dataIndex: 'currentParticipants',
-      key: 'participants',
-      render: (current, record) => (
-        <Text>{current || 0}/{record.maxParticipants || 'N/A'}</Text>
-      ),
-    },
-    {
-      title: 'Giá',
+      title: 'Price',
       dataIndex: 'price',
       key: 'price',
+      width: 120,
       render: (price) => (
-        <Text strong>{price === 0 ? 'Miễn phí' : `${price?.toLocaleString()} VNĐ`}</Text>
+        <Text strong style={{ color: price > 0 ? '#f50' : '#52c41a' }}>
+          {price === 0 || price === null || price === undefined ? 'Free' : `${Number(price).toLocaleString()} VND`}
+        </Text>
       ),
     },
     {
-      title: 'Thao tác',
+      title: 'Actions',
       key: 'actions',
+      width: 280,
       render: (_, record) => (
-        <Space size="middle">
+        <Space size="small">
           <Button
             type="primary"
             size="small"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/courses/${record.id}`)}
           >
-            Xem
+            View
+          </Button>
+          <Button
+            size="small"
+            icon={<BookOutlined />}
+            onClick={() => navigate(`/course-management/${record.id}/lessons`)}
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+          >
+            Lessons
           </Button>
           <Button
             size="small"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           >
-            Sửa
+            Edit
           </Button>
           <Popconfirm
-            title="Bạn có chắc muốn xóa khóa học này?"
+            title="Are you sure you want to delete this course?"
             onConfirm={() => handleDelete(record.id)}
-            okText="Có"
-            cancelText="Không"
+            okText="Yes"
+            cancelText="No"
           >
             <Button
               size="small"
               icon={<DeleteOutlined />}
               danger
             >
-              Xóa
+              Delete
             </Button>
           </Popconfirm>
         </Space>
@@ -256,16 +308,48 @@ const CourseManagementPage = () => {
     },
   ];
 
+  if (loading && courses.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '100px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '20px' }}>
+          <Text>Loading course management...</Text>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>Quản lý khóa học</Title>
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <Alert
+          message="Debug Info"
+          description={
+            <div>
+              <p>Current User: {currentUser?.userName} ({authService.getUserRole()})</p>
+              <p>Is Staff or Higher: {authService.isStaffOrHigher() ? 'YES' : 'NO'}</p>
+              <Button size="small" onClick={() => navigate('/staff-debug')}>
+                Go to Staff Debug Page
+              </Button>
+            </div>
+          }
+          type="info"
+          style={{ marginBottom: '24px' }}
+          closable
+        />
+      )}
+
+      <Title level={2}>
+        <SettingOutlined /> Course Management
+      </Title>
 
       {/* Statistics */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng số khóa học"
+              title="Total Courses"
               value={stats.totalCourses}
               prefix={<BookOutlined />}
               valueStyle={{ color: '#1890ff' }}
@@ -275,7 +359,7 @@ const CourseManagementPage = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Khóa học đang mở"
+              title="Active Courses"
               value={stats.publishedCourses}
               prefix={<CalendarOutlined />}
               valueStyle={{ color: '#52c41a' }}
@@ -285,7 +369,7 @@ const CourseManagementPage = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng học viên"
+              title="Total Students"
               value={stats.totalStudents}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#722ed1' }}
@@ -295,11 +379,11 @@ const CourseManagementPage = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Doanh thu"
+              title="Revenue"
               value={stats.totalRevenue}
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#fa8c16' }}
-              formatter={(value) => `${value.toLocaleString()} VNĐ`}
+              formatter={(value) => `${value.toLocaleString()} VND`}
             />
           </Card>
         </Col>
@@ -307,15 +391,23 @@ const CourseManagementPage = () => {
 
       {/* Main content */}
       <Card>
-        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
-          <Title level={4}>Danh sách khóa học</Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
-            Tạo khóa học mới
-          </Button>
+        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4}>Course List</Title>
+          <Space>
+            <Button
+              icon={<BookOutlined />}
+              onClick={() => navigate('/staff/courses')}
+            >
+              Staff Course Manager
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
+              Add New Course
+            </Button>
+          </Space>
         </div>
 
         <Table
@@ -327,14 +419,15 @@ const CourseManagementPage = () => {
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `Tổng ${total} khóa học`,
+            showTotal: (total) => `Total ${total} courses`,
           }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
       {/* Course Editor Modal */}
       <Modal
-        title={editingCourse ? "Sửa khóa học" : "Tạo khóa học mới"}
+        title={editingCourse ? "Edit Course" : "Create New Course"}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
@@ -353,8 +446,8 @@ const CourseManagementPage = () => {
             <Col span={12}>
               <Form.Item
                 name="title"
-                label="Tên khóa học"
-                rules={[{ required: true, message: 'Vui lòng nhập tên khóa học' }]}
+                label="Course Title"
+                rules={[{ required: true, message: 'Please enter course title' }]}
               >
                 <Input />
               </Form.Item>
@@ -362,14 +455,14 @@ const CourseManagementPage = () => {
             <Col span={12}>
               <Form.Item
                 name="status"
-                label="Trạng thái"
+                label="Status"
                 initialValue="open"
               >
                 <Select>
-                  <Option value="open">Đang mở</Option>
-                  <Option value="closed">Đã đóng</Option>
-                  <Option value="completed">Hoàn thành</Option>
-                  <Option value="cancelled">Đã hủy</Option>
+                  <Option value="open">Open</Option>
+                  <Option value="closed">Closed</Option>
+                  <Option value="completed">Completed</Option>
+                  <Option value="cancelled">Cancelled</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -377,8 +470,8 @@ const CourseManagementPage = () => {
 
           <Form.Item
             name="description"
-            label="Mô tả"
-            rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
+            label="Description"
+            rules={[{ required: true, message: 'Please enter description' }]}
           >
             <TextArea rows={4} />
           </Form.Item>
@@ -387,20 +480,20 @@ const CourseManagementPage = () => {
             <Col span={8}>
               <Form.Item
                 name="difficultyLevel"
-                label="Độ khó"
+                label="Difficulty Level"
                 initialValue="BEGINNER"
               >
                 <Select>
-                  <Option value="BEGINNER">Cơ bản</Option>
-                  <Option value="INTERMEDIATE">Trung bình</Option>
-                  <Option value="ADVANCED">Nâng cao</Option>
+                  <Option value="BEGINNER">Beginner</Option>
+                  <Option value="INTERMEDIATE">Intermediate</Option>
+                  <Option value="ADVANCED">Advanced</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
                 name="maxParticipants"
-                label="Số học viên tối đa"
+                label="Max Students"
                 initialValue={50}
               >
                 <InputNumber min={1} style={{ width: '100%' }} />
@@ -409,10 +502,10 @@ const CourseManagementPage = () => {
             <Col span={8}>
               <Form.Item
                 name="price"
-                label="Giá (VNĐ)"
+                label="Price (VND)"
                 initialValue={0}
               >
-                <InputNumber min={0} style={{ width: '100%' }} />
+                <InputNumber min={0} style={{ width: '100%' }} formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
               </Form.Item>
             </Col>
           </Row>
@@ -421,19 +514,19 @@ const CourseManagementPage = () => {
             <Col span={12}>
               <Form.Item
                 name="duration"
-                label="Thời lượng"
+                label="Duration"
               >
-                <Input placeholder="VD: 4 tuần, 20 giờ" />
+                <Input placeholder="e.g. 4 weeks, 20 hours" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="language"
-                label="Ngôn ngữ"
-                initialValue="vi"
+                label="Language"
+                initialValue="en"
               >
                 <Select>
-                  <Option value="vi">Tiếng Việt</Option>
+                  <Option value="vi">Vietnamese</Option>
                   <Option value="en">English</Option>
                 </Select>
               </Form.Item>
@@ -444,7 +537,7 @@ const CourseManagementPage = () => {
             <Col span={12}>
               <Form.Item
                 name="isActive"
-                label="Kích hoạt"
+                label="Active"
                 valuePropName="checked"
                 initialValue={true}
               >
@@ -454,7 +547,7 @@ const CourseManagementPage = () => {
             <Col span={12}>
               <Form.Item
                 name="certificateEnabled"
-                label="Cấp chứng chỉ"
+                label="Certificate Enabled"
                 valuePropName="checked"
                 initialValue={false}
               >
@@ -466,14 +559,14 @@ const CourseManagementPage = () => {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
-                {editingCourse ? 'Cập nhật' : 'Tạo mới'}
+                {editingCourse ? 'Update' : 'Create'}
               </Button>
               <Button onClick={() => {
                 setModalVisible(false);
                 setEditingCourse(null);
                 form.resetFields();
               }}>
-                Hủy
+                Cancel
               </Button>
             </Space>
           </Form.Item>

@@ -65,20 +65,43 @@ const LayoutComponent = () => {
       { path: '/search', label: 'Search', icon: '🔍' },
       { path: '/blogs', label: 'Blog', icon: '📝' },
       { path: '/courses', label: 'Courses', icon: '📚' },
-      { path: '/consultants', label: 'Consultants', icon: '👨‍⚕️' },
+      // { path: '/consultants', label: 'Consultants', icon: '👨‍⚕️' }, // HIDDEN: Under maintenance
       { path: '/surveys', label: 'Assessments', icon: '📋' },
       { path: '/appointments', label: 'Appointments', icon: '💬' },
     ];
 
-    // Add staff-specific items
+    // Add staff-specific items - with more robust checking
     const userRole = authService.getUserRole();
-    if (['STAFF', 'ADMIN', 'MANAGER'].includes(userRole)) {
-      baseItems.push({ path: '/course-management', label: 'Manage Courses', icon: '⚙️' });
+    console.log('🔍 Current user role for navigation:', userRole);
+    console.log('🔍 Is authenticated:', authService.isAuthenticated());
+    console.log('🔍 Current user:', authService.getCurrentUser());
+    
+    if (authService.isAuthenticated() && userRole && ['STAFF', 'ADMIN', 'MANAGER'].includes(userRole)) {
+      console.log('✅ Adding staff navigation items');
+      baseItems.push({ 
+        path: '/course-management', 
+        label: 'Manage Courses', 
+        icon: '⚙️',
+        staffOnly: true 
+      });
+      
+      // Add more staff-specific items
+      if (userRole === 'ADMIN') {
+        baseItems.push({ 
+          path: '/admin/dashboard', 
+          label: 'Admin Panel', 
+          icon: '👑',
+          adminOnly: true 
+        });
+      }
+    } else {
+      console.log('❌ Staff items not added. Role:', userRole, 'Auth:', authService.isAuthenticated());
     }
 
     return baseItems;
   };
 
+  // Force re-render navigation when auth state changes
   const navigationItems = getNavigationItems();
 
   // Get user display name
@@ -93,6 +116,7 @@ const LayoutComponent = () => {
     switch(role) {
       case 'ADMIN': return 'Administrator';
       case 'CONSULTANT': return 'Consultant';
+      case 'STAFF': return 'Staff';
       case 'MANAGER': return 'Manager';
       case 'USER': return 'User';
       default: return 'Guest';
@@ -175,7 +199,10 @@ const LayoutComponent = () => {
           <nav style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '24px'
+            gap: '20px',
+            '@media (max-width: 768px)': {
+              display: 'none'
+            }
           }}>
             {navigationItems.map((item) => (
               <a
@@ -346,6 +373,68 @@ const LayoutComponent = () => {
                     >
                       👤 Personal Information
                     </button>
+                    
+                    {/* Staff-only menu items */}
+                    {authService.isStaffOrHigher() && (
+                      <>
+                        <button
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '12px 16px',
+                            textDecoration: 'none',
+                            color: '#1890ff',
+                            background: '#f0f9ff',
+                            border: 'none',
+                            borderBottom: '1px solid #f0f0f0',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            transition: 'background 0.2s ease'
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowUserMenu(false);
+                            navigate('/course-management');
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = '#e6f7ff'}
+                          onMouseLeave={(e) => e.target.style.background = '#f0f9ff'}
+                        >
+                          ⚙️ Manage Courses
+                        </button>
+                        
+                        <button
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '12px 16px',
+                            textDecoration: 'none',
+                            color: '#52c41a',
+                            background: '#f6ffed',
+                            border: 'none',
+                            borderBottom: '1px solid #f0f0f0',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            transition: 'background 0.2s ease'
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowUserMenu(false);
+                            navigate('/staff/courses');
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = '#e6ffed'}
+                          onMouseLeave={(e) => e.target.style.background = '#f6ffed'}
+                        >
+                          📚 Staff Course Manager
+                        </button>
+                      </>
+                    )}
+                    
                     <button
                       style={{
                         display: 'block',
@@ -461,8 +550,8 @@ const LayoutComponent = () => {
                     background: '#fff',
                     border: '1px solid #d9d9d9',
                     color: '#595959',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
                     fontWeight: '500',
                     fontSize: '14px',
                     cursor: 'pointer',
@@ -485,9 +574,9 @@ const LayoutComponent = () => {
                     background: '#1890ff',
                     border: '1px solid #1890ff',
                     color: '#fff',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontWeight: '500',
                     fontSize: '14px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
@@ -496,14 +585,10 @@ const LayoutComponent = () => {
                   onMouseEnter={(e) => {
                     e.target.style.background = '#40a9ff';
                     e.target.style.borderColor = '#40a9ff';
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.3)';
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.background = '#1890ff';
                     e.target.style.borderColor = '#1890ff';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
                   }}
                 >
                   Register
@@ -517,7 +602,6 @@ const LayoutComponent = () => {
       {/* Main Content */}
       <main style={{ 
         flex: 1,
-        padding: 0,
         maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',

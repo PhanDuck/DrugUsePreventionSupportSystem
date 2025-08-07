@@ -61,10 +61,10 @@ public class CourseRegistrationService {
             throw new RuntimeException("User is already registered for this course");
         }
         
-        // Check if course has available spots
-        if (course.getCurrentParticipants() >= course.getMaxParticipants()) {
-            throw new RuntimeException("Course is full");
-        }
+        // REMOVED: Course capacity check - allowing unlimited enrollments
+        // if (course.getCurrentParticipants() >= course.getMaxParticipants()) {
+        //     throw new RuntimeException("Course is full");
+        // }
         
         // Create registration
         CourseRegistration registration = new CourseRegistration();

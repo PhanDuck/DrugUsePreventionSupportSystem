@@ -73,6 +73,14 @@ const AppointmentPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  
+  // Booking state
+  const [bookingLoading, setBookingLoading] = useState(false);
+  
+  // Computed selectedDateTime from selectedDate and selectedTime
+  const selectedDateTime = selectedDate && selectedTime ? 
+    dayjs(selectedDate).format('YYYY-MM-DD') + 'T' + selectedTime + ':00' : 
+    null;
 
   // Statistics state
   const [appointmentStats, setAppointmentStats] = useState({
@@ -122,30 +130,64 @@ const AppointmentPage = () => {
       console.log('🔄 Starting to load consultants...');
       setLoading(true);
       
-      console.log('🌐 API Base URL:', api.defaults.baseURL);
-      const response = await api.get('/consultants/public/list');
-      console.log('📥 Consultants loaded:', response.data);
+              console.log('🌐 API Base URL:', api.defaults.baseURL);
+        const response = await api.get('/users/consultants');
+        console.log('📥 Raw API response:', response.data);
+        console.log('📥 Response structure:', {
+          hasData: !!response.data.data,
+          dataLength: response.data.data?.length,
+          directData: response.data
+        });
+        
+        // Extract data from response structure
+        const consultantsData = response.data.data || response.data;
+        console.log('📥 Extracted consultants data:', consultantsData);
       
-      if (response.data && Array.isArray(response.data)) {
-        const enhancedConsultants = response.data.map((consultant, index) => ({
-          ...consultant,
-          displayName: `${consultant.degree ? consultant.degree + ' ' : ''}${consultant.firstName || ''} ${consultant.lastName || ''}`.trim(),
-          specialty: consultant.expertise || 'General Counseling',
-          // Professional avatar images
-          avatar: [
-            'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
-            'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face', 
-            'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
-            'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=150&h=150&fit=crop&crop=face'
-          ][index % 4],
-          // Use real data instead of mock data
-          rating: 4.5 + Math.random() * 0.5, // Realistic ratings 4.5-5.0
-          price: 100, // Standard consultation fee in USD
-          isOnline: true, // All consultants available online
-          experienceYears: consultant.bio ? parseInt(consultant.bio.match(/(\d+)\s+years?/)?.[1]) || 10 : 10, // Extract from bio
-          description: consultant.bio || 'Experienced professional in substance abuse treatment and counseling.'
-        }));
-        console.log('✅ Real consultant data loaded:', enhancedConsultants);
+      if (consultantsData && Array.isArray(consultantsData)) {
+        console.log('📥 Processing consultants array:', consultantsData.length, 'items');
+        
+        const enhancedConsultants = consultantsData.map((consultant, index) => {
+                    console.log(`📥 Processing consultant ${index}:`, consultant);
+          console.log(`📥 Consultant name fields:`, {
+            fullName: consultant.fullName,
+            userName: consultant.userName,
+            degree: consultant.degree,
+            expertise: consultant.expertise
+          });
+          
+          const enhanced = {
+              ...consultant,
+              // Keep both id and userID for compatibility
+              id: consultant.userID || consultant.id,
+              displayName: (() => {
+                // Build display name with fallbacks
+                const degree = consultant.degree ? consultant.degree + ' ' : '';
+                const fullName = consultant.fullName || consultant.userName || 'Unknown Consultant';
+                const displayName = `${degree}${fullName}`.trim();
+                return displayName || 'Unknown Consultant';
+              })(),
+              specialty: consultant.expertise || 'General Counseling',
+            // Professional avatar images
+            avatar: [
+              'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face', 
+              'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=150&h=150&fit=crop&crop=face'
+            ][index % 4],
+            // Use real data instead of mock data
+            rating: 4.5 + Math.random() * 0.5, // Realistic ratings 4.5-5.0
+            price: consultant.consultationFee || 100000, // Use consultant's fee or default (VND)
+            isOnline: true, // All consultants available online
+            experienceYears: consultant.bio ? parseInt(consultant.bio.match(/(\d+)\s+years?/)?.[1]) || 10 : 10, // Extract from bio
+            description: consultant.bio || 'Experienced professional in substance abuse treatment and counseling.'
+          };
+          
+                      console.log(`📥 Enhanced consultant ${index}:`, enhanced);
+            console.log(`📥 Final display name for consultant ${index}:`, enhanced.displayName);
+            return enhanced;
+        });
+        
+        console.log('✅ Final enhanced consultants:', enhancedConsultants);
         setConsultants(enhancedConsultants);
       } else {
         console.error('❌ Invalid consultants data:', response.data);
@@ -347,6 +389,14 @@ const AppointmentPage = () => {
     }
 
     console.log('👨‍⚕️ Selected consultant:', consultant);
+    console.log('👨‍⚕️ Consultant ID check:', { 
+      id: consultant.id, 
+      userID: consultant.userID,
+      hasId: !!consultant.id,
+      hasUserId: !!consultant.userID 
+    });
+    
+    // Allow modal to open even if ID is undefined for debugging
     setSelectedConsultant(consultant);
     setShowBookingModal(true);
     setBookingStep(1);
@@ -369,7 +419,14 @@ const AppointmentPage = () => {
         paymentMethod: 'VNPAY'
       });
       setSelectedDate(defaultDate);
-      loadAvailableSlots(consultant.id, defaultDate);
+      
+      // Only try to load slots if we have a valid ID
+      const consultantId = consultant.id || consultant.userID;
+      if (consultantId) {
+        loadAvailableSlots(consultantId, defaultDate);
+      } else {
+        console.warn('⚠️ No consultant ID available, skipping slot loading');
+      }
     }, 100);
   };
 
@@ -391,72 +448,64 @@ const AppointmentPage = () => {
 
   // Handle booking submission
   const handleBookingSubmit = async (values) => {
+    if (!selectedConsultant) {
+      message.error('Please select a consultant first');
+      return;
+    }
+    
+    if (!selectedDateTime) {
+      message.error('Please select date and time first');
+      return;
+    }
+
+    const appointmentData = {
+      consultantId: selectedConsultant.id,
+      appointmentDate: selectedDateTime,
+      appointmentType: values.appointmentType,
+      clientNotes: values.notes || '',
+      fee: selectedConsultant.consultationFee || selectedConsultant.price || 200000,
+    };
+
+    console.log('📅 Booking appointment:', appointmentData);
+    setBookingLoading(true);
+
     try {
-      // Double check authentication
-      if (!authService.isAuthenticated()) {
-        message.error('Please log in to book an appointment');
-        navigate('/login');
-        return;
-      }
-
-      if (!selectedConsultant || !selectedDate || !selectedTime) {
-        message.error('Please select all information');
-        return;
-      }
-
-      setLoading(true);
-
-      // Create appointment data according to backend API (fixed 60-minute duration)
-      const appointmentData = {
-        consultantId: selectedConsultant.id,
-        appointmentDate: dayjs(selectedDate).format('YYYY-MM-DD') + 'T' + selectedTime + ':00',
-        durationMinutes: 60, // Fixed 1-hour duration
-        appointmentType: values.appointmentType || 'ONLINE',
-        clientNotes: values.notes || '',
-        fee: selectedConsultant.price || 200000,
-        paymentMethod: values.paymentMethod || 'VNPAY'
-      };
-
-      console.log('📤 Booking appointment:', appointmentData);
-      
-      const result = await appointmentService.createAppointment(appointmentData);
+      // 🔄 SIMPLIFIED: Direct appointment creation
+      const result = await appointmentService.createAppointmentWithPayment(appointmentData);
       
       if (result.success) {
         message.success('Appointment booked successfully!');
-        setShowBookingModal(false);
-        loadUserAppointments(); // Reload appointments
         
-        // Reset form
+        // Show success and redirect to appointments list
+        Modal.success({
+          title: 'Appointment Confirmed!',
+          content: (
+            <div>
+              <p>Your appointment has been booked successfully.</p>
+              <p><strong>Consultant:</strong> {selectedConsultant.name || selectedConsultant.displayName}</p>
+              <p><strong>Date:</strong> {new Date(selectedDateTime).toLocaleString()}</p>
+              <p><strong>Type:</strong> {values.appointmentType}</p>
+            </div>
+          ),
+          onOk: () => {
+            navigate('/appointments');
+          }
+        });
+        
+        // Reset form and state
+        form.resetFields();
         setSelectedConsultant(null);
         setSelectedDate(null);
         setSelectedTime(null);
-        setBookingStep(1);
-        form.resetFields();
-        
-        // Show success details
-        Modal.info({
-          title: 'Appointment Booked Successfully!',
-          content: (
-            <div style={{ paddingTop: '16px' }}>
-              <p><strong>Consultant:</strong> {selectedConsultant.displayName}</p>
-              <p><strong>Date:</strong> {dayjs(appointmentData.appointmentDate).format('MMMM DD, YYYY')}</p>
-              <p><strong>Time:</strong> {dayjs(appointmentData.appointmentDate).format('HH:mm')} - {dayjs(appointmentData.appointmentDate).add(1, 'hour').format('HH:mm')} (1 hour)</p>
-              <p><strong>Type:</strong> {appointmentData.appointmentType}</p>
-              <p style={{ color: '#faad14', fontWeight: 'bold' }}>
-                Status: Pending (waiting for consultant confirmation)
-              </p>
-            </div>
-          ),
-          onOk: () => setActiveTab('appointments')
-        });
+        setShowBookingModal(false);
       } else {
-        message.error(result.message || 'An error occurred while booking');
+        message.error(result.message || 'Failed to book appointment');
       }
     } catch (error) {
-      console.error('Error booking appointment:', error);
-      message.error('An error occurred while booking');
+      console.error('❌ Booking error:', error);
+      message.error('Failed to book appointment. Please try again.');
     } finally {
-      setLoading(false);
+      setBookingLoading(false);
     }
   };
 
@@ -1062,7 +1111,7 @@ const AppointmentPage = () => {
                                     fontSize: '20px', 
                                     fontWeight: '700'
                                   }}>
-                                    ${consultant.price}
+                                    {consultant.price === 0 || consultant.price === null ? 'Free' : `${Number(consultant.price).toLocaleString()} VNĐ`}
                                   </Text>
                                   <br />
                                   <Text style={{ color: '#6b7280', fontSize: '12px' }}>
@@ -1286,7 +1335,7 @@ const AppointmentPage = () => {
                 </Col>
                 <Col>
                   <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
-                    {selectedConsultant.price?.toLocaleString('vi-VN')} đ/session
+                    {(selectedConsultant.consultationFee || selectedConsultant.price)?.toLocaleString('vi-VN')} đ/session
                   </Text>
                 </Col>
               </Row>
@@ -1296,6 +1345,9 @@ const AppointmentPage = () => {
             <Form
               form={form}
               layout="vertical"
+              initialValues={{ 
+                appointmentType: 'ONLINE'
+              }}
               onFinish={handleBookingSubmit}
             >
               <Row gutter={16}>
@@ -1426,18 +1478,6 @@ const AppointmentPage = () => {
                   </Form.Item>
                 </Col>
               </Row>
-
-              <Form.Item
-                label="Payment Method"
-                name="paymentMethod"
-                initialValue="VNPAY"
-              >
-                <Select>
-                  <Option value="VNPAY">VNPay</Option>
-                  <Option value="CASH">Cash</Option>
-                  <Option value="BANK_TRANSFER">Bank Transfer</Option>
-                </Select>
-              </Form.Item>
 
               <Form.Item
                 label="Notes"

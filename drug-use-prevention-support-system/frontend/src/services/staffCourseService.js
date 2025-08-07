@@ -18,6 +18,70 @@ const staffCourseService = {
     }
   },
 
+  // Test API connectivity
+  testAPI: async () => {
+    try {
+      console.log('🧪 Testing staff course API...');
+      const response = await apiClient.get('/staff/courses/test');
+      console.log('✅ Test API response:', response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('❌ Test API error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message
+      };
+    }
+  },
+
+  // Test database connectivity
+  testDatabase: async () => {
+    try {
+      console.log('🗄️ Testing database connectivity...');
+      const response = await apiClient.get('/staff/courses/test/db');
+      console.log('✅ Database test response:', response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('❌ Database test error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message
+      };
+    }
+  },
+
+  // Test lesson endpoint directly
+  testLessons: async (courseId = 1) => {
+    try {
+      console.log('📚 Testing lesson endpoint for course:', courseId);
+      const response = await apiClient.get(`/staff/courses/lessons/${courseId}`);
+      console.log('✅ Lessons test response:', response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('❌ Lessons test error:', error);
+      console.error('❌ Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      });
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message,
+        status: error.response?.status
+      };
+    }
+  },
+
   // Get course by ID for management
   getCourseById: async (courseId) => {
     try {
@@ -89,16 +153,43 @@ const staffCourseService = {
   // Get course lessons
   getCourseLessons: async (courseId) => {
     try {
-      const response = await apiClient.get(`/staff/courses/${courseId}/lessons`);
-      return {
-        success: true,
-        data: response.data
-      };
+      console.log('📚 Getting lessons for course:', courseId);
+      const response = await apiClient.get(`/staff/courses/lessons/${courseId}`);
+      console.log('📚 Raw response:', response);
+      
+      // Handle new backend response format
+      if (response.data && response.data.success) {
+        console.log('✅ Lessons loaded:', response.data.data);
+        return {
+          success: true,
+          data: response.data.data || []
+        };
+      } else if (response.data && Array.isArray(response.data)) {
+        // Fallback for direct array response
+        console.log('✅ Lessons loaded (array):', response.data);
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        console.log('❌ Invalid response format:', response.data);
+        return {
+          success: false,
+          error: 'Invalid response format',
+          data: []
+        };
+      }
     } catch (error) {
-      console.error('Error getting course lessons:', error);
+      console.error('❌ Error getting course lessons:', error);
+      console.error('❌ Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       return {
         success: false,
-        error: error.response?.data?.message || error.message
+        error: error.response?.data?.message || error.message,
+        data: []
       };
     }
   },

@@ -4,11 +4,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VnPayConfig {
-    private String tmnCode = "YOUR_TMN_CODE";
-    private String hashSecret = "YOUR_HASH_SECRET";
+    // VNPay Sandbox Demo credentials (Original - Known Working)
+    private String tmnCode = "2QXUI4J4";
+    private String hashSecret = "SNPJOXZWBGTKSJRRMGFNKRFQPJGMRFGJ";
     private String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private String returnUrl = "http://localhost:3000/payment/return";
+    private String returnUrl = "http://localhost:5173/payment/return";
     private String ipnUrl = "http://localhost:8080/api/payments/vnpay/callback";
+
+    // Alternative demo credentials
+    // private String tmnCode = "TMNC";
+    // private String hashSecret = "SECRET_SHA256";
 
     public String getTmnCode() { return tmnCode; }
     public void setTmnCode(String tmnCode) { this.tmnCode = tmnCode; }

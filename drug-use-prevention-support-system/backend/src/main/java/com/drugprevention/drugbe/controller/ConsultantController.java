@@ -1,6 +1,7 @@
 package com.drugprevention.drugbe.controller;
 
 import com.drugprevention.drugbe.entity.User;
+import com.drugprevention.drugbe.dto.UserDTO;
 import com.drugprevention.drugbe.service.UserService;
 import com.drugprevention.drugbe.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +63,8 @@ public class ConsultantController {
     
     @GetMapping("/public/list")
     @Operation(summary = "Public endpoint to get all consultants", description = "Get list of all consultants without authentication")
-    public ResponseEntity<List<User>> getPublicConsultants() {
-        return ResponseEntity.ok(userService.findAllConsultants());
+    public ResponseEntity<List<UserDTO>> getPublicConsultants() {
+        return ResponseEntity.ok(userService.getConsultantsDTO());
     }
 
     // ===== NEW ENDPOINTS FOR APPOINTMENT BOOKING =====
@@ -88,7 +89,7 @@ public class ConsultantController {
             bookingInfo.put("expertise", consultant.getExpertise());
             bookingInfo.put("degree", consultant.getDegree());
             bookingInfo.put("bio", consultant.getBio());
-            bookingInfo.put("hourlyRate", 100.0); // Default hourly rate, can be made configurable
+            bookingInfo.put("hourlyRate", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() : 100000.0);
             bookingInfo.put("isActive", consultant.getIsActive());
             bookingInfo.put("consultationTypes", List.of("ONLINE", "IN_PERSON"));
 
@@ -202,12 +203,12 @@ public class ConsultantController {
             Map<String, Object> pricing = new HashMap<>();
             pricing.put("consultantId", consultantId);
             pricing.put("consultantName", consultant.getFirstName() + " " + consultant.getLastName());
-            pricing.put("hourlyRate", 100.0); // Default rate
+            pricing.put("hourlyRate", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() : 100000.0);
             pricing.put("pricingOptions", Map.of(
-                "30min", 50.0,
-                "60min", 100.0,
-                "90min", 150.0,
-                "120min", 200.0
+                "30min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 0.5 : 50000.0,
+                "60min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() : 100000.0,
+                "90min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 1.5 : 150000.0,
+                "120min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 2.0 : 200000.0
             ));
             pricing.put("currency", "VND");
             pricing.put("paymentMethods", List.of("VNPAY", "CASH", "BANK_TRANSFER"));
@@ -249,12 +250,12 @@ public class ConsultantController {
             bookingInfo.put("isActive", consultant.getIsActive());
             
             // Pricing information
-            bookingInfo.put("hourlyRate", 100.0);
+            bookingInfo.put("hourlyRate", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() : 100000.0);
             bookingInfo.put("pricingOptions", Map.of(
-                "30min", 50.0,
-                "60min", 100.0,
-                "90min", 150.0,
-                "120min", 200.0
+                "30min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 0.5 : 50000.0,
+                "60min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() : 100000.0,
+                "90min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 1.5 : 150000.0,
+                "120min", consultant.getConsultationFee() != null ? consultant.getConsultationFee().doubleValue() * 2.0 : 200000.0
             ));
             bookingInfo.put("currency", "VND");
             bookingInfo.put("paymentMethods", List.of("VNPAY", "CASH", "BANK_TRANSFER"));

@@ -10,16 +10,21 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor to add JWT token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Remove unsafe header that causes CORS issues
-    // config.headers['Accept-Charset'] = 'utf-8'; // Commented out - causes CORS error
+    console.log('🔍 Request:', config.method?.toUpperCase(), config.url);
     
+    // Add JWT token to all requests
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔍 JWT Token added to request');
+    } else {
+      console.log('🔍 No JWT token found in localStorage');
     }
+    
+    console.log('🔍 Headers:', config.headers);
     return config;
   },
   (error) => {

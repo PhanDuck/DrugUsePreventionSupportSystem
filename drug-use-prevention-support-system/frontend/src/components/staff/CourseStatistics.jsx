@@ -9,9 +9,10 @@ const CourseStatistics = ({ course }) => {
         <Col span={8}>
           <Card>
             <Statistic
-              title="Total Students"
-              value={course.currentParticipants || 0}
-              prefix={<UserOutlined />}
+              title="Current Enrollment"
+              value="Unlimited"
+              suffix="enrollment available"
+              valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>

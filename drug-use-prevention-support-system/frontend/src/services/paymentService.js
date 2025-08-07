@@ -1,91 +1,86 @@
-import api from '../config/axios';
+import apiClient from '../config/axios';
+import authService from './authService';
 
-class PaymentService {
-  
-  // ===== CREATE VNPAY PAYMENT =====
-  async createVNPayPayment(paymentData) {
+const paymentService = {
+  // Create VNPay payment for course enrollment
+  createCoursePayment: async (courseId, amount, description = 'Course enrollment payment') => {
     try {
-      const response = await api.post('/payments/vnpay/create', paymentData);
-      return {
-        success: true,
-        data: response.data
+      const currentUser = authService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+
+      const paymentData = {
+        courseId: courseId,
+        amount: amount,
+        userId: currentUser.id,
+        description: description,
+        type: 'COURSE'
       };
+
+      console.log('🔄 Creating VNPay payment:', paymentData);
+      
+      // For testing - use VNPay demo page
+      const useVnPayDemo = true; // Set to false to use real VNPay
+      
+      if (useVnPayDemo) {
+        console.log('🧪 Using VNPay Demo page for testing');
+        const demoUrl = `/vnpay-demo?courseId=${courseId}&amount=${amount}&courseName=${encodeURIComponent(description)}`;
+        return {
+          success: true,
+          data: {
+            paymentUrl: demoUrl,
+            paymentId: 'DEMO_' + Date.now()
+          }
+        };
+      }
+      
+      const response = await apiClient.post('/payments/vnpay/create', paymentData);
+      
+      console.log('📦 Backend response:', response.data);
+      
+      // Backend returns direct object, not wrapped in success/data
+      if (response.data && response.data.paymentUrl) {
+        console.log('✅ Payment URL created:', response.data.paymentUrl);
+        return {
+          success: true,
+          data: {
+            paymentUrl: response.data.paymentUrl,
+            paymentId: response.data.paymentId
+          }
+        };
+      } else {
+        throw new Error('Invalid payment response - no paymentUrl');
+      }
     } catch (error) {
-      console.error('Error creating VNPay payment:', error);
+      console.error('❌ Error creating payment:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Unable to create VNPay payment'
+        error: error.response?.data?.error || error.message
+      };
+    }
+  },
+
+  // Redirect to VNPay payment page
+  redirectToPayment: (paymentUrl) => {
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+    }
+  },
+
+  // Process payment return from VNPay
+  processPaymentReturn: async (params) => {
+    try {
+      const response = await apiClient.post('/payments/vnpay/return', params);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error processing payment return:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message
       };
     }
   }
+};
 
-  // ===== GET PAYMENT STATUS =====
-  async getPaymentStatus(paymentId) {
-    try {
-      const response = await api.get(`/payments/${paymentId}/status`);
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Error fetching payment status:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Unable to load payment status'
-      };
-    }
-  }
-
-  // ===== GET PAYMENT HISTORY =====
-  async getPaymentHistory(userId) {
-    try {
-      const response = await api.get(`/payments/history/${userId}`);
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Error fetching payment history:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Unable to load payment history'
-      };
-    }
-  }
-
-  // ===== REFUND PAYMENT =====
-  async refundPayment(paymentId, reason) {
-    try {
-      const response = await api.post(`/payments/${paymentId}/refund`, { reason });
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Error refunding payment:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Unable to refund payment'
-      };
-    }
-  }
-
-  // ===== GET PAYMENT STATISTICS =====
-  async getPaymentStatistics(period = 'month') {
-    try {
-      const response = await api.get(`/payments/statistics?period=${period}`);
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Error fetching payment statistics:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Unable to load payment statistics'
-      };
-    }
-  }
-}
-
-export default new PaymentService(); 
+export default paymentService; 
